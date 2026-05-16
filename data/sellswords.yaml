@@ -1,0 +1,59 @@
+# Necropolis sellswords — prefilled per rulebook (p.60, p.73-76).
+# Each sellsword may be added to your roster for the listed cost.
+# Only one sellsword may be deployed per gathering per scenario.
+
+- name: Peddler
+  type_keyword: Peddler — Blood/Bone/Plasm
+  cost: scenario only
+  base: 20–50 mm
+  flavor: A hunched relic bearer, a skeletal merchant dripping in medallions of silver.
+  stats: { AP: 2, M: 3, VIOL: 7+, RNGD: 7+, HP: 15 }
+  armaments: Improvised weapon
+  special_rules: |
+    May be summoned by any leader's Summon spell as if part of their gathering, but only within 1" of the caster. Cannot be summoned after being Shattered.
+
+- name: Desperate Rabble
+  type_keyword: Husk · Remnant · Blood/Bone/Plasm
+  cost: 10 roster / 20 deploy
+  base: 20–40 mm
+  flavor: With failing, incomplete forms cloaked in rags, these miserable denizens stumble ever forward.
+  stats: { AP: 2, M: 3, VIOL: 9+, RNGD: 9+, HP: 5 }
+  armaments: Improvised weapon
+  special_rules: |
+    Rabble. Deploy 3 Desperate Rabble models instead of 1 during the deployment step.
+
+    Weak Mind. These models can be affected by the Dominate spell as if they were NPCs (must be cast before activation).
+
+- name: Blightblade, Beast Hunter
+  type_keyword: Husk · Blood/Bone
+  cost: 30 roster / 20 deploy
+  base: 20–40 mm
+  flavor: Clad in armour of spikes and rings designed to break the claws of beasts and horrors.
+  stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 6+, HP: 10 }
+  armaments: Blighted Spear (2H polearm; +1 dmg vs Beast — damage becomes 1/4)
+  special_rules: |
+    Hunters Mail. Wears armour 1. If attacked with Claws and Fangs or Large Claws, attacker suffers 1 damage after the attack resolves.
+
+    Scout. Deploys last, may be placed anywhere on the board more than 8" from any enemy model.
+
+- name: Threefold Hunter of the Waste
+  type_keyword: Husk · Blood/Bone
+  cost: 30 roster / 20 deploy
+  base: 20–40 mm
+  flavor: Wielding strange blades of meteoric metal, these silent hunters have dedicated themselves to hunting down wielders of magic.
+  stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 6+, HP: 10 }
+  armaments: Ancient Blade (1H blade; +1 dmg vs Leader — damage becomes 1/4)
+  special_rules: |
+    Punishing Parry. If any model attacks this model with a 1H melee weapon, the attacker suffers 1 damage for each glance they roll.
+
+- name: Neoteric Arcuballista
+  type_keyword: Husk · Blood/Bone
+  cost: 30 roster / 30 deploy
+  base: 20–40 mm
+  flavor: A skeleton wreathed in the garb of a fallen empire carries an unwieldy projectile weapon of intricate design.
+  stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 6+, HP: 10 }
+  armaments: Arcuballista (2H; R16, A1, D2/8; AP 2 per shot, requires Reload action AP 1)
+  special_rules: |
+    Wears light armour (armour 1).
+
+    Reload (AP 1). After firing the Arcuballista, this action must be performed before it can be fired again.

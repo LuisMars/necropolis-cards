@@ -1,0 +1,50 @@
+# Leader profiles — rulebook v0.9, p.29-30.
+# Keyword: Blood/Bone/Plasm is chosen at warband creation, so we record the
+# fixed keyword block (e.g. "Blood/Bone/Plasm · Leader") and let the player
+# circle the actual covenant on the printed card.
+
+- name: Lich
+  type_keyword: Leader
+  keyword: Blood/Bone/Plasm
+  cost: 0 obols
+  base: 20–50 mm
+  lair: ""
+  stats: { AP: 2, M: 3, VIOL: 7+, RNGD: 7+, HP: 15 }
+  mana: 4
+  spells: Summon + 3
+  traits: 1 Basic Leader Trait
+  flavor: A rotten necromancer, an ancient lich, a phantasmal sorcerer.
+  special_rules: |
+    Caster. A lich cannot wear heavy armour or carry a shield.
+
+- name: Revenant
+  type_keyword: Leader
+  keyword: Blood/Bone/Plasm
+  cost: 0 obols
+  base: 20–50 mm
+  lair: ""
+  stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 7+, HP: 17 }
+  mana: 3
+  spells: Summon + 1
+  traits: 1 Basic Leader Trait
+  flavor: A desiccated knight, a barrow monarch, a spectral martyr.
+  special_rules: |
+    Ancient Skill. On an unmodified 10 on attack dice, the dice is a critical hit (+1 damage).
+
+    Fighter. A revenant can never gain more than 4 spells (including Summon) and 4 mana points.
+
+- name: Ascended Undead
+  type_keyword: Leader · Colossal
+  keyword: Blood/Bone/Plasm
+  cost: 225 obols
+  base: 40–60 mm
+  lair: ""
+  stats: { AP: 3, M: 3, VIOL: 5+, RNGD: 6+, HP: 25 }
+  mana: 5
+  spells: Summon + 3
+  traits: 1 Basic Leader Trait
+  flavor: An imposing pontiff of sewn corpses, a multi-limbed skeletal sorcerer-monarch, spectral death incarnate.
+  special_rules: |
+    Colossal. This model can only take weapons from the Colossal Weapon lists.
+
+    Threatening Aura. This model may take the Lurk action for 0 AP cost once per turn.

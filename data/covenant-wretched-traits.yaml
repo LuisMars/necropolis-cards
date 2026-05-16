@@ -1,0 +1,53 @@
+# Covenant Wretched Traits — rulebook v0.9 p.19-23. Each covenant allows one
+# minion to take this covenant-specific trait OR any trait from the regular
+# Wretched Undead list (wretched-undead-traits.yaml).
+#
+# Category is the bare "COVENANT TRAIT" so the footer band fits within trim.
+# Covenant name moved into `restrictions`.
+
+- category: COVENANT TRAIT
+  name: March of the Hands
+  restrictions: Embalmed Hands · Blood
+  sigil: ""
+  effect: |
+    Moving ever forward; the goddess's goals above all else.
+
+    On the first turn, before rolling for initiative, you may push this model 4".
+
+- category: COVENANT TRAIT
+  name: Adamant Structure
+  restrictions: Cairn-born · Bone
+  sigil: ""
+  effect: |
+    A body of ancient, blackened bone, nigh indestructible.
+
+    When this model "suffers" damage (falling, terrain, spellcasting), reduce that damage by 1, to a minimum of 1. This is not armour and has no effect against attacks.
+
+- category: COVENANT TRAIT
+  name: Mournful Curse
+  restrictions: The Crescent of Mourn · Plasm
+  sigil: ""
+  effect: |
+    When struck down this ghast burns attackers in a final burst of balefire.
+
+    When this model is Shattered, every model within 3" suffers 2 damage.
+
+- category: COVENANT TRAIT
+  name: Apprentice
+  restrictions: Recusant Maleficar · Husk
+  sigil: ""
+  effect: |
+    Few share knowledge freely in the Endless City — but some submit to eternal servitude to gain a glimpse of the truth.
+
+    Knows 1 spell shared with the gathering's leader. When spellcasting they use the gathering's mana pool. Arcane backlash on a channelling roll of 1-2.
+
+    Cannot be taken by a leader; max one per gathering.
+
+- category: COVENANT TRAIT
+  name: Eternal Loyalty
+  restrictions: Crawling-Dark · Remnant/Beast
+  sigil: ""
+  effect: |
+    Shielding the master with their own fragile form.
+
+    If within 3" of a friendly leader that is the target of an attack action, this model may become the target and is immediately Shattered before any dice are rolled. The targeted leader takes no damage.

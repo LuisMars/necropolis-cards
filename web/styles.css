@@ -1,0 +1,327 @@
+/* Necropolis Card Printer — screen + print styles. */
+
+/* Bundled card fonts — required for the SVG card text to render right.
+ * bundle.py copies these out of ~/.local/share/fonts at build time. */
+@font-face {
+  font-family: 'JSL Blackletter';
+  src: url('fonts/JBLACK.TTF') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya';
+  src: url('fonts/Alegreya-VF.ttf') format('truetype-variations');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya';
+  font-style: italic;
+  src: url('fonts/Alegreya-Italic-VF.ttf') format('truetype-variations');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya SC';
+  src: url('fonts/AlegreyaSC-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya SC';
+  font-weight: bold;
+  src: url('fonts/AlegreyaSC-Bold.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya SC';
+  font-style: italic;
+  src: url('fonts/AlegreyaSC-Italic.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya SC';
+  font-style: italic;
+  font-weight: bold;
+  src: url('fonts/AlegreyaSC-BoldItalic.ttf') format('truetype');
+  font-display: swap;
+}
+
+:root {
+  --bg: #1a1a1f;
+  --panel: #25252c;
+  --panel2: #2f2f37;
+  --panel3: #383841;
+  --border: #44444c;
+  --text: #e8e8ec;
+  --muted: #9a9aa4;
+  --accent: #d4a86a;
+  --good: #5ac985;
+  --bad: #c95a5a;
+  --warn: #d4b86a;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; min-height: 100%;
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, system-ui, "Segoe UI", sans-serif; font-size: 15px;
+  line-height: 1.4;
+}
+
+/* === app shell === */
+header.app {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+header.app h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.3px;}
+header.app h1 span { color: var(--accent); }
+nav.tabs { display: flex; gap: 4px; }
+nav.tabs button {
+  background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 4px; padding: 7px 14px; cursor: pointer; font: inherit; font-size: 14px;
+}
+nav.tabs button.active { background: var(--accent); color: #1a1a1f; border-color: var(--accent); font-weight: 600; }
+nav.tabs button:hover:not(.active) { background: var(--panel3); }
+header.app .spacer { flex: 1; }
+header.app .badge {
+  background: var(--accent); color: #1a1a1f; padding: 4px 12px;
+  border-radius: 10px; font-size: 13px; font-weight: 600;
+}
+header.app button.print-btn {
+  background: var(--good); color: #1a1a1f; border: none;
+  padding: 7px 16px; border-radius: 4px; cursor: pointer; font: inherit;
+  font-size: 14px; font-weight: 600;
+}
+
+main { padding: 16px; max-width: 1400px; margin: 0 auto; }
+/* Tabs are kept in flow but moved off-screen when not active. Using
+ * `display:none` makes browsers collapse the subtree's layout, which
+ * means SVGs inside the hidden print tab don't get sized until the user
+ * visits the tab — that broke print preview (the @media print rule
+ * flipped display to block but the layout was still 0×0). Off-screen
+ * positioning keeps every tab fully laid out at all times. */
+section.tab {
+  position: absolute; left: -10000px; top: 0;
+  width: calc(100% - 32px);
+  visibility: hidden; pointer-events: none;
+}
+section.tab.active {
+  position: static; visibility: visible; pointer-events: auto;
+  width: auto;
+}
+
+/* === buttons === */
+button.primary {
+  background: var(--accent); color: #1a1a1f; border: none;
+  padding: 10px 22px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 15px; font-weight: 600;
+}
+button.primary:hover { background: #e6bb78; }
+button.secondary {
+  background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+  padding: 8px 14px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 14px;
+}
+button.secondary:hover { background: var(--panel3); }
+
+/* === Import tab === */
+.row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+.row.col { flex-direction: column; }
+textarea.json-in {
+  width: 100%; min-height: 240px; background: var(--panel);
+  color: var(--text); border: 1px solid var(--border); border-radius: 4px;
+  padding: 10px; font: inherit; font-family: ui-monospace, Menlo, monospace; font-size: 13px;
+  resize: vertical;
+}
+.match-list { display: flex; flex-direction: column; gap: 4px; margin-top: 14px; }
+.match-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px; background: var(--panel); border-radius: 4px;
+  border-left: 3px solid var(--muted);
+}
+.match-row.matched { border-left-color: var(--good); }
+.match-row.fuzzy { border-left-color: var(--warn); }
+.match-row.unmatched { border-left-color: var(--bad); }
+.match-row .badge {
+  font-size: 11px; padding: 2px 7px; border-radius: 3px;
+  background: var(--panel3); color: var(--muted);
+}
+.match-row .source { color: var(--muted); font-size: 13px; }
+.match-row .arrow { color: var(--muted); }
+.match-row .target { color: var(--accent); }
+
+/* === Library tab === */
+.lib-toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+.lib-toolbar input[type=text], .lib-toolbar select {
+  background: var(--panel); color: var(--text); border: 1px solid var(--border);
+  padding: 7px 12px; border-radius: 4px; font: inherit; font-size: 14px;
+}
+.lib-toolbar input[type=text] { min-width: 280px; }
+.lib-grid {
+  display: grid; gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.lib-tile {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 4px;
+  padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  font-size: 15px;
+}
+.lib-tile:hover { background: var(--panel2); border-color: var(--accent); }
+.lib-tile .cat {
+  font-size: 11px; text-transform: uppercase; color: var(--muted);
+  background: var(--panel2); padding: 3px 7px; border-radius: 3px;
+  width: 140px; flex-shrink: 0;
+}
+.lib-tile .name { flex: 1; font-size: 16px; font-weight: 500; }
+.lib-tile .add { color: var(--good); font-weight: 600; }
+
+/* === Print tab === */
+.queue-panel { display: flex; gap: 16px; align-items: flex-start; }
+.queue-list {
+  width: 400px; flex-shrink: 0; background: var(--panel);
+  border: 1px solid var(--border); border-radius: 4px; padding: 12px;
+  max-height: 80vh; overflow-y: auto;
+}
+.queue-item {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  border-bottom: 1px solid #2a2a30; font-size: 16px;
+}
+.queue-item:last-child { border-bottom: none; }
+.queue-item .cat { font-size: 12px; text-transform: uppercase; color: var(--muted); width: 120px; flex-shrink: 0; }
+.queue-item .name {
+  flex: 1; font-size: 16px; font-weight: 500;
+  cursor: text; padding: 2px 4px; border-radius: 3px;
+  outline: 1px solid transparent;
+}
+.queue-item .name:hover { outline-color: var(--border); }
+.queue-item .name:focus { outline-color: var(--accent); background: var(--panel2); }
+
+/* Per-card edit panel — appears under a queue item when its ▾ is toggled. */
+.queue-item-wrap { display: flex; flex-direction: column; }
+.queue-edit {
+  background: var(--panel2); border-bottom: 1px solid #2a2a30;
+  padding: 10px 14px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.queue-edit-row { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.queue-edit-row label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--muted);
+}
+.queue-edit-row input,
+.queue-edit-row textarea {
+  background: var(--panel); color: var(--text);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 4px 6px; font: inherit; font-size: 13px;
+  width: 100%; box-sizing: border-box;
+}
+.queue-edit-row textarea {
+  resize: vertical; font-family: ui-monospace, Menlo, monospace;
+  font-size: 12px; line-height: 1.4;
+}
+.queue-item .edit-btn { font-size: 14px; }
+.queue-item button {
+  background: transparent; color: var(--muted); border: none; cursor: pointer;
+  font-size: 18px; padding: 4px 8px;
+}
+.queue-item button:hover { color: var(--bad); }
+
+.print-area { flex: 1; }
+.print-toolbar {
+  margin-bottom: 8px; display: flex; gap: 10px; align-items: center;
+  color: var(--muted); font-size: 14px;
+}
+.print-toolbar label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+
+.empty-msg {
+  color: var(--muted); text-align: center; padding: 60px 20px;
+  background: var(--panel); border-radius: 4px; border: 1px dashed var(--border);
+}
+
+/* === A4 sheets — same markup is used on-screen and in the print dialog.
+ *
+ * Card size is always 63 × 88 mm (the trim — what the player sees after
+ * cutting). The `.cut-gap` modifier just controls whether the 3 × 3 grid
+ * has a 4 mm gap between cards (for scissor cutting) or has them butted
+ * (default). The SVG viewBox is also cropped to trim, so on-screen
+ * preview matches the printed result 1:1.
+ */
+.sheets-wrap { background: #1a1a1f; padding: 16px 0; }
+.sheet {
+  width: 210mm; height: 297mm; background: #ffffff; color: #000;
+  margin: 0 auto 12mm; padding: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  position: relative; overflow: hidden;
+  page-break-after: always; break-after: page;
+  display: grid;
+  grid-template-columns: repeat(3, 63mm);
+  grid-template-rows: repeat(3, 88mm);
+  justify-content: center; align-content: center;
+  gap: 0;
+}
+.sheet.cut-gap { gap: 4mm; }
+.sheet > .card {
+  width: 63mm; height: 88mm; overflow: hidden;
+  box-sizing: border-box;
+  /* Hairline cut guide. `outline` doesn't take space, so butted cards
+   * stack their outlines into a single 1-pixel grid; gap-mode cards each
+   * get their own rectangle. Inset slightly so the line sits exactly on
+   * the trim edge rather than just outside it. Light grey so the guide
+   * is visible enough to follow but doesn't ink the printed card edge. */
+  outline: 0.1mm solid #bbb;
+  outline-offset: -0.05mm;
+}
+/* Templates were designed in 69 × 94 mm bleed coordinates, but standard
+ * TCG sleeves are 63 × 88 mm. The SVG keeps its viewBox so element
+ * positions don't shift and `preserveAspectRatio="none"` (set in JS)
+ * lets the content scale to fill the smaller card exactly. */
+.sheet > .card svg { display: block; width: 100%; height: 100%; }
+.sheet > .card.empty { background: transparent; outline: none; }
+.sheet-num {
+  position: absolute; right: 6mm; top: 6mm; font-size: 9px;
+  color: #aaa; font-family: ui-monospace, Menlo, monospace;
+}
+
+/* === Footer ===
+ * Credit / disclaimer block. Centred, muted, hidden in print so it
+ * doesn't leak onto sheets. */
+footer.app-foot {
+  max-width: 720px; margin: 32px auto 24px; padding: 16px;
+  color: var(--muted); font-size: 13px; line-height: 1.45;
+  text-align: center; border-top: 1px solid var(--border);
+}
+footer.app-foot a { color: var(--accent); }
+footer.app-foot p { margin: 0 0 8px; }
+footer.app-foot .muted { font-size: 12px; opacity: 0.7; }
+
+/* === Print media ===
+ *
+ * Hide everything except the sheets, then render each sheet on its own
+ * physical A4 page. The body padding/margin tricks have to be reset or
+ * the print dialog adds whatever it inherits from the viewport.
+ */
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+  html, body {
+    width: 210mm; height: auto;
+    margin: 0 !important; padding: 0 !important;
+    background: white; color: black;
+  }
+  /* Hide everything except the print tab and the sheets inside. */
+  header.app, .queue-list, .print-toolbar, .sheet-num, footer.app-foot,
+  section.tab[data-tab="import"], section.tab[data-tab="library"] {
+    display: none !important;
+  }
+  main { padding: 0 !important; max-width: none !important; margin: 0 !important; }
+  section.tab[data-tab="print"] {
+    position: static !important; left: auto !important; top: auto !important;
+    visibility: visible !important; pointer-events: auto !important;
+    width: auto !important; display: block !important; padding: 0 !important;
+  }
+  .queue-panel { display: block !important; }
+  .print-area { width: 100% !important; }
+  .sheets-wrap { padding: 0; background: white; }
+  .sheet {
+    width: 210mm; height: 297mm;
+    margin: 0 !important;
+    box-shadow: none;
+    page-break-after: always; break-after: page;
+  }
+  .sheet:last-child { page-break-after: auto; break-after: auto; }
+}

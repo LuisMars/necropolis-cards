@@ -1,0 +1,82 @@
+# Scenarios from WIP Necropolis Rules 0.9 (pp. 56-60).
+# Body fields are wrapped at 45 chars × maxlines configured in
+# templates/mission.svg; longer rulebook scenarios with sub-tables
+# (Ancient Horror, The Hidden Stash) are condensed — players should
+# consult the book for the full random table.
+
+- category: MISSION
+  name: Secure the Artefacts
+  flavor: Caches of treasure from the age of the living still sit in the darkness of the ruins.
+  objectives: |
+    Place 3 objectives: 1 in the centre of the board and 2 placed 3" from the table edges in opposite corners. Any leader that ends their activation next to an objective gains a mana dice of any kind.
+  deployment: Follow the normal rules for deployment. Players may not deploy in the corners containing objectives.
+  victory: |
+    Each gathering controls an objective if it has the most models in base-to-base contact. The gathering with the most controlled objectives at the end of 5 turns wins.
+
+- category: MISSION
+  name: Strike down the Rival
+  flavor: Nothing is more offensive to those who seek power than others on the same path.
+  objectives: |
+    Players alternate placing 3 mana tokens each, at least 3" from a board edge and 3" from any other token. When a model picks up a mana token, roll a d10: 1–2 it suffers 1 damage, 3–10 it restores 1 HP.
+  deployment: Follow the normal rules for deployment.
+  victory: |
+    The gathering that shatters the rival leader wins; the game ends at the end of the current turn. If neither leader is shattered after 5 turns, the gathering with their leader closer to the centre wins.
+
+- category: MISSION
+  name: Relic Hunters
+  flavor: A book, an ancient wine, a mote of comfort — all worth fighting for.
+  objectives: |
+    Alternate placing 2 relic tokens per player, plus 1 additional relic in the centre. Relics must be 3" apart and 3" from any board edge.
+  deployment: |
+    Roll off; winner picks a corner, opponent takes the opposite. Alternate placing a model touching both table edges, then alternate placing models touching a table edge and a friendly base or two friendly bases.
+  victory: The gathering carrying the most relics after 5 turns wins.
+
+- category: MISSION
+  name: Ancient Horror
+  flavor: An undead weapon, a rampaging beast, bringing renown to those who dare its lair.
+  objectives: |
+    Deploy a Gigantic Horror NPC armed with a colossal weapon in the centre; it has 5 armour. Alternate placing 2 objectives per player + 1 in the centre, 3" apart and 3" from any board edge. Models base-to-base with an objective may take "Investigate Lair Detritus" (AP 1) to roll on the rulebook's lair table.
+  deployment: Follow the normal rules for deployment.
+  victory: The gathering that deals the most damage to the Horror by the end of 5 turns wins.
+
+- category: MISSION
+  name: Claim the Mellified Corpse
+  flavor: Unblemished flesh steeped in sweet honey, the most valuable commodity in a dead world.
+  objectives: Place an objective in the centre of the board, preferably a honeyed corpse.
+  deployment: Follow the normal rules for deployment.
+  victory: |
+    To claim the corpse a leader must be within 3" of it at the end of 5 turns. If both leaders are within 3", the player with more friendly models within 3" wins.
+
+- category: MISSION
+  name: The Horde
+  flavor: A petty band of masterless dead swarms, malevolent and lost in the darkness.
+  objectives: |
+    After deployment, players alternate placing 3 NPC Husk minions each (6 total in a 2-player game) at least 6" from any player model and 2" from each other. All NPCs are armed with any 1h weapon both players agree on.
+  deployment: Follow the normal rules for deployment.
+  victory: The player that causes the most models to become Shattered by the end of 5 turns wins.
+
+- category: MISSION
+  name: The Hidden Stash
+  flavor: Great treasure, hidden and protected by ancient hands.
+  objectives: |
+    Alternate placing 2 objectives per player + 1 in the centre, 3" apart and 3" from any board edge. Models base-to-base with an objective may take "Pick Up Relic" — remove it and roll on the rulebook's stash table (traps, restless minions, mana wisps, or hidden treasure).
+  deployment: Follow the normal rules for deployment.
+  victory: The gathering carrying the most relics after 5 turns wins. Shattered models drop their relics.
+
+- category: MISSION
+  name: Curse-Wormed Relics
+  flavor: What would you trade for ascendancy?
+  objectives: |
+    Place a relic in the centre of the board, then alternate placing 2 relics per player. Relics must be 3" apart and 3" from any board edge. Each relic carried improves AP by 1 (max 4 AP), but on each activation roll d10: on 9+ (5+ if carrying 2+) the model is Shattered in a shower of embers.
+  deployment: Follow the normal rules for deployment.
+  victory: The gathering carrying the most relics after 5 turns wins. Shattered models drop their relics.
+
+- category: MISSION
+  name: Escort the Relic Peddler
+  flavor: Protection has its benefits — and so does taking the relics from the peddler's shattered body.
+  objectives: |
+    Roll off; winner chooses attacker or defender. The defender adds a Peddler (Base 20–50 mm, Keyword Blood/Bone/Plasm Peddler, AP 2 M 3 V 7+ R 7+ HP 15) to their gathering, armed with an improvised weapon. Defender may Summon the Peddler, but only within 1" of the caster.
+  deployment: |
+    Defender chooses a corner; attacker takes the 2 adjacent corners. Alternate placing models touching both table edges, then a table edge plus a friendly base. Attacker deploys freely between their corners.
+  victory: |
+    Defender wins if the Peddler touches both board edges of a corner on the opposite side. Attacker wins if the Peddler has not achieved this by the end of 6 turns.

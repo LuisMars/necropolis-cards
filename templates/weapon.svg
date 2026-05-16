@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="63mm" height="88mm" viewBox="0 0 63 88" data-edit-idx="0">
+  <defs data-edit-idx="1">
+    <style data-edit-idx="2">
+      .parchment   { fill: #ffffff; }
+      .banner-title{ font-family: 'JSL Blackletter', serif; font-size: 4.681px; fill: #ffffff; text-anchor: middle; }
+      .name        { font-family: 'JSL Blackletter', serif; font-size: 6.553px; fill: #000000; text-anchor: middle; }
+      .category    { font-family: 'Alegreya SC', serif; font-size: 2.996px; fill: #333333; text-anchor: middle; letter-spacing: 0.468px; font-style: italic; }
+      .label       { font-family: 'Alegreya SC', serif; font-size: 2.06px; fill: #000000; font-weight: bold; letter-spacing: 0.374px; text-anchor: middle; }
+      .stat-num    { font-family: 'Alegreya', serif; font-size: 6.553px; fill: #000000; font-weight: bold; text-anchor: middle; }
+      .heading     { font-family: 'Alegreya SC', serif; font-size: 2.621px; fill: #000000; font-weight: bold; letter-spacing: 0.374px; }
+      .flavor      { font-family: 'Alegreya', serif; font-size: 2.809px; font-style: italic; fill: #444444; text-anchor: middle; }
+      .body        { font-family: 'Alegreya', serif; font-size: 2.809px; fill: #000000; }
+      .meta        { font-family: 'Alegreya SC', serif; font-size: 2.247px; fill: #000000; letter-spacing: 0.281px; }
+      .footer      { font-family: 'Alegreya SC', serif; font-size: 2.434px; fill: #444444; text-anchor: middle; letter-spacing: 0.562px; }
+      .divider     { fill: none; stroke: #000000; stroke-width: 0.187; }
+    </style>
+  </defs>
+
+  <rect class="parchment" x="0" y="0" width="63" height="88" data-edit-idx="3"/>
+
+  <!-- SPLOTCHES -->
+
+  <image xlink:href="file:///home/luismars/necropolis-images/alpha/img-029-048-alpha.png" x="-2.557" y="-2.715" width="67.565" height="18.443" preserveAspectRatio="none" data-edit-idx="4"/>
+  <text class="banner-title" x="31.5" y="8.8" style="font-size: 7.489px;" data-edit-idx="5">{{HEADER}}</text>
+
+  <!-- Name and category — name auto-wraps to 2 lines if too long -->
+  <text class="name" x="31.5" y="20.596" data-edit-idx="6">{{NAME}}</text>
+  <text class="category" x="31.5" y="29.021" data-edit-idx="7">{{CATEGORY}}</text>
+
+  <line class="divider" x1="4.565" y1="32.766" x2="58.435" y2="32.766" data-edit-idx="8"/>
+
+  <!-- Stat triplet: Range · Attacks · Damage -->
+  <text class="stat-num" x="13.239" y="41.191" data-edit-idx="9">{{RANGE}}</text>
+  <text class="stat-num" x="31.5" y="41.191" data-edit-idx="10">{{ATTACKS}}</text>
+  <text class="stat-num" x="49.761" y="41.191" data-edit-idx="11">{{DAMAGE}}</text>
+
+  <text class="label" x="13.239" y="45.872" data-edit-idx="12">RANGE</text>
+  <text class="label" x="31.5" y="45.872" data-edit-idx="13">ATTACKS</text>
+  <text class="label" x="49.761" y="45.872" data-edit-idx="14">DAMAGE  G / H</text>
+
+  <line class="divider" x1="4.565" y1="48.681" x2="58.435" y2="48.681" data-edit-idx="15"/>
+
+  <!-- Cost -->
+  <text class="meta" x="4.565" y="53.362" data-edit-idx="16">COST</text>
+  <text class="body" x="18.261" y="53.362" data-edit-idx="17">{{COST}}</text>
+
+  <!-- Flavor (widened to 44 chars × 3 lines so longer descriptions fit) -->
+  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=58.043 lineheight=3.745 width=45chars maxlines=3 style=flavor anchor=middle -->
+
+  <!-- Special -->
+  <line class="divider" x1="4.565" y1="70.213" x2="58.435" y2="70.213" data-edit-idx="18"/>
+  <text class="heading" x="4.565" y="73.957" data-edit-idx="19">SPECIAL</text>
+  <!-- BODY_BLOCK: SPECIAL @ x=4.565 y=78.17 lineheight=3.745 width=45chars maxlines=3 -->
+
+</svg>

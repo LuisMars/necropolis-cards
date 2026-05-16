@@ -1,0 +1,28 @@
+# Armours and shields.
+
+- name: Light Armour
+  category: Armour
+  cost: 20 obols
+  armour: 1
+  flavor: A tattered gambeson, crumbling scalemail, robes sewn with protective sigils.
+  effect: —
+- name: Heavy Armour
+  category: Armour
+  cost: 50 obols
+  armour: 2
+  flavor: Plate of blackened metals, a twisted covering of ensorcelled bone, winged armour long faded.
+  effect: —
+- name: Shield
+  category: Shield · requires 1-handed weapon
+  cost: 10 obols
+  armour: 1
+  flavor: A heater stuck with a dozen arrows, a roundel carved with prayers, a broken buckler.
+  effect: —
+- name: Great Shield
+  category: Shield · requires 1-handed weapon
+  cost: 20 obols
+  armour: 1
+  flavor: A faded crimson pavise, a pitted greatshield, a small door dragged as cover.
+  effect: '+1 armour against attack actions from ranged weapons. The model cannot be pushed by attacks from ranged attack actions.
+
+    '

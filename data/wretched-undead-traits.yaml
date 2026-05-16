@@ -1,0 +1,120 @@
+# Wretched Undead Traits — rulebook v0.9 p.24-26.
+# Pick TWO and assign each to a model (or both to one model, within trait
+# limits). Restrictions field repeats the rulebook's keyword line.
+
+- category: TRAIT
+  name: Acolyte
+  restrictions: Blood/Bone/Plasm
+  sigil: ""
+  effect: |
+    Bending the soul itself in service of a master.
+
+    Grants the action — Chant (AP 2): praying, chanting and drawing forth wisps of mana. The gathering receives an additional mana dice of any type for its mana pool.
+
+- category: TRAIT
+  name: Balefire Body
+  restrictions: Plasm
+  sigil: ""
+  effect: |
+    A form of balefire that leaves all scorched in its wake.
+
+    If this model moves or is pushed over or through an enemy model, that model suffers 1 damage. An enemy model can only suffer this damage once per move or push action.
+
+- category: TRAIT
+  name: Breaking Wheel
+  restrictions: Blood/Bone
+  sigil: ""
+  effect: |
+    Broken on the wheel and braided within.
+
+    If this model moves so that its base is touching an enemy model, that model suffers 2 damage. This model then suffers 1 damage. Only 1 enemy model can suffer this damage once per move activation.
+
+- category: TRAIT
+  name: Filthy or Shrouded
+  restrictions: Blood/Bone/Plasm
+  sigil: ""
+  effect: |
+    Obscured by grime and filth or shrouded in mystical darkness.
+
+    If this model is targeted by an attack or spell action from over 5" away, it is deemed obscured (attacker takes -1 to their violence/ranged roll). This bonus cannot stack with terrain-obscured.
+
+- category: TRAIT
+  name: Fulminate
+  restrictions: Blood/Bone/Plasm
+  sigil: ""
+  effect: |
+    Coated in pitch or inscribed with sigils of cinders.
+
+    Grants the action — Fulminate (AP 1): every model within 3" of this model suffers 3 damage. This model is then Shattered. This model cannot be summoned after completing this action.
+
+- category: TRAIT
+  name: Fungal Bloom
+  restrictions: Blood/Bone
+  sigil: ""
+  effect: |
+    Covered in fungal colonies and mushrooms that fill the air with acidic spores.
+
+    On activation, you may choose a single model within 3" of this model; it suffers 1 damage.
+
+- category: TRAIT
+  name: Gnarled
+  restrictions: Blood/Bone
+  sigil: ""
+  effect: |
+    Grown through with branch and bramble.
+
+    Once per game, when this model is targeted by an attack action, it receives +2 armour for the duration of that action.
+
+- category: TRAIT
+  name: Grafted or Many Limbed
+  restrictions: Blood/Bone/Plasm
+  sigil: ""
+  effect: |
+    Twisting additional limbs for work and war.
+
+    On a single melee attack action per game, this model receives +1 attacks to one weapon it has.
+
+- category: TRAIT
+  name: Ineffable Dead
+  restrictions: Blood/Bone/Plasm
+  sigil: ""
+  effect: |
+    Indescribable forms wind and twist, defying reality.
+
+    Reduce the distance this model is pushed by 1", to a minimum of 1".
+
+- category: TRAIT
+  name: Purloiner
+  restrictions: Blood/Bone/Plasm
+  sigil: ""
+  effect: |
+    A thief by guile or threats — both yield profit.
+
+    After each scenario, roll a d10. If equal or lower than this model's move characteristic, gain d10 obols.
+
+- category: TRAIT
+  name: Skitter
+  restrictions: Blood/Bone
+  sigil: ""
+  effect: |
+    Preternatural speed — leaping, running and vaulting like quicksilver.
+
+    +1 move. Ignores falling damage when falling from 3" or lower. Falling damage still applies to any model it lands on in base-to-base contact.
+
+- category: TRAIT
+  name: Sluglike or Fleshy Amalgam
+  restrictions: Blood/Bone
+  sigil: ""
+  effect: |
+    A form so twisted it resembles a slug.
+
+    Movement up or down a vertical surface counts as half the distance for this model. A 4" move up a wall becomes a 2" climb.
+
+- category: TRAIT
+  name: Voices from the Firmament
+  restrictions: Leader · Blood/Bone/Plasm
+  sigil: ""
+  effect: |
+    Mouths sprout across bone, flesh and plasm.
+
+    Grants the action — Speak (AP 1): choose a single model within 5" and push it 1".

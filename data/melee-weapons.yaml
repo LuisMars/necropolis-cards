@@ -1,0 +1,82 @@
+# Melee weapons — 1-handed and 2-handed.
+
+- name: Improvised Weapon
+  category: Melee · 1-handed
+  cost: —
+  range: 1
+  attacks: 2
+  damage: 1 / 3
+  flavor: A fractured femur, a broken claw, hands of wisping smoke.
+  special: —
+- name: Blade
+  category: Melee · 1-handed
+  cost: 10 obols
+  range: 1
+  attacks: 3
+  damage: 1 / 3
+  flavor: A cursed arming sword, a pitted falchion, a hilt spouting condensed balefire.
+  special: +1 armour against Attack actions from melee weapons.
+- name: Axe
+  category: Melee · 1-handed
+  cost: 10 obols
+  range: 1
+  attacks: 3
+  damage: 1 / 3
+  flavor: A dusty horseman's axe, a rusted warpick, sharpened steel nailed to flesh.
+  special: Ignore 1 armour.
+- name: Bludgeon
+  category: Melee · 1-handed
+  cost: 10 obols
+  range: 1
+  attacks: 3
+  damage: 1 / 3
+  flavor: A flanged mace, a tangled flail, a billowing sulphuric censer.
+  special: May Push 2" on hit instead of 1".
+- name: Light Polearm
+  category: Melee · 1-handed
+  cost: 10 obols
+  range: 2
+  attacks: 3
+  damage: 1 / 3
+  flavor: A short boar spear, a doomrot staff, a pole of verdigris bronze.
+  special: —
+- name: Heavy Polearm
+  category: Melee · 2-handed
+  cost: 20 obols
+  range: 2
+  attacks: 3
+  damage: 1 / 4
+  flavor: A corroded bardiche, a broken pike, a greatspear bound in azure.
+  special: —
+- name: Great Weapon
+  category: Melee · 2-handed
+  cost: 35 obols
+  range: 1
+  attacks: 2
+  damage: 2 / 6
+  flavor: A sigil-encrusted greatsword, the axe of an executioner, a brutal maul.
+  special: —
+- name: Dual Hand Weapons
+  category: Melee · 2-handed
+  cost: 35 obols
+  range: 1
+  attacks: 4
+  damage: 1 / 3
+  flavor: A pair of tarnished warhammers, a collection of cruel knives, two ancient spearheads.
+  special: −1 to Violence rolls.
+- name: Claws and Fangs
+  category: Melee · 2-handed
+  cost: 5 obols
+  range: 1
+  attacks: 3
+  damage: 1 / 3
+  flavor: Gnashing fangs, claws dripping in ichor, a gaping maw of unnatural teeth.
+  special: —
+- name: Large Claws
+  category: Melee · 2-handed
+  cost: 35 obols
+  range: 1
+  attacks: 2
+  damage: 2 / 6
+  flavor: Claws like blades, stinking bearlike jaws, the crush of preternatural strength.
+  special: —

@@ -1,0 +1,72 @@
+# Basic Leader Traits — rulebook v0.9 p.30 (10 entries, I–X).
+# Every leader chooses 1 Basic Leader Trait at warband creation.
+
+- category: BASIC LEADER TRAIT
+  name: Unyielding Will
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Gain +2 max HP.
+
+- category: BASIC LEADER TRAIT
+  name: Combatant
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Improve violence by 1 (e.g. 7+ becomes 6+).
+
+- category: BASIC LEADER TRAIT
+  name: Perceptive
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Improve ranged by 1 (e.g. 7+ becomes 6+).
+
+- category: BASIC LEADER TRAIT
+  name: Celerity
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Improve move by 1.
+
+- category: BASIC LEADER TRAIT
+  name: Stalwart
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Reduce the distance this model is pushed by 1", to a minimum of 1".
+
+- category: BASIC LEADER TRAIT
+  name: Sorcerous Talent
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Choose an additional mana point of any type.
+
+- category: BASIC LEADER TRAIT
+  name: Studious
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Choose an additional spell of any type.
+
+- category: BASIC LEADER TRAIT
+  name: Regenerating Soul
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Each time this leader activates, they restore 1 HP.
+
+- category: BASIC LEADER TRAIT
+  name: Spirit Syphon
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    If the leader inflicts any damage with melee attack actions, they restore 2 HP at the end of their activation.
+
+- category: BASIC LEADER TRAIT
+  name: Miserly
+  restrictions: Leader
+  sigil: ""
+  effect: |
+    Receive 50 obols. Note this does not increase your initial deployment limit.

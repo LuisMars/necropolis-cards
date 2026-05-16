@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="63mm" height="88mm" viewBox="0 0 63 88" data-edit-idx="0">
+  <defs data-edit-idx="1">
+    <style data-edit-idx="2">
+      .bg-fill  { fill: #1a1a1a; }
+      .bg-name  { font-family: 'JSL Blackletter', serif; font-size: 9px; fill: #ffffff; text-anchor: middle; }
+      .bg-sub   { font-family: 'Alegreya SC', serif; font-size: 2.4px; fill: #cccccc; text-anchor: middle; letter-spacing: 1.5px; font-style: italic; }
+      .bg-frame { fill: none; stroke: #cccccc; stroke-width: 0.2; }
+    </style>
+  </defs>
+
+  <!-- Solid dark background — the sleeves face up showing the gothic name. -->
+  <rect class="bg-fill" x="0" y="0" width="63" height="88" data-edit-idx="3"/>
+
+  <!-- Faded skull-and-thorns motif, centred. Slightly bigger than the
+       card so the edges feather past the trim and look organic. -->
+  <image xlink:href="file:///home/luismars/necropolis-images/alpha/img-029-049-alpha.png"
+         x="-9" y="14" width="81" height="56"
+         preserveAspectRatio="xMidYMid meet" opacity="0.55" data-edit-idx="4"/>
+
+  <!-- Banner splatter across the middle, behind the wordmark. -->
+  <image xlink:href="file:///home/luismars/necropolis-images/alpha/img-029-048-alpha.png"
+         x="-2" y="38" width="67" height="13"
+         preserveAspectRatio="none" opacity="0.45" data-edit-idx="5"/>
+
+  <text class="bg-name" x="31.5" y="46.5" data-edit-idx="6">Necropolis</text>
+  <text class="bg-sub"  x="31.5" y="52"   data-edit-idx="7">A Diorama Skirmish Game</text>
+
+  <!-- Thin frame just inside the trim, mirroring the front-of-card cut guide. -->
+  <rect class="bg-frame" x="2" y="2" width="59" height="84" data-edit-idx="8"/>
+</svg>

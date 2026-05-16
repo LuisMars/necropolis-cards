@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Necropolis Card Printer</title>
+<link rel="preload" href="fonts/JBLACK.TTF"          as="font" type="font/ttf" crossorigin="anonymous">
+<link rel="preload" href="fonts/Alegreya-VF.ttf"     as="font" type="font/ttf" crossorigin="anonymous">
+<link rel="preload" href="fonts/AlegreyaSC-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+<link rel="preload" href="fonts/AlegreyaSC-Bold.ttf"    as="font" type="font/ttf" crossorigin="anonymous">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="app">
+  <h1>Necropolis <span>Card Printer</span></h1>
+  <nav class="tabs">
+    <button data-tab="import" class="active">Import</button>
+    <button data-tab="library">Library</button>
+    <button data-tab="print">Print</button>
+  </nav>
+  <span class="spacer"></span>
+  <span class="badge"><span id="queue-count">0</span> in queue</span>
+  <button class="print-btn" id="global-print-btn">⎙ Print</button>
+</header>
+
+<main>
+
+  <section class="tab active" data-tab="import">
+    <div class="row col">
+      <p style="color:var(--muted); margin:0 0 6px;">
+        Paste a JSON export from the
+        <a href="https://necropolis28.vercel.app/" target="_blank" style="color:var(--accent)">Necropolis Companion App</a>.
+        Each entry is matched against the printable card library; matches are added to the print queue.
+      </p>
+      <textarea id="json-in" class="json-in" placeholder='{"covenant": "…", "gathering": [...]}'></textarea>
+      <div style="display:flex; gap:8px;">
+        <button class="primary" id="parse-btn">Parse &amp; add to queue</button>
+        <button class="secondary" id="sample-btn">Load sample</button>
+        <button class="secondary" id="clear-queue-btn">Clear queue</button>
+      </div>
+    </div>
+    <div id="match-list" class="match-list"></div>
+  </section>
+
+  <section class="tab" data-tab="library">
+    <div class="lib-toolbar">
+      <input type="text" id="lib-search" placeholder="Filter by name…">
+      <select id="lib-category"><option value="">All categories</option></select>
+      <span style="color:var(--muted); font-size:11px;" id="lib-count"></span>
+    </div>
+    <div id="lib-grid" class="lib-grid"></div>
+  </section>
+
+  <section class="tab" data-tab="print">
+    <div class="print-toolbar">
+      <label><input type="checkbox" id="bleed-toggle"> add gap between cards</label>
+      <label><input type="checkbox" id="backs-toggle"> print card backs</label>
+      <span style="color:var(--muted)">·</span>
+      <span id="sheet-count"></span>
+      <span class="spacer" style="flex:1;"></span>
+      <button class="secondary" id="clear-queue-btn-2">Clear queue</button>
+    </div>
+    <div class="queue-panel">
+      <div class="queue-list" id="queue-list"></div>
+      <div class="print-area">
+        <div class="sheets-wrap" id="sheets-wrap"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="app-foot">
+  <p>
+    A fan-made print companion for
+    <strong>Necropolis: A Diorama Skirmish Game</strong>
+    by Peter Vigors —
+    <a href="https://linktr.ee/owlshield" target="_blank" rel="noopener">linktr.ee/owlshield</a>.
+    Card art and rules text are taken from the WIP v0.9 rulebook for
+    personal reference only; please support the author.
+  </p>
+  <p class="muted">
+    Not affiliated with or endorsed by Owl Shield Games. No commercial use.
+    Card layouts and rules may change as the rulebook is finalised.
+  </p>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

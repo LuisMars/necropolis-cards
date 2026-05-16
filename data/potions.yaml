@@ -1,0 +1,52 @@
+# Potions — rulebook v0.9 p.72. Single-use vials from the Alchemy Workshop
+# lair upgrade. All 10 obols, discarded after use. Several duplicate the
+# Minor Treasures list; the Alchemy Workshop lets you BUY them rather than
+# roll for them.
+
+- name: Mana Bottle
+  category: POTION · Alchemy
+  cost: 10 obols
+  armour: "—"
+  flavor: Stoppered glass swirling with a single drop of unfocused power.
+  effect: |
+    Free action, discard to gain a mana dice of any type.
+
+- name: Phantasm Bottle
+  category: POTION · Alchemy
+  cost: 10 obols
+  armour: "—"
+  flavor: A pale wisp circles inside the glass, faintly humming.
+  effect: |
+    Free action, discard to instantly cast the Phantasm spell as if you failed the channelling roll.
+
+- name: Quicksilver Powder
+  category: POTION · Alchemy
+  cost: 10 obols
+  armour: "—"
+  flavor: Liquid metal ground to a fine, restless dust.
+  effect: |
+    Free action, discard then +1 move for the rest of this model's activation.
+
+- name: Blade Oil
+  category: POTION · Alchemy
+  cost: 10 obols
+  armour: "—"
+  flavor: A vial of dark ichor that hisses against steel.
+  effect: |
+    Free action, discard then +1 to violence rolls for the rest of this model's activation.
+
+- name: Iron Sludge Tincture
+  category: POTION · Alchemy
+  cost: 10 obols
+  armour: "—"
+  flavor: A black tar that hardens to a shell on the skin.
+  effect: |
+    Free action, discard then +1 armour until this model's next activation.
+
+- name: Black Cloud
+  category: POTION · Alchemy
+  cost: 10 obols
+  armour: "—"
+  flavor: A noxious vapour the user inhales and exhales as cover.
+  effect: |
+    Free action, discard then this model and every other model within 2" is considered obscured until the beginning of next activation.

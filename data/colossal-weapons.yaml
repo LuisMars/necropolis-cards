@@ -1,0 +1,50 @@
+# Colossal-only weapons (melee + ranged).
+
+- name: Improvised Weapon
+  category: Colossal Melee · 1-handed
+  cost: —
+  range: 2
+  attacks: 2
+  damage: 2 / 4
+  flavor: A broken signpost, the bones of a great beast, smashing of great weight.
+  special: —
+- name: Massive Hand Weapon
+  category: Colossal Melee · 1-handed
+  cost: 10 obols
+  range: 2
+  attacks: 3
+  damage: 2 / 4
+  flavor: Bronze blade made for a statue, a lance wielded in a colossal hand, a swung corpse.
+  special: —
+- name: Colossal Weapon
+  category: Colossal Melee · 2-handed
+  cost: 40 obols
+  range: 2
+  attacks: 2
+  damage: 3 / 7
+  flavor: A heap of raw iron, a greatsword forged from a portcullis, a desiccated tree.
+  special: —
+- name: Dual Massive Weapons
+  category: Colossal Melee · 2-handed
+  cost: 40 obols
+  range: 2
+  attacks: 4
+  damage: 2 / 4
+  flavor: A pair of executioner's axes, stained and terrible great mauls.
+  special: −1 to Violence rolls.
+- name: Massive Claws
+  category: Colossal Melee · 2-handed
+  cost: 40 obols
+  range: 2
+  attacks: 2
+  damage: 3 / 7
+  flavor: Gargantuan rotting talons, vast bestial jaws, a crown of terrible greathorns.
+  special: —
+- name: Massive Ranged Weapon
+  category: Colossal Ranged · 2-handed
+  cost: 40 obols
+  range: 24
+  attacks: 1
+  damage: 3 / 8
+  flavor: A sinew-bound greatbow, a creaking ballista, an ancient harpax.
+  special: May Push 2". Only 1 Attack action per activation.

@@ -1,0 +1,21 @@
+# Thrown weapons — rulebook v0.9 p.41. Listed under "Miscellaneous Equipment"
+# (each model may only have 1 piece of Misc Equipment). Rendered with the
+# weapon.svg template since they have range/attacks/damage stat blocks.
+
+- name: Wardart
+  category: Thrown · 1-handed
+  cost: 5 obols
+  range: 6
+  attacks: 1
+  damage: 1 / 4
+  flavor: A worn plumbata, a ceremonial wardart, a shard of animal femur.
+  special: This attack action can only be made once per game.
+
+- name: Throwing Axe or Mallet
+  category: Thrown · 1-handed
+  cost: 5 obols
+  range: 4
+  attacks: 1
+  damage: 1 / 5
+  flavor: A balanced francisca, a sliver of star metal, an iron mallet.
+  special: This attack action can only be made once per game.

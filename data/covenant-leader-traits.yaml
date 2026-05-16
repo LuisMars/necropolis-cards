@@ -1,0 +1,51 @@
+# Covenant Leader Traits — rulebook v0.9 p.19-23. The leader of a covenant
+# gathering gains the trait from their covenant, in addition to any Basic
+# Leader Trait. One trait per covenant.
+#
+# Category is the bare "COVENANT LEADER TRAIT" (short enough to fit the
+# footer band). Covenant name is in `restrictions` instead.
+
+- category: COVENANT LEADER TRAIT
+  name: Chosen of the Hands
+  restrictions: Embalmed Hands · Leader · Blood
+  sigil: ""
+  effect: |
+    The rush of power, boiling through dead veins and reinvigorating her thrall.
+
+    When this gathering receives blood mana dice for its mana pool, this model restores 2 HP.
+
+- category: COVENANT LEADER TRAIT
+  name: Osseous Sacrifice
+  restrictions: Cairn-born · Leader · Bone
+  sigil: ""
+  effect: |
+    Shaping and sacrificing their own form to ensure the destruction of their foes.
+
+    On activation you may choose to suffer 2 damage; Bone-school spells then gain +1 damage that activation. This bonus damage does not affect friendly models.
+
+- category: COVENANT LEADER TRAIT
+  name: Moonlight Flit
+  restrictions: The Crescent of Mourn · Leader · Plasm
+  sigil: ""
+  effect: |
+    Flitting in and out of reality, confounding the senses.
+
+    After an enemy attack action and any subsequent pushes are resolved against your leader, you may push your leader up to 2".
+
+- category: COVENANT LEADER TRAIT
+  name: Erudite
+  restrictions: Recusant Maleficar · Leader
+  sigil: ""
+  effect: |
+    Talent is admired by the worthless; only repetition and application have value.
+
+    Each time this leader rolls mana dice for spellcasting, mana dice rolling 9-10 are not discarded from the gathering's mana pool.
+
+- category: COVENANT LEADER TRAIT
+  name: Crawling Lord
+  restrictions: Crawling-Dark · Leader
+  sigil: ""
+  effect: |
+    Striding forward, surrounded by a skittering horde.
+
+    When this leader finishes their activation they may immediately activate a friendly model within 6" with the Beast or Remnant keyword that has not yet activated.

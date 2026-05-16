@@ -1,0 +1,3107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Necropolis Card Editor</title>
+<style>
+  @font-face {
+    font-family: 'JSL Blackletter';
+    src: url('/fonts/JBLACK.TTF') format('truetype');
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Alegreya';
+    src: url('/fonts/Alegreya-VF.ttf') format('truetype-variations');
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Alegreya';
+    font-style: italic;
+    src: url('/fonts/Alegreya-Italic-VF.ttf') format('truetype-variations');
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Alegreya SC';
+    src: url('/fonts/AlegreyaSC-Regular.ttf') format('truetype');
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Alegreya SC';
+    font-weight: bold;
+    src: url('/fonts/AlegreyaSC-Bold.ttf') format('truetype');
+    font-display: swap;
+  }
+
+  :root {
+    --bg: #1a1a1f;
+    --panel: #25252c;
+    --panel2: #2f2f37;
+    --panel3: #383841;
+    --border: #44444c;
+    --text: #e8e8ec;
+    --muted: #9a9aa4;
+    --accent: #d4a86a;       /* gold-ish, fits necropolis theme */
+    --accent-d: #b88a4d;
+    --danger: #c95a5a;
+    --good: #5ac985;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, system-ui, "Segoe UI", sans-serif; font-size: 13px;
+    display: flex; flex-direction: column;
+  }
+  header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 14px; margin: 0 6px 0 0; font-weight: 600; letter-spacing: 0.3px;}
+  header h1 span { color: var(--accent); }
+  button, select, input[type="text"], input[type="number"] {
+    background: var(--panel2); color: var(--text);
+    border: 1px solid var(--border); padding: 5px 10px;
+    border-radius: 4px; cursor: pointer; font: inherit; font-size: 12px;
+  }
+  select { padding-right: 22px; cursor: pointer; }
+  button:hover { background: var(--panel3); }
+  button.primary { background: var(--accent); color: #1a1a1f; border-color: var(--accent-d); font-weight: 600; }
+  button.primary:hover { background: #e6bb78; }
+  button.danger { background: #4a2a2a; border-color: #6a3838; color: #f4c8c8; }
+  button.danger:hover { background: #5a3434; }
+  button.toggle.on { background: var(--accent); color: #1a1a1f; border-color: var(--accent-d); }
+  .spacer { flex: 1; }
+  .status { color: var(--muted); font-size: 12px; }
+  .status.dirty { color: var(--accent); }
+  .status.error { color: var(--danger); }
+  .status.ok { color: var(--good); }
+  .pill {
+    background: var(--panel3); border-radius: 10px;
+    padding: 2px 8px; font-size: 11px; color: var(--muted);
+  }
+
+  main { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+
+  #left {
+    width: 180px; background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  #left h2, aside h2 {
+    margin: 0; padding: 8px 12px; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    font-weight: 600; background: var(--panel);
+  }
+  #template-list { flex: 1; overflow-y: auto; }
+  .tpl-group {
+    border-bottom: 1px solid #2a2a30; padding-bottom: 4px;
+  }
+  .tpl-group-title {
+    padding: 8px 12px 4px; font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600;
+  }
+  .tpl-row {
+    padding: 5px 12px 5px 16px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px;
+  }
+  .tpl-row:hover { background: var(--panel2); }
+  .tpl-row.active { background: #3d3023; color: var(--accent); border-left: 3px solid var(--accent); padding-left: 13px; }
+  .tpl-row.disabled { color: var(--muted); cursor: default; }
+  .tpl-row .meta { color: var(--muted); font-size: 10px; flex: 1; text-align: right; }
+  .tpl-row .row-count {
+    background: var(--panel3); color: var(--muted);
+    padding: 0 6px; border-radius: 8px; font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tpl-row.active .row-count { background: var(--accent); color: #1a1a1f; }
+
+  #canvas-wrap {
+    flex: 1; overflow: auto; display: flex;
+    align-items: flex-start; justify-content: center;
+    padding: 32px; min-height: 0;
+    background:
+      radial-gradient(circle at 20% 10%, #1f1f26 0%, #141418 70%);
+  }
+  #canvas-inner { position: relative; display: inline-block; }
+  #canvas-inner svg.editor-svg {
+    background: #fafaf2;
+    box-shadow: 0 6px 28px rgba(0,0,0,0.5);
+    display: block;
+  }
+  #zoom-readout { font-variant-numeric: tabular-nums; min-width: 42px; text-align: center; }
+  /* Visual aids overlaid on the SVG */
+  .editor-svg .__sel-fill   { fill: rgba(255,170,80,0.18); stroke: none; pointer-events: none; }
+  .editor-svg .__sel-outer  { fill: none; stroke: #ffaa50; stroke-width: 0.55; pointer-events: none; opacity: 0.95; }
+  .editor-svg .__sel-inner  { fill: none; stroke: #1a1a1f; stroke-width: 0.18; stroke-dasharray: 1.2,0.8;
+                              pointer-events: none; animation: marchingAnts 0.6s linear infinite; }
+  .editor-svg .__sel-handle { fill: #ffaa50; stroke: #1a1a1f; stroke-width: 0.15; pointer-events: none; }
+  .editor-svg .__sel-bbox   { fill: none; stroke: #5a9eff; stroke-width: 0.35; stroke-dasharray: 1.4,1.0;
+                              pointer-events: none; opacity: 0.9; }
+  @keyframes marchingAnts { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -2; } }
+  .editor-svg .__hov { fill: rgba(255,170,80,0.06); stroke: #ffaa50; stroke-width: 0.25; stroke-dasharray: 0.6,0.4; pointer-events: none; opacity: 0.7; }
+  .editor-svg .__marquee { fill: rgba(90,158,255,0.12); stroke: #5a9eff; stroke-width: 0.25; stroke-dasharray: 1.0,0.5; pointer-events: none; }
+  .editor-svg .__body-marker { fill: rgba(74,124,180,0.08); stroke: #4a7cb4; stroke-width: 0.1; stroke-dasharray: 0.6,0.4; cursor: move; }
+  .editor-svg .__body-marker.selected { stroke: #ffaa50; stroke-width: 0.3; fill: rgba(255,170,80,0.12); }
+  .editor-svg .__body-label { font-family: sans-serif; font-size: 1.6px; fill: #4a7cb4; pointer-events: none; }
+  .editor-svg .__preview { /* preview-only text gets this class — stripped before save */ }
+  .editor-svg .__preview-splotch { pointer-events: none; }
+  .editor-svg [data-edit-tag]:hover { cursor: move; }
+
+  aside#right {
+    width: 340px; background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-section { border-bottom: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+  .panel-section.flex { flex: 1; }
+  .panel-body { padding: 8px 12px; overflow-y: auto; }
+
+  /* Collapsible sections: clicking the h2 toggles the body. */
+  .panel-section h2 {
+    cursor: pointer; user-select: none;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 80ms;
+  }
+  .panel-section h2:hover { background: var(--panel2); }
+  .panel-section h2::before {
+    content: "▾"; font-size: 9px; color: var(--muted);
+    width: 9px; display: inline-block; transition: transform 120ms;
+    transform-origin: center;
+  }
+  .panel-section.collapsed h2::before { transform: rotate(-90deg); }
+  .panel-section.collapsed .panel-body { display: none; }
+  /* When collapsed, the flex-grow section should NOT take all the space —
+     otherwise the other (visible) ones get squished. */
+  .panel-section.collapsed.flex { flex: 0 0 auto; }
+  /* When a body has flex:1 (Inspector) but the section is the only open
+     one, let it eat the spare space. */
+  .panel-section.flex .panel-body { flex: 1; }
+  /* If ALL non-flex sections are collapsed, the .flex section already has
+     flex:1, so it'll expand. Nothing extra to do. */
+  .panel-section .h2-count {
+    margin-left: auto; font-size: 10px; color: var(--muted);
+    text-transform: none; letter-spacing: 0; font-weight: 500;
+  }
+  .panel-body .row {
+    display: flex; gap: 6px; align-items: center; margin-bottom: 6px;
+  }
+  .panel-body label.k {
+    width: 78px; color: var(--muted); font-size: 11px; flex-shrink: 0;
+  }
+  .panel-body input[type="number"], .panel-body input[type="text"], .panel-body select, .panel-body textarea {
+    flex: 1; min-width: 0;
+  }
+  .panel-body textarea {
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 4px 6px; font: inherit; font-size: 12px;
+    min-height: 50px; resize: vertical;
+  }
+  .group-title {
+    font-size: 10px; text-transform: uppercase; color: var(--muted);
+    letter-spacing: 0.5px; margin: 4px 0 6px; font-weight: 600;
+  }
+  .empty { color: var(--muted); text-align: center; padding: 16px 0; font-size: 12px; }
+
+  #element-list { font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+  .el-row {
+    padding: 4px 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid #2a2a30;
+  }
+  .el-row:hover { background: var(--panel2); }
+  .el-row.selected { background: #3d3023; color: var(--accent); }
+  .el-row .tag { background: var(--panel3); padding: 1px 5px; border-radius: 3px; font-size: 10px; color: var(--accent); flex-shrink: 0; }
+  .el-row .preview { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--muted); }
+
+  .toolbar-section { display: flex; align-items: center; gap: 6px; }
+  .toolbar-section .sep { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
+
+  #data-controls { display: flex; gap: 4px; align-items: center; }
+  #data-row-select { min-width: 140px; max-width: 220px; }
+
+  .kbd {
+    display: inline-block; padding: 1px 5px; background: var(--panel2);
+    border: 1px solid var(--border); border-radius: 3px; font-size: 10px;
+    font-family: ui-monospace, Menlo, monospace; color: var(--muted);
+  }
+  .help { color: var(--muted); font-size: 11px; }
+
+  input[type="file"] { display: none; }
+  label.file-btn { cursor: pointer; }
+
+  /* --- Image library picker modal --- */
+  #img-picker {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(8,8,12,0.78);
+    display: none; align-items: stretch; justify-content: stretch;
+    padding: 24px;
+  }
+  #img-picker.open { display: flex; }
+  #img-picker .panel {
+    flex: 1; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; display: flex; flex-direction: column;
+    overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    max-width: 1400px; margin: auto; width: 100%; max-height: 100%;
+  }
+  #img-picker header.bar {
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    background: var(--panel2); flex-wrap: wrap;
+  }
+  #img-picker header.bar h3 { margin: 0; font-size: 14px; font-weight: 600; }
+  #img-picker .breadcrumbs {
+    display: flex; gap: 4px; color: var(--muted); font-size: 12px;
+  }
+  #img-picker .breadcrumb {
+    padding: 3px 8px; border-radius: 3px; cursor: pointer;
+  }
+  #img-picker .breadcrumb:hover { background: var(--panel3); color: var(--text); }
+  #img-picker .breadcrumb.current { background: var(--accent); color: #1a1a1f; }
+  #img-picker input.search {
+    flex: 1; min-width: 200px;
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 6px 10px; border-radius: 4px; color: var(--text);
+  }
+  #img-picker .count { color: var(--muted); font-size: 11px; }
+  /* Grid forces a fixed row height so every tile is guaranteed a usable
+     height regardless of image loading state. The previous setup leaned on
+     `height: 140px` or `aspect-ratio` on the image well, but a flex column
+     with a lazy-loaded <img> kept collapsing both. */
+  #img-picker .grid {
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-auto-rows: 220px;
+    align-content: start;
+  }
+  #img-picker .tile {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 5px; overflow: hidden; cursor: pointer;
+    display: flex; flex-direction: column;
+    height: 100%;                          /* fill the grid cell exactly */
+    transition: border-color 80ms, transform 80ms;
+  }
+  #img-picker .tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+  #img-picker .tile.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(212,168,106,0.3); }
+  /* Image well: takes all the vertical space the info row doesn't claim. */
+  #img-picker .tile .imgwrap {
+    flex: 1 1 0;
+    min-height: 0;                         /* allow shrink below content's intrinsic */
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    background:
+      linear-gradient(45deg, #1a1a1f 25%, transparent 25%),
+      linear-gradient(-45deg, #1a1a1f 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1a1a1f 75%),
+      linear-gradient(-45deg, transparent 75%, #1a1a1f 75%);
+    background-size: 12px 12px;
+    background-color: #2a2a32;
+    background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #img-picker .tile img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  #img-picker .tile .info {
+    flex: 0 0 auto;                        /* keep its intrinsic height */
+    padding: 5px 7px; font-size: 11px; font-family: ui-monospace, Menlo, monospace;
+    color: var(--muted); display: flex; flex-direction: column; gap: 1px;
+    background: var(--panel);
+  }
+  #img-picker .tile .info .name {
+    color: var(--text); overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  #img-picker .empty {
+    grid-column: 1/-1; text-align: center; padding: 40px;
+    color: var(--muted);
+  }
+  #img-picker footer.bar {
+    display: flex; gap: 8px; align-items: center;
+    padding: 8px 14px; border-top: 1px solid var(--border);
+    background: var(--panel2);
+  }
+  #img-picker footer.bar .help { flex: 1; }
+
+  .badge { padding: 1px 5px; border-radius: 3px; font-size: 10px; background: var(--panel3); color: var(--muted); }
+  .badge.body { background: #1d3a52; color: #9ec6e8; }
+  .badge.placeholder { background: #4a3a1d; color: #e8c89c; }
+
+  /* Body-block edit form fields render a bit tighter */
+  .bb-form input { font-size: 11px; padding: 3px 6px; }
+
+  /* Align / Position panel */
+  #align-panel .align-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+    margin-bottom: 6px;
+  }
+  #align-panel .align-grid button {
+    padding: 6px 0; font-size: 14px; font-family: ui-monospace, Menlo, monospace;
+    background: var(--panel3);
+  }
+  #align-panel .align-grid button:hover { background: #4a4a55; }
+  #align-panel .row.subhead {
+    margin-top: 8px; color: var(--muted); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  #align-panel .bbox-row input { width: 100%; }
+  #align-panel .pill-count {
+    background: var(--accent); color: #1a1a1f;
+    padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Necropolis <span>Card Editor</span></h1>
+
+  <div class="toolbar-section">
+    <button id="reload-btn" title="Reload template from disk">⟳ Reload</button>
+    <button id="undo-btn" title="Undo (Ctrl+Z)">↶ Undo</button>
+    <button id="redo-btn" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+  </div>
+
+  <span class="sep" style="width:1px;background:var(--border);align-self:stretch;"></span>
+
+  <div class="toolbar-section">
+    <span class="status">View:</span>
+    <button id="mode-template" class="toggle on">Template</button>
+    <button id="mode-preview" class="toggle">Preview</button>
+  </div>
+
+  <div class="toolbar-section" id="data-controls">
+    <span class="status">Data:</span>
+    <select id="data-row-select"><option>(none)</option></select>
+    <span class="pill" id="data-info"></span>
+  </div>
+
+  <span class="sep" style="width:1px;background:var(--border);align-self:stretch;"></span>
+
+  <div class="toolbar-section">
+    <span class="status">Zoom:</span>
+    <button id="zoom-out" title="Zoom out (Ctrl + −)">−</button>
+    <span id="zoom-readout">100%</span>
+    <button id="zoom-in" title="Zoom in (Ctrl + +)">+</button>
+    <button id="zoom-fit" title="Fit to canvas">Fit</button>
+    <button id="zoom-100" title="100%">1:1</button>
+  </div>
+
+  <span class="sep" style="width:1px;background:var(--border);align-self:stretch;"></span>
+
+  <div class="toolbar-section">
+    <button id="add-text-btn">+ Text</button>
+    <button id="add-image-library-btn" title="Pick an image from necropolis-images/">+ Image (library)…</button>
+    <label class="file-btn"><button id="add-image-btn" title="Upload a new image from disk">+ Image (upload)…</button><input type="file" id="image-input" accept="image/*"></label>
+    <button id="duplicate-btn" title="Duplicate selected">⎘ Dup</button>
+    <button id="delete-btn" class="danger" title="Delete selected (Del)">✕</button>
+  </div>
+
+  <span class="spacer"></span>
+  <span class="status" id="status">No template loaded</span>
+  <button class="primary" id="save-btn" title="Save to templates/*.svg (Ctrl+S)">Save SVG</button>
+</header>
+
+<main>
+  <div id="left">
+    <h2>Categories</h2>
+    <div id="template-list"><div class="empty">loading…</div></div>
+
+    <h2>Elements</h2>
+    <div id="element-list" style="flex:1; overflow-y:auto;"></div>
+  </div>
+
+  <div id="canvas-wrap">
+    <div id="canvas-inner"><div class="empty" style="padding:80px 40px">Select a template to start →</div></div>
+  </div>
+
+  <aside id="right">
+    <div class="panel-section">
+      <h2>Template Size</h2>
+      <div class="panel-body" id="size-panel">
+        <div class="empty">No template loaded</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h2>Align &amp; Position</h2>
+      <div class="panel-body" id="align-panel">
+        <div class="empty">Select element(s)</div>
+      </div>
+    </div>
+
+    <div class="panel-section flex">
+      <h2>Inspector</h2>
+      <div class="panel-body" id="inspector">
+        <div class="empty">Select an element</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h2>Help</h2>
+      <div class="panel-body" style="font-size:11px;color:var(--muted)">
+        <div><span class="kbd">drag</span> move · <span class="kbd">shift+click</span> multi-select · <span class="kbd">arrows</span> nudge 0.1mm · <span class="kbd">shift+arrows</span> 1mm · <span class="kbd">Ctrl+arrows</span> resize (text: font-size) · <span class="kbd">del</span> remove · <span class="kbd">Ctrl+D</span> duplicate · <span class="kbd">Ctrl+C/X/V</span> copy/cut/paste · <span class="kbd">Alt+[/]</span> z-order · <span class="kbd">Ctrl+A</span> all · <span class="kbd">Esc</span> clear · <span class="kbd">Ctrl+Z</span> undo · <span class="kbd">Ctrl+S</span> save · <span class="kbd">Ctrl+wheel</span> zoom</div>
+        <div style="margin-top:6px"><span class="badge placeholder">&#123;&#123;KEY&#125;&#125;</span> = data placeholder · <span class="badge body">BODY</span> = wrapped text region</div>
+        <div style="margin-top:6px">Edits to body-block markers update the <code>&lt;!-- BODY_BLOCK ... --&gt;</code> comment in the SVG so the Python build still works.</div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- Image library picker (necropolis-images/) -->
+<div id="img-picker" role="dialog" aria-modal="true">
+  <div class="panel">
+    <header class="bar">
+      <h3>Image library</h3>
+      <div class="breadcrumbs" id="img-folders"></div>
+      <input class="search" id="img-search" type="text" placeholder="filter by name…">
+      <span class="count" id="img-count"></span>
+      <button id="img-picker-close">Close</button>
+    </header>
+    <div class="grid" id="img-grid"><div class="empty">loading…</div></div>
+    <footer class="bar">
+      <span class="help" id="img-picker-help">Click a tile to apply.</span>
+      <button id="img-picker-cancel">Cancel</button>
+      <button class="primary" id="img-picker-apply" disabled>Apply</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+/* ====================================================================
+ *  Necropolis Card Editor — client-side logic
+ * ==================================================================== */
+const SVG_NS = "http://www.w3.org/2000/svg";
+const XLINK_NS = "http://www.w3.org/1999/xlink";
+
+/* ---------- State ---------- */
+const state = {
+  categories: { groups: [] },  // grouped tree from /api/categories
+  templates: [],               // (legacy) flat list of template stems
+  templateName: null,         // currently loaded category key
+  splotchCache: {},            // {seed: [splotch items]} from /api/splotches
+  templateText: null,          // raw text loaded from server
+  doc: null,                   // parsed Document (template source-of-truth)
+  svg: null,                   // current rendered <svg> in the DOM (may be preview)
+  stylesMap: {},               // parsed {className: cssText} from the SVG's <style>
+  dataRows: [],
+  dataIndex: 0,
+  mode: "template",            // "template" | "preview"
+  selection: [],               // array of {idx} or {bodyKey} — multi-select
+  selected: null,              // alias of selection[0] (primary), kept for older code paths
+  bodyBlocks: [],              // parsed body-block markers from template
+  dirty: false,
+  history: [],
+  future: [],
+  lockAspect: false,           // toggle: when editing image width/height, keep the natural ratio
+  zoom: 1,                     // canvas zoom factor (CSS transform on the SVG)
+  clipboard: [],               // copied items: [{kind:"node",xml}|{kind:"body",text}]
+};
+
+/* ---------- DOM refs ---------- */
+const $ = (id) => document.getElementById(id);
+const els = {
+  tplList: $("template-list"),
+  elList: $("element-list"),
+  inspector: $("inspector"),
+  sizePanel: $("size-panel"),
+  alignPanel: $("align-panel"),
+  canvas: $("canvas-inner"),
+  canvasWrap: $("canvas-wrap"),
+  status: $("status"),
+  dataRowSelect: $("data-row-select"),
+  dataInfo: $("data-info"),
+  modeTemplate: $("mode-template"),
+  modePreview: $("mode-preview"),
+  saveBtn: $("save-btn"),
+  reloadBtn: $("reload-btn"),
+  undoBtn: $("undo-btn"),
+  redoBtn: $("redo-btn"),
+  addTextBtn: $("add-text-btn"),
+  addImageBtn: $("add-image-btn"),
+  duplicateBtn: $("duplicate-btn"),
+  deleteBtn: $("delete-btn"),
+  imageInput: $("image-input"),
+  zoomIn: $("zoom-in"),
+  zoomOut: $("zoom-out"),
+  zoomFit: $("zoom-fit"),
+  zoom100: $("zoom-100"),
+  zoomReadout: $("zoom-readout"),
+};
+
+/* ====================================================================
+ *  Utility
+ * ==================================================================== */
+function setStatus(msg, kind="") {
+  els.status.textContent = msg;
+  els.status.className = "status " + kind;
+}
+function fmt(n) {
+  return (Math.round(parseFloat(n) * 100) / 100).toString();
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* Rewrite all file:// xlink:href and href to /api/image/<rel> so the browser
+ * can load them; we'll rewrite them back when saving. */
+const IMG_PREFIX = "file:///home/luismars/necropolis-images/";
+function rewriteHrefsForView(svgEl) {
+  svgEl.querySelectorAll("image").forEach(img => {
+    const attrs = ["href", "xlink:href"];
+    for (const a of attrs) {
+      let v = img.getAttribute(a);
+      if (!v) {
+        if (a === "xlink:href") v = img.getAttributeNS(XLINK_NS, "href");
+      }
+      if (v && v.startsWith(IMG_PREFIX)) {
+        const rel = v.slice(IMG_PREFIX.length);
+        const url = "/api/image/" + rel;
+        if (a === "xlink:href") {
+          img.setAttributeNS(XLINK_NS, "href", url);
+          img.setAttribute("xlink:href", url);
+        } else {
+          img.setAttribute(a, url);
+        }
+      }
+    }
+  });
+}
+function rewriteHrefsForSave(svgText) {
+  // Replace /api/image/<rel> back to file:// path
+  return svgText.replaceAll(/(["'])\/api\/image\/([^"']+)\1/g, (m, q, rel) => {
+    return q + IMG_PREFIX + rel + q;
+  });
+}
+
+/* ====================================================================
+ *  Server I/O
+ * ==================================================================== */
+async function api(path, opts={}) {
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    let msg;
+    try { msg = (await r.json()).error || r.statusText; }
+    catch { msg = r.statusText; }
+    throw new Error(`${r.status}: ${msg}`);
+  }
+  const ct = r.headers.get("Content-Type") || "";
+  if (ct.includes("json")) return r.json();
+  return r.text();
+}
+
+async function loadTemplateList() {
+  // Categories are the primary navigation; the legacy flat templates list is
+  // still fetched as a fallback in case the categories file is missing.
+  try {
+    const cats = await api("/api/categories");
+    state.categories = cats;
+  } catch (e) {
+    state.categories = { groups: [] };
+  }
+  try {
+    const j = await api("/api/templates");
+    state.templates = j.templates;
+  } catch (e) {
+    state.templates = [];
+  }
+  renderTemplateList();
+}
+function findCategory(key) {
+  for (const g of (state.categories.groups || [])) {
+    for (const it of (g.items || [])) {
+      if (it.key === key) return it;
+    }
+  }
+  return null;
+}
+
+async function loadTemplate(name) {
+  if (state.dirty && !confirm("Discard unsaved changes?")) return;
+  setStatus("Loading " + name + "…");
+  const text = await api("/api/template/" + name);
+  state.templateName = name;
+  state.templateText = text;
+  state.doc = new DOMParser().parseFromString(text, "image/svg+xml");
+  state.history = [];
+  state.future = [];
+  state.dirty = false;
+  state.selected = null;
+  await loadDataFor(name);
+  parseBodyBlocks();
+  indexTemplateNodes();
+  state.stylesMap = parseEmbeddedStyles(state.doc.documentElement);
+  renderTemplateList();
+  renderTemplateSize();
+  rerender();
+  renderElementList();
+  renderInspector();
+  const cat = findCategory(name);
+  setStatus("Loaded " + (cat ? cat.title : name) + (cat ? ` · ${cat.template}.svg` : ""));
+}
+
+async function loadDataFor(name) {
+  try {
+    const j = await api("/api/data/" + name);
+    state.dataRows = j.rows || [];
+    state.dataIndex = 0;
+    els.dataRowSelect.innerHTML = "";
+    if (!state.dataRows.length) {
+      els.dataRowSelect.innerHTML = '<option>(no data)</option>';
+      els.dataRowSelect.disabled = true;
+      els.dataInfo.textContent = "";
+    } else {
+      els.dataRowSelect.disabled = false;
+      state.dataRows.forEach((row, i) => {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = (i+1) + ". " + (row.name || row.title || "(unnamed)");
+        els.dataRowSelect.appendChild(opt);
+      });
+      els.dataInfo.textContent = j.source ? j.source : "";
+    }
+  } catch (e) {
+    state.dataRows = [];
+    els.dataRowSelect.innerHTML = '<option>(no data)</option>';
+    els.dataRowSelect.disabled = true;
+    els.dataInfo.textContent = "";
+  }
+}
+
+async function saveTemplate() {
+  if (!state.templateName) return;
+  setStatus("Saving…");
+  try {
+    // Serialize template doc; rewrite /api/image back to file://
+    let text = new XMLSerializer().serializeToString(state.doc);
+    if (!text.startsWith("<?xml")) {
+      text = '<?xml version="1.0" encoding="UTF-8"?>\n' + text;
+    }
+    text = rewriteHrefsForSave(text);
+    const r = await fetch("/api/template/" + state.templateName, {
+      method: "PUT", body: text,
+      headers: {"Content-Type": "image/svg+xml"},
+    });
+    if (!r.ok) throw new Error((await r.json()).error || r.statusText);
+    const info = await r.json();
+    state.dirty = false;
+    state.templateText = text;
+    setStatus("Saved · " + (info.path || state.templateName), "ok");
+  } catch (e) {
+    setStatus("Save failed: " + e.message, "error");
+  }
+}
+
+/* ====================================================================
+ *  Template-node indexing
+ *  --------------------------------------------------------------------
+ *  The "preview" SVG is regenerated frequently. To keep the selection
+ *  stable across re-renders we assign a stable integer index to every
+ *  node in state.doc, and copy it to the rendered SVG so we can map
+ *  back from clicks to the template node.
+ * ==================================================================== */
+function indexTemplateNodes() {
+  let i = 0;
+  const walk = (el) => {
+    el.setAttribute("data-edit-idx", String(i++));
+    for (const c of el.children) walk(c);
+  };
+  walk(state.doc.documentElement);
+}
+function findTemplateNodeByIdx(idx) {
+  return state.doc.documentElement.querySelector(`[data-edit-idx="${idx}"]`)
+      || (state.doc.documentElement.getAttribute("data-edit-idx") === idx ? state.doc.documentElement : null);
+}
+
+/* ====================================================================
+ *  Body-block markers
+ *  --------------------------------------------------------------------
+ *  Parse <!-- BODY_BLOCK: KEY @ x=X y=Y lineheight=Z width=Nchars maxlines=M [style=...] [anchor=...] [short_fill=true] -->
+ *  We track them as a separate list keyed by their position in the doc.
+ *  Saving rewrites the comment text from the marker's current fields.
+ * ==================================================================== */
+const BODY_BLOCK_RE = /BODY_BLOCK:\s*(\w+)\s*@\s*x=([\d.]+)\s+y=([\d.]+)\s+lineheight=([\d.]+)\s+width=(\d+)chars\s+maxlines=(\d+)(?:\s+style=(\w+))?(?:\s+anchor=(\w+))?(?:\s+short_fill=(\w+))?/;
+
+function parseBodyBlocks() {
+  state.bodyBlocks = [];
+  const walker = state.doc.createTreeWalker(state.doc.documentElement, NodeFilter.SHOW_COMMENT);
+  let n;
+  while ((n = walker.nextNode())) {
+    const m = BODY_BLOCK_RE.exec(n.nodeValue);
+    if (!m) continue;
+    state.bodyBlocks.push({
+      commentNode: n,
+      key: m[1],
+      x: parseFloat(m[2]),
+      y: parseFloat(m[3]),
+      lh: parseFloat(m[4]),
+      width: parseInt(m[5], 10),
+      maxlines: parseInt(m[6], 10),
+      style: m[7] || "body",
+      anchor: m[8] || "",
+      short_fill: m[9] === "true",
+    });
+  }
+}
+function bodyBlockToComment(b) {
+  let s = `BODY_BLOCK: ${b.key} @ x=${fmt(b.x)} y=${fmt(b.y)} lineheight=${fmt(b.lh)} width=${b.width}chars maxlines=${b.maxlines}`;
+  if (b.style && b.style !== "body") s += ` style=${b.style}`;
+  if (b.anchor) s += ` anchor=${b.anchor}`;
+  if (b.short_fill) s += ` short_fill=true`;
+  return ` ${s} `;
+}
+function syncBodyBlockComments() {
+  for (const b of state.bodyBlocks) {
+    if (b.commentNode) b.commentNode.nodeValue = bodyBlockToComment(b);
+  }
+}
+
+/* ====================================================================
+ *  Rendering
+ *  --------------------------------------------------------------------
+ *  Two modes:
+ *    template — clone state.doc into the canvas; text shows {{KEY}}.
+ *                Body-block markers shown as dashed blue rects.
+ *    preview  — clone state.doc; substitute {{KEY}} from current row;
+ *                expand body-block markers into wrapped <text> lines.
+ * ==================================================================== */
+function rerender() {
+  if (!state.doc) return;
+  syncBodyBlockComments();
+  els.canvas.innerHTML = "";
+  const clone = state.doc.documentElement.cloneNode(true);
+  const svg = document.adoptNode(clone);
+  svg.classList.add("editor-svg");
+  rewriteHrefsForView(svg);
+
+  // Clip anything that extends past the trim — banner bleeds, etc.
+  svg.style.overflow = "hidden";
+
+  if (state.mode === "preview") {
+    applyPreview(svg);
+  } else {
+    addBodyBlockMarkers(svg);
+  }
+  attachInteractions(svg);
+  els.canvas.appendChild(svg);
+  state.svg = svg;
+  applyZoom();
+  if (state.selection.length) {
+    drawSelectionOverlay();
+  }
+}
+
+function applyPreview(svg) {
+  const row = state.dataRows[state.dataIndex] || {};
+  // Substitute {{KEY}} inside text content (deep into tspans / text nodes)
+  svg.querySelectorAll("text, tspan").forEach(t => {
+    for (const c of [...t.childNodes]) {
+      if (c.nodeType === 3 && c.nodeValue.includes("{{")) {
+        c.nodeValue = substituteRow(c.nodeValue, row);
+      }
+    }
+  });
+  // Fit long banner / name titles into their box. Mirrors fitLongNames
+  // in web/js/templates.js — names < 16 chars are unchanged, 16-22 chars
+  // get a `textLength` squeeze, ≥ 23 chars wrap onto two lines.
+  fitLongNamesDom(svg);
+  // Substitute in image hrefs too
+  svg.querySelectorAll("image").forEach(img => {
+    for (const a of ["href", "xlink:href"]) {
+      const v = img.getAttribute(a);
+      if (v && v.includes("{{")) {
+        const nv = substituteRow(v, row);
+        if (a === "xlink:href") img.setAttributeNS(XLINK_NS, "href", nv);
+        img.setAttribute(a, nv);
+      }
+    }
+  });
+  // Render splatter background. The template has an `<!-- SPLOTCHES -->`
+  // comment that build.py expands into random ink-splotch <image> tags. To
+  // make the editor's preview match the PDF, we fetch the same algorithm's
+  // output from /api/splotches (seeded by the row name) and inject them at
+  // the marker. Cached per-seed so flicking through rows is instant after
+  // the first fetch.
+  insertSplotches(svg, row.name || state.templateName || "default");
+
+  // Expand body blocks: insert <text> elements representing each wrapped line.
+  // We copy the matching class's inline style so the new text element renders
+  // even if CSS specificity / scoping is being weird.
+  const stylesMap = parseEmbeddedStyles(svg);
+  for (const b of state.bodyBlocks) {
+    const value = String(row[b.key.toLowerCase()] ?? "");
+    if (!value) continue;
+    const lines = wrap(value, b.width).slice(0, b.maxlines);
+    const inlineCss = stylesMap[b.style] || "";
+    for (let i = 0; i < lines.length; i++) {
+      const t = document.createElementNS(SVG_NS, "text");
+      t.setAttribute("class", b.style + " __preview");
+      if (inlineCss) t.setAttribute("style", inlineCss);
+      t.setAttribute("x", String(b.x));
+      t.setAttribute("y", String(b.y + i * b.lh));
+      if (b.anchor) t.setAttribute("text-anchor", b.anchor);
+      t.textContent = lines[i];
+      svg.appendChild(t);
+    }
+  }
+}
+
+/* Insert splatter ink-stains into the rendered SVG at the position of the
+ * <!-- SPLOTCHES --> comment. Uses the SAME JS PRNG as the web printer
+ * (mulberry32 seeded by FNV-1a hash of the card name), so what you see
+ * in the editor matches the web preview byte-for-byte. */
+const CARD_W = 63;
+const CARD_H = 88;
+const SPLOTCH_IMAGES = [
+  "img-010-013-rgba.png", "img-010-015-rgba.png",
+  "img-011-017-rgba.png", "img-011-019-rgba.png",
+  "img-020-033-rgba.png", "img-021-037-rgba.png",
+  "img-046-077-rgba.png", "img-066-106-rgba.png",
+];
+function _mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function _hashStr(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (h ^ s.charCodeAt(i)) >>> 0;
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h;
+}
+function insertSplotches(svg, seed) {
+  const splotchComment = findSplotchComment(svg);
+  if (!splotchComment) return;
+  const rng = _mulberry32(_hashStr(String(seed)));
+  const pick = (lo, hi) => lo + rng() * (hi - lo);
+  for (let i = 0; i < 5; i++) {
+    const file = SPLOTCH_IMAGES[Math.floor(rng() * SPLOTCH_IMAGES.length)];
+    const size = pick(35, 65);
+    const x    = pick(-15, CARD_W - size + 15);
+    const y    = pick(-15, CARD_H - size + 15);
+    const rot  = pick(0, 360);
+    const op   = pick(0.12, 0.22);
+    const cx = x + size / 2, cy = y + size / 2;
+    const url = `/api/image/alpha/${file}`;
+    const img = document.createElementNS(SVG_NS, "image");
+    img.setAttribute("class", "__preview-splotch");
+    img.setAttribute("href", url);
+    img.setAttributeNS(XLINK_NS, "href", url);
+    img.setAttribute("x", x.toFixed(2));
+    img.setAttribute("y", y.toFixed(2));
+    img.setAttribute("width",  size.toFixed(2));
+    img.setAttribute("height", size.toFixed(2));
+    img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    img.setAttribute("opacity", op.toFixed(3));
+    img.setAttribute("transform", `rotate(${rot.toFixed(1)} ${cx.toFixed(2)} ${cy.toFixed(2)})`);
+    splotchComment.parentNode.insertBefore(img, splotchComment.nextSibling);
+  }
+}
+/* DOM-level twin of web/js/templates.js#fitLongNames. The web printer
+ * works on the SVG as a string and rewrites the <text> tag; the editor
+ * already has the SVG parsed, so we mutate the DOM nodes directly. */
+const _NAME_SHRINK_CHARS   = 16;
+const _NAME_MAX_CHARS      = 23;
+const _NAME_FIT_WIDTH_MM   = 53;
+const _BANNER_FIT_WIDTH_MM = 46;
+const _BANNER_Y_THRESHOLD  = 17;
+
+function fitLongNamesDom(svg) {
+  const targets = svg.querySelectorAll('text.name, text.banner-title');
+  for (const t of targets) {
+    const content = (t.textContent || "").trim();
+    const n = content.length;
+    if (n <= _NAME_SHRINK_CHARS) continue;
+    const x = parseFloat(t.getAttribute("x"));
+    const y = parseFloat(t.getAttribute("y"));
+    if (!isFinite(x) || !isFinite(y)) continue;
+    const fitW = y < _BANNER_Y_THRESHOLD ? _BANNER_FIT_WIDTH_MM : _NAME_FIT_WIDTH_MM;
+    if (n < _NAME_MAX_CHARS) {
+      t.setAttribute("textLength",   String(fitW));
+      t.setAttribute("lengthAdjust", "spacingAndGlyphs");
+      continue;
+    }
+    // Long: two-line wrap at the most-balanced word boundary.
+    const words = content.split(/\s+/);
+    let best = null, bestDiff = 1e9;
+    for (let i = 1; i < words.length; i++) {
+      const left = words.slice(0, i).join(" ");
+      const right = words.slice(i).join(" ");
+      if (Math.max(left.length, right.length) > _NAME_MAX_CHARS) continue;
+      const diff = Math.abs(left.length - right.length);
+      if (diff < bestDiff) { bestDiff = diff; best = [left, right]; }
+    }
+    if (!best) {
+      t.setAttribute("textLength",   String(fitW));
+      t.setAttribute("lengthAdjust", "spacingAndGlyphs");
+      continue;
+    }
+    const lineH = 5.4;
+    const y1 = y - lineH * 0.5;
+    const y2 = y + lineH * 0.5;
+    t.textContent = "";
+    t.setAttribute("y", String(y1));
+    // Bake font-size into inline style so it wins over the class rule.
+    const prevStyle = t.getAttribute("style") || "";
+    const stripped = prevStyle.replace(/font-size\s*:\s*[^;]+;?\s*/, "");
+    t.setAttribute("style", (stripped ? stripped + "; " : "") + "font-size: 4.6px;");
+    for (const [line, ly] of [[best[0], y1], [best[1], y2]]) {
+      const ts = document.createElementNS(SVG_NS, "tspan");
+      ts.setAttribute("x", String(x));
+      ts.setAttribute("y", String(ly));
+      ts.textContent = line;
+      t.appendChild(ts);
+    }
+  }
+}
+
+function findSplotchComment(root) {
+  const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_COMMENT);
+  let n;
+  while ((n = walker.nextNode())) {
+    if (n.nodeValue && /SPLOTCHES/.test(n.nodeValue)) return n;
+  }
+  return null;
+}
+
+/* Parse the SVG's embedded <style> sheets into a {className: cssText} map.
+ * Used both for previewing body-block text and for reading effective values
+ * in the inspector when an attribute isn't set explicitly on the element.
+ *
+ * Naive regex-based parsing — fine because our templates use a simple flat
+ * list of .className { prop: value; ... } rules. */
+function parseEmbeddedStyles(svg) {
+  const map = {};
+  svg.querySelectorAll("style").forEach(s => {
+    const css = s.textContent;
+    const re = /\.([\w-]+)\s*\{([^}]+)\}/g;
+    let m;
+    while ((m = re.exec(css))) {
+      map[m[1]] = (map[m[1]] || "") + m[2].trim().replace(/\s+/g, " ") + "; ";
+    }
+  });
+  return map;
+}
+
+/* Look up a CSS property's effective value on an element, in this priority:
+ *   1. Inline `style="prop: value"`
+ *   2. Presentation attribute (e.g. font-size="7")
+ *   3. Matching class rule in the SVG's <style>
+ * Returns "" if nothing is set. */
+function effectiveStyleValue(el, prop) {
+  if (el.style && el.style.getPropertyValue(prop)) {
+    return el.style.getPropertyValue(prop);
+  }
+  const attr = el.getAttribute(prop);
+  if (attr) return attr;
+  const cls = el.getAttribute("class");
+  if (cls && state.stylesMap) {
+    for (const c of cls.split(/\s+/)) {
+      const css = state.stylesMap[c];
+      if (!css) continue;
+      const re = new RegExp("(?:^|;|\\s)" + prop.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&") + "\\s*:\\s*([^;]+)", "i");
+      const m = re.exec(css);
+      if (m) return m[1].trim();
+    }
+  }
+  return "";
+}
+
+/* Properties that are presentational style (subject to CSS-rule override).
+ * When writing these we use inline style; when reading we consult class rules
+ * for the effective value. */
+const STYLE_PROPS = new Set([
+  "fill", "stroke", "stroke-width", "stroke-dasharray", "opacity",
+  "font-family", "font-size", "font-weight", "font-style",
+  "text-anchor", "letter-spacing", "font-variant", "font-stretch",
+  "dominant-baseline", "alignment-baseline",
+]);
+
+/* Resolve every "stylable" property on this element (and its descendants)
+ * from the matching `<style>`-defined class rule into an inline `style`
+ * attribute. Used on copy so the pasted element preserves its appearance
+ * when dropped into a template whose `.name` / `.body` etc. resolve
+ * differently.
+ *
+ * We only freeze a property if neither the inline style nor a presentation
+ * attribute is already set, so user-overrides aren't disturbed. */
+function freezeInheritedStyles(root) {
+  const PROPS = [
+    "font-family", "font-size", "font-weight", "font-style", "font-variant",
+    "text-anchor", "letter-spacing", "fill", "stroke", "stroke-width",
+    "stroke-dasharray", "opacity", "dominant-baseline", "alignment-baseline",
+  ];
+  const visit = (el) => {
+    if (!(el instanceof Element)) return;
+    const cls = el.getAttribute("class");
+    if (cls) {
+      for (const prop of PROPS) {
+        if (el.style && el.style.getPropertyValue(prop)) continue;
+        if (el.getAttribute(prop)) continue;
+        for (const c of cls.split(/\s+/)) {
+          const css = state.stylesMap && state.stylesMap[c];
+          if (!css) continue;
+          const re = new RegExp(
+            "(?:^|;|\\s)" + prop.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*:\\s*([^;]+)",
+            "i"
+          );
+          const m = re.exec(css);
+          if (m) { el.style.setProperty(prop, m[1].trim()); break; }
+        }
+      }
+    }
+    for (const child of el.children) visit(child);
+  };
+  visit(root);
+}
+
+function writeStyleProp(el, prop, value) {
+  if (value === "" || value == null) {
+    el.style.removeProperty(prop);
+    el.removeAttribute(prop);
+    // Tidy up if style attribute is now empty
+    if (el.getAttribute("style") != null &&
+        el.getAttribute("style").trim() === "") {
+      el.removeAttribute("style");
+    }
+  } else {
+    el.style.setProperty(prop, value);
+    // Remove the XML attribute form if it was there, to avoid two sources of truth
+    el.removeAttribute(prop);
+  }
+}
+
+function substituteRow(s, row) {
+  if (!s) return s;
+  return s.replace(/\{\{(\w+)\}\}/g, (_, k) => {
+    const v = row[k.toLowerCase()];
+    return v == null ? "" : String(v);
+  });
+}
+
+/* Simple greedy wrap to N chars (matches Python textwrap.wrap roughly enough for preview). */
+function wrap(text, width) {
+  const out = [];
+  for (const para of text.split(/\n\s*\n/)) {
+    const flat = para.split(/\s+/).filter(Boolean).join(" ");
+    if (!flat) { out.push(""); continue; }
+    const words = flat.split(" ");
+    let line = "";
+    for (const w of words) {
+      const next = line ? line + " " + w : w;
+      if (next.length > width && line) {
+        out.push(line); line = w;
+      } else {
+        line = next;
+      }
+    }
+    if (line) out.push(line);
+  }
+  return out;
+}
+
+/* Visual markers for body blocks in template mode. */
+function addBodyBlockMarkers(svg) {
+  const vb = svg.viewBox.baseVal;
+  const charW = 1.6;  // approximate em width in mm for sizing — good enough as a guide
+  for (const b of state.bodyBlocks) {
+    const g = document.createElementNS(SVG_NS, "g");
+    g.setAttribute("data-body-key", b.key);
+    g.dataset.bodyMarker = "1";
+    const w = Math.min(vb.width - b.x - 1, b.width * charW);
+    const h = b.lh * b.maxlines;
+    let rectX = b.x;
+    if (b.anchor === "middle") rectX = b.x - w / 2;
+    else if (b.anchor === "end") rectX = b.x - w;
+    const r = document.createElementNS(SVG_NS, "rect");
+    r.setAttribute("class", "__body-marker");
+    r.setAttribute("x", String(rectX));
+    r.setAttribute("y", String(b.y - b.lh * 0.85));
+    r.setAttribute("width", String(w));
+    r.setAttribute("height", String(h));
+    g.appendChild(r);
+    const label = document.createElementNS(SVG_NS, "text");
+    label.setAttribute("class", "__body-label");
+    label.setAttribute("x", String(rectX + 0.5));
+    label.setAttribute("y", String(b.y - b.lh * 0.85 + 1.5));
+    label.textContent = "BODY_BLOCK " + b.key + " ×" + b.maxlines;
+    g.appendChild(label);
+    svg.appendChild(g);
+  }
+}
+
+/* ====================================================================
+ *  Selection & overlays
+ * --------------------------------------------------------------------
+ *  state.selection is an array of selection entries; each entry is either
+ *  {idx: "n"} (a template node) or {bodyKey: "FLAVOR"} (a body-block marker).
+ *  state.selected mirrors selection[0] (primary) so existing inspector
+ *  code keeps working.
+ * ==================================================================== */
+function sameSel(a, b) {
+  if (!a || !b) return false;
+  if (a.idx != null && b.idx != null) return a.idx === b.idx;
+  if (a.bodyKey != null && b.bodyKey != null) return a.bodyKey === b.bodyKey;
+  return false;
+}
+function isSelected(entry) { return state.selection.some(s => sameSel(s, entry)); }
+function addToSelection(entry) {
+  if (!isSelected(entry)) state.selection.push(entry);
+  syncSelectedPrimary();
+}
+function toggleInSelection(entry) {
+  if (isSelected(entry)) state.selection = state.selection.filter(s => !sameSel(s, entry));
+  else state.selection.push(entry);
+  syncSelectedPrimary();
+}
+function syncSelectedPrimary() { state.selected = state.selection[0] || null; }
+
+function clearOverlays() {
+  if (!state.svg) return;
+  state.svg.querySelectorAll(".__sel-fill, .__sel-outer, .__sel-inner, .__sel-handle, .__sel-bbox, .__hov, .__marquee").forEach(n => n.remove());
+}
+function renderedNodeFor(entry) {
+  if (!entry || !state.svg) return null;
+  if (entry.bodyKey) return state.svg.querySelector(`g[data-body-key="${entry.bodyKey}"]`);
+  return state.svg.querySelector(`[data-edit-idx="${entry.idx}"]`);
+}
+function drawSelectionOverlay() {
+  clearOverlays();
+  if (!state.svg || !state.selection.length) return;
+
+  // Per-item overlay: filled tint + bright outer outline + dark dashed inner.
+  let unionMin = { x: Infinity, y: Infinity };
+  let unionMax = { x: -Infinity, y: -Infinity };
+  for (const entry of state.selection) {
+    const node = renderedNodeFor(entry);
+    if (!node) continue;
+    const bb = safeBBox(node);
+    if (!bb) continue;
+    const pad = 0.4;
+    const x = bb.x - pad, y = bb.y - pad, w = bb.width + 2*pad, h = bb.height + 2*pad;
+    unionMin.x = Math.min(unionMin.x, x); unionMin.y = Math.min(unionMin.y, y);
+    unionMax.x = Math.max(unionMax.x, x + w); unionMax.y = Math.max(unionMax.y, y + h);
+
+    const fill = mkRect("__sel-fill", x, y, w, h);
+    const outer = mkRect("__sel-outer", x, y, w, h);
+    const inner = mkRect("__sel-inner", x, y, w, h);
+    state.svg.appendChild(fill);
+    state.svg.appendChild(outer);
+    state.svg.appendChild(inner);
+
+    // Corner ticks for extra visibility
+    const t = Math.min(w, h) * 0.18 + 0.4;
+    for (const [hx, hy] of [[x,y],[x+w,y],[x,y+h],[x+w,y+h]]) {
+      const c = document.createElementNS(SVG_NS, "circle");
+      c.setAttribute("class", "__sel-handle");
+      c.setAttribute("cx", hx); c.setAttribute("cy", hy); c.setAttribute("r", String(t * 0.25));
+      state.svg.appendChild(c);
+    }
+  }
+
+  // If multiple items, draw a dashed blue bbox around the union.
+  if (state.selection.length > 1 && isFinite(unionMin.x)) {
+    const bbox = mkRect("__sel-bbox", unionMin.x - 0.3, unionMin.y - 0.3,
+                        unionMax.x - unionMin.x + 0.6, unionMax.y - unionMin.y + 0.6);
+    state.svg.appendChild(bbox);
+  }
+}
+function mkRect(cls, x, y, w, h) {
+  const r = document.createElementNS(SVG_NS, "rect");
+  r.setAttribute("class", cls);
+  r.setAttribute("x", String(x));
+  r.setAttribute("y", String(y));
+  r.setAttribute("width", String(w));
+  r.setAttribute("height", String(h));
+  return r;
+}
+function safeBBox(el) {
+  try {
+    const screenCTM = state.svg.getScreenCTM();
+    if (!screenCTM) return null;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+      try {
+        const b = el.getBBox();
+        return { x: b.x, y: b.y, width: b.width, height: b.height };
+      } catch { return null; }
+    }
+    const inv = screenCTM.inverse();
+    const p1 = new DOMPoint(rect.left, rect.top).matrixTransform(inv);
+    const p2 = new DOMPoint(rect.right, rect.bottom).matrixTransform(inv);
+    return { x: Math.min(p1.x, p2.x), y: Math.min(p1.y, p2.y),
+             width: Math.abs(p2.x - p1.x), height: Math.abs(p2.y - p1.y) };
+  } catch { return null; }
+}
+
+/* ====================================================================
+ *  Interactions: drag, select, keyboard
+ * ==================================================================== */
+const EDITABLE_TAGS = new Set(["text","image","rect","circle","ellipse","line","use","path","polygon"]);
+
+function findEditableAncestor(node) {
+  while (node && node !== state.svg) {
+    if (node.dataset && node.dataset.bodyMarker) return node;
+    const tag = node.tagName && node.tagName.toLowerCase();
+    if (tag && EDITABLE_TAGS.has(tag)) return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+function svgPoint(e) {
+  const ctm = state.svg.getScreenCTM();
+  if (!ctm) return {x: 0, y: 0};
+  return new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+}
+
+function attachInteractions(svg) {
+  svg.addEventListener("mousedown", onMouseDown);
+  svg.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
+}
+
+let drag = null;
+let marquee = null;
+function onMouseDown(e) {
+  if (e.target.closest(".__sel-fill, .__sel-outer, .__sel-inner, .__sel-handle, .__sel-bbox")) return;
+  const node = findEditableAncestor(e.target);
+  const multi = e.shiftKey || e.ctrlKey || e.metaKey;
+
+  // Click on empty background → start a marquee (or clear selection on simple click).
+  if (!node || node === state.svg) {
+    if (!multi) setSelection(null);
+    marquee = { start: svgPoint(e), curr: svgPoint(e), additive: multi };
+    e.preventDefault();
+    return;
+  }
+
+  // Click on an editable element.
+  const entry = node.dataset.bodyMarker
+    ? { bodyKey: node.getAttribute("data-body-key") }
+    : { idx: node.getAttribute("data-edit-idx") };
+  if (entry.idx == null && entry.bodyKey == null) return;
+
+  if (multi) {
+    toggleInSelection(entry);
+    refreshSelectionUI();
+    e.preventDefault();
+    return;
+  }
+  // Plain click: if already in a multi-selection, keep it (so dragging moves
+  // the whole group). Otherwise switch to single-select.
+  if (!isSelected(entry)) {
+    setSelection(entry);
+  }
+
+  // Start dragging the whole selection.
+  drag = beginDrag(svgPoint(e));
+  e.preventDefault();
+}
+function beginDrag(startPt) {
+  // Snapshot the per-item original offsets so we can apply the same dx/dy
+  // to every item in the selection on each mouse-move.
+  const items = state.selection.map(entry => {
+    if (entry.bodyKey) {
+      const b = state.bodyBlocks.find(x => x.key === entry.bodyKey);
+      return { kind: "body", b, orig: { x: b.x, y: b.y } };
+    }
+    const el = findTemplateNodeByIdx(entry.idx);
+    if (!el) return null;
+    return { kind: "node", el, orig: readOffsets(el) };
+  }).filter(Boolean);
+  return { items, start: startPt, tookSnapshot: false };
+}
+function onMouseMove(e) {
+  if (!state.svg) return;
+
+  if (drag) {
+    if (!drag.tookSnapshot) { snapshot(); drag.tookSnapshot = true; }
+    const p = svgPoint(e);
+    const dx = p.x - drag.start.x;
+    const dy = p.y - drag.start.y;
+    for (const it of drag.items) {
+      if (it.kind === "node") applyOffsets(it.el, it.orig, dx, dy);
+      else if (it.kind === "body") {
+        it.b.x = round(it.orig.x + dx);
+        it.b.y = round(it.orig.y + dy);
+      }
+    }
+    markDirty();
+    rerender();
+    drawSelectionOverlay();
+    return;
+  }
+
+  if (marquee) {
+    marquee.curr = svgPoint(e);
+    drawMarquee();
+    return;
+  }
+
+  // Hover preview
+  const node = findEditableAncestor(e.target);
+  state.svg.querySelectorAll(".__hov").forEach(n => n.remove());
+  if (node && node !== state.svg && !isSelected(
+        node.dataset.bodyMarker ? {bodyKey: node.getAttribute("data-body-key")} : {idx: node.getAttribute("data-edit-idx")}
+      )) {
+    const bb = safeBBox(node);
+    if (bb) {
+      const r = document.createElementNS(SVG_NS, "rect");
+      r.setAttribute("class", "__hov");
+      r.setAttribute("x", bb.x); r.setAttribute("y", bb.y);
+      r.setAttribute("width", bb.width); r.setAttribute("height", bb.height);
+      state.svg.appendChild(r);
+    }
+  }
+}
+function onMouseUp() {
+  if (drag) { drag = null; renderInspector(); renderAlignPanel(); }
+  if (marquee) {
+    finishMarquee();
+    marquee = null;
+  }
+}
+
+function marqueeRect() {
+  const x1 = Math.min(marquee.start.x, marquee.curr.x);
+  const y1 = Math.min(marquee.start.y, marquee.curr.y);
+  const x2 = Math.max(marquee.start.x, marquee.curr.x);
+  const y2 = Math.max(marquee.start.y, marquee.curr.y);
+  return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+}
+function drawMarquee() {
+  state.svg.querySelectorAll(".__marquee").forEach(n => n.remove());
+  const r = marqueeRect();
+  if (r.w < 0.05 && r.h < 0.05) return; // tiny — no marquee
+  const rect = document.createElementNS(SVG_NS, "rect");
+  rect.setAttribute("class", "__marquee");
+  rect.setAttribute("x", r.x); rect.setAttribute("y", r.y);
+  rect.setAttribute("width", r.w); rect.setAttribute("height", r.h);
+  state.svg.appendChild(rect);
+}
+function finishMarquee() {
+  state.svg.querySelectorAll(".__marquee").forEach(n => n.remove());
+  const r = marqueeRect();
+  if (r.w < 0.2 && r.h < 0.2) return; // a click, not a drag
+
+  // Find every editable element whose bbox intersects the marquee.
+  const hits = [];
+  state.svg.querySelectorAll("[data-edit-idx]").forEach(node => {
+    const tag = node.tagName.toLowerCase();
+    if (!EDITABLE_TAGS.has(tag)) return;
+    // Skip the SVG root and decorative <defs> / <style>
+    if (node === state.svg) return;
+    const bb = safeBBox(node);
+    if (!bb) return;
+    if (rectsIntersect(bb, {x:r.x, y:r.y, width:r.w, height:r.h})) {
+      hits.push({ idx: node.getAttribute("data-edit-idx") });
+    }
+  });
+  // Body markers too
+  state.svg.querySelectorAll("[data-body-key]").forEach(g => {
+    const bb = safeBBox(g);
+    if (bb && rectsIntersect(bb, {x:r.x, y:r.y, width:r.w, height:r.h})) {
+      hits.push({ bodyKey: g.getAttribute("data-body-key") });
+    }
+  });
+  if (marquee.additive) {
+    for (const h of hits) addToSelection(h);
+  } else {
+    setSelection(hits);
+  }
+  refreshSelectionUI();
+}
+function rectsIntersect(a, b) {
+  return !(a.x + a.width  < b.x ||
+           b.x + b.width  < a.x ||
+           a.y + a.height < b.y ||
+           b.y + b.height < a.y);
+}
+function round(n) { return Math.round(n * 100) / 100; }
+function readOffsets(el) {
+  const tag = el.tagName.toLowerCase();
+  const o = { tag };
+  if (["rect","image","use","text","tspan","foreignObject"].includes(tag)) {
+    o.x = parseFloat(el.getAttribute("x") || 0);
+    o.y = parseFloat(el.getAttribute("y") || 0);
+  } else if (tag === "circle" || tag === "ellipse") {
+    o.cx = parseFloat(el.getAttribute("cx") || 0);
+    o.cy = parseFloat(el.getAttribute("cy") || 0);
+  } else if (tag === "line") {
+    o.x1 = parseFloat(el.getAttribute("x1") || 0);
+    o.y1 = parseFloat(el.getAttribute("y1") || 0);
+    o.x2 = parseFloat(el.getAttribute("x2") || 0);
+    o.y2 = parseFloat(el.getAttribute("y2") || 0);
+  } else {
+    o.transform = el.getAttribute("transform") || "";
+    const m = o.transform.match(/translate\(\s*(-?[\d.]+)[\s,]+(-?[\d.]+)\s*\)/);
+    o.tx = m ? parseFloat(m[1]) : 0;
+    o.ty = m ? parseFloat(m[2]) : 0;
+  }
+  return o;
+}
+function applyOffsets(el, o, dx, dy) {
+  if (["rect","image","use","text","tspan","foreignObject"].includes(o.tag)) {
+    el.setAttribute("x", fmt(o.x + dx));
+    el.setAttribute("y", fmt(o.y + dy));
+  } else if (o.tag === "circle" || o.tag === "ellipse") {
+    el.setAttribute("cx", fmt(o.cx + dx));
+    el.setAttribute("cy", fmt(o.cy + dy));
+  } else if (o.tag === "line") {
+    el.setAttribute("x1", fmt(o.x1 + dx));
+    el.setAttribute("y1", fmt(o.y1 + dy));
+    el.setAttribute("x2", fmt(o.x2 + dx));
+    el.setAttribute("y2", fmt(o.y2 + dy));
+  } else {
+    const nx = round(o.tx + dx), ny = round(o.ty + dy);
+    const rest = (o.transform || "").replace(/translate\([^)]*\)/, "").trim();
+    el.setAttribute("transform", `translate(${nx} ${ny})${rest ? " " + rest : ""}`);
+  }
+}
+
+/* ====================================================================
+ *  Selection / inspector / element list
+ * ==================================================================== */
+function setSelection(sel) {
+  if (sel == null) state.selection = [];
+  else if (Array.isArray(sel)) state.selection = sel.slice();
+  else state.selection = [sel];
+  syncSelectedPrimary();
+  refreshSelectionUI();
+}
+function refreshSelectionUI() {
+  syncSelectedPrimary();
+  drawSelectionOverlay();
+  renderElementList();
+  renderInspector();
+  renderAlignPanel();
+}
+
+function renderTemplateList() {
+  const cur = state.templateName;
+  els.tplList.innerHTML = "";
+
+  const groups = state.categories.groups || [];
+  if (groups.length) {
+    for (const g of groups) {
+      const groupEl = document.createElement("div");
+      groupEl.className = "tpl-group";
+      const title = document.createElement("div");
+      title.className = "tpl-group-title";
+      title.textContent = g.title;
+      groupEl.appendChild(title);
+      for (const it of (g.items || [])) {
+        const row = document.createElement("div");
+        row.className = "tpl-row" + (it.key === cur ? " active" : "");
+        const count = it.row_count == null ? "blank" : String(it.row_count);
+        row.innerHTML = `<span>${escapeHtml(it.title)}</span><span class="row-count">${count}</span>`;
+        row.title = `template: ${it.template}.svg${it.data ? "\ndata: data/" + it.data : ""}`;
+        row.addEventListener("click", () => loadTemplate(it.key));
+        groupEl.appendChild(row);
+      }
+      els.tplList.appendChild(groupEl);
+    }
+    return;
+  }
+
+  // Fallback: legacy flat list of templates.
+  for (const name of state.templates) {
+    const row = document.createElement("div");
+    row.className = "tpl-row" + (name === cur ? " active" : "");
+    row.innerHTML = `<span>${escapeHtml(name)}</span>`;
+    row.addEventListener("click", () => loadTemplate(name));
+    els.tplList.appendChild(row);
+  }
+}
+
+function renderElementList() {
+  els.elList.innerHTML = "";
+  if (!state.doc) return;
+  const onClickRow = (entry, e) => {
+    if (e.shiftKey || e.ctrlKey || e.metaKey) { toggleInSelection(entry); refreshSelectionUI(); }
+    else setSelection(entry);
+  };
+  const walk = (el, depth) => {
+    if (el === state.doc.documentElement) {
+      // children only
+    } else {
+      const tag = el.tagName.toLowerCase();
+      if (tag !== "defs" && tag !== "style") {
+        const row = document.createElement("div");
+        row.className = "el-row";
+        row.style.paddingLeft = (12 + depth * 12) + "px";
+        const idx = el.getAttribute("data-edit-idx");
+        if (isSelected({ idx })) row.classList.add("selected");
+        row.innerHTML = `<span class="tag">${tag}</span><span class="preview"></span>`;
+        row.querySelector(".preview").textContent = nodePreview(el);
+        row.addEventListener("click", (e) => onClickRow({ idx }, e));
+        els.elList.appendChild(row);
+      }
+    }
+    for (const c of el.children) walk(c, depth + (el === state.doc.documentElement ? 0 : 1));
+  };
+  walk(state.doc.documentElement, 0);
+
+  // Body blocks at the end
+  if (state.bodyBlocks.length) {
+    const head = document.createElement("div");
+    head.className = "el-row";
+    head.style.color = "var(--muted)";
+    head.style.cursor = "default";
+    head.innerHTML = `<span class="badge body">BODY_BLOCKS</span>`;
+    els.elList.appendChild(head);
+    for (const b of state.bodyBlocks) {
+      const row = document.createElement("div");
+      if (isSelected({ bodyKey: b.key })) row.classList.add("selected");
+      row.className = "el-row" + (isSelected({ bodyKey: b.key }) ? " selected" : "");
+      row.style.paddingLeft = "20px";
+      row.innerHTML = `<span class="tag">body</span><span class="preview">${escapeHtml(b.key)} · ${b.maxlines}×${b.width}</span>`;
+      row.addEventListener("click", (e) => onClickRow({ bodyKey: b.key }, e));
+      els.elList.appendChild(row);
+    }
+  }
+}
+
+function nodePreview(el) {
+  const tag = el.tagName.toLowerCase();
+  if (tag === "text") {
+    let t = el.textContent.trim();
+    if (t.includes("{{")) {
+      const m = t.match(/\{\{(\w+)\}\}/);
+      if (m) return "{{" + m[1] + "}}";
+    }
+    return t.slice(0, 28) || "(empty)";
+  }
+  if (tag === "image") {
+    const href = el.getAttribute("href") || el.getAttribute("xlink:href") || "";
+    return href.split("/").pop() || "image";
+  }
+  if (tag === "g") {
+    const id = el.getAttribute("id") || el.getAttribute("inkscape:label") || "";
+    return id || "(group)";
+  }
+  const id = el.getAttribute("id");
+  if (id) return "#" + id;
+  return "";
+}
+
+/* ---------- Inspector ---------- */
+function renderInspector() {
+  els.inspector.innerHTML = "";
+  if (!state.selection.length) {
+    els.inspector.innerHTML = '<div class="empty">Select an element</div>';
+    return;
+  }
+  if (state.selection.length > 1) {
+    renderMultiInspector();
+    return;
+  }
+  if (state.selected.bodyKey) {
+    renderBodyBlockInspector(state.selected.bodyKey);
+    return;
+  }
+  const el = findTemplateNodeByIdx(state.selected.idx);
+  if (!el) { els.inspector.innerHTML = '<div class="empty">Element not found</div>'; return; }
+  const tag = el.tagName.toLowerCase();
+
+  let html = `<div class="group-title">${tag}</div>`;
+
+  const numFields = (() => {
+    if (["rect","image","use"].includes(tag)) return [["x","x"],["y","y"],["width","width"],["height","height"]];
+    if (tag === "text" || tag === "tspan") return [["x","x"],["y","y"]];
+    if (tag === "circle") return [["cx","cx"],["cy","cy"],["r","r"]];
+    if (tag === "ellipse") return [["cx","cx"],["cy","cy"],["rx","rx"],["ry","ry"]];
+    if (tag === "line") return [["x1","x1"],["y1","y1"],["x2","x2"],["y2","y2"]];
+    return [];
+  })();
+  for (const [label, attr] of numFields) {
+    html += attrNumberRow(label, attr, el.getAttribute(attr) || "");
+  }
+
+  html += attrTextRow("transform", el.getAttribute("transform") || "");
+
+  if (tag === "text" || tag === "tspan") {
+    html += `<div class="group-title" style="margin-top:10px">Typography <span class="help" style="font-weight:400;text-transform:none">(writes inline style, overrides class)</span></div>`;
+    html += attrTextRow("class", el.getAttribute("class") || "", "(see <style>)");
+    html += styleRow(el, "font-family");
+    html += styleRow(el, "font-size");
+    html += styleRow(el, "font-weight");
+    html += styleRow(el, "font-style");
+    html += styleRow(el, "text-anchor", "start|middle|end");
+    html += styleRow(el, "letter-spacing");
+    html += styleRow(el, "fill");
+    html += attrTextRow("textLength", el.getAttribute("textLength") || "");
+    html += `<div class="row"><label class="k">text</label><textarea data-text-content>${escapeHtml(el.textContent)}</textarea></div>`;
+  }
+
+  if (tag === "image") {
+    html += `<div class="group-title" style="margin-top:10px">Image</div>`;
+    html += attrTextRow("href", el.getAttribute("href") || el.getAttribute("xlink:href") || "");
+    html += attrTextRow("preserveAspectRatio", el.getAttribute("preserveAspectRatio") || "");
+    html += styleRow(el, "opacity");
+    html += `<div class="row"><label class="k">aspect</label>
+              <label style="display:flex;align-items:center;gap:4px;flex:1;font-size:11px;color:var(--muted)">
+                <input type="checkbox" id="i-lock-aspect" ${state.lockAspect ? "checked" : ""}> lock w/h ratio
+              </label>
+              <button id="i-fit-aspect" title="Resize height to match the image's natural aspect ratio, keeping current width">Fit aspect</button>
+            </div>`;
+    html += `<div class="row"><label class="k"></label>
+              <button id="i-pick-library" title="Pick from necropolis-images/">Library…</button>
+              <button id="i-replace-img" title="Upload a new file">Upload…</button>
+            </div>`;
+  }
+
+  if (["rect","circle","ellipse","path","line","polygon"].includes(tag)) {
+    html += `<div class="group-title" style="margin-top:10px">Style</div>`;
+    html += styleRow(el, "fill");
+    html += styleRow(el, "stroke");
+    html += styleRow(el, "stroke-width");
+    html += styleRow(el, "opacity");
+  }
+
+  els.inspector.innerHTML = html;
+  wireInspector(el);
+}
+
+function attrNumberRow(label, attr, value) {
+  return `<div class="row"><label class="k">${label}</label><input type="number" step="0.1" data-attr="${attr}" value="${escapeHtml(value)}"></div>`;
+}
+function attrTextRow(attr, value, placeholder="") {
+  return `<div class="row"><label class="k">${attr}</label><input type="text" data-attr="${attr}" value="${escapeHtml(value)}" placeholder="${escapeHtml(placeholder)}"></div>`;
+}
+/* A row for a style-y property — reads effective value, writes inline. */
+function styleRow(el, prop, placeholder="") {
+  const val = effectiveStyleValue(el, prop);
+  return `<div class="row"><label class="k">${prop}</label><input type="text" data-style="${prop}" value="${escapeHtml(val)}" placeholder="${escapeHtml(placeholder)}"></div>`;
+}
+
+function wireInspector(el) {
+  // Plain XML-attribute inputs (geometry, transform, href, class, textLength, …)
+  els.inspector.querySelectorAll("input[data-attr], textarea[data-attr]").forEach(inp => {
+    inp.addEventListener("change", () => {
+      snapshot();
+      const attr = inp.dataset.attr;
+      const val = inp.value;
+      if (val === "") {
+        el.removeAttribute(attr);
+        if (attr === "href") el.removeAttributeNS(XLINK_NS, "href");
+      } else {
+        if (attr === "href") {
+          el.setAttributeNS(XLINK_NS, "href", val);
+          el.setAttribute("href", val);
+        } else {
+          el.setAttribute(attr, val);
+          // If aspect-lock is on for an image, mirror w/h change
+          if (el.tagName.toLowerCase() === "image" && state.lockAspect
+              && (attr === "width" || attr === "height")) {
+            mirrorAspectFromAttr(el, attr);
+          }
+        }
+      }
+      markDirty();
+      rerender();
+      renderElementList();
+    });
+  });
+
+  // Style-prop inputs — write to inline style so they win over class CSS rules.
+  els.inspector.querySelectorAll("input[data-style]").forEach(inp => {
+    inp.addEventListener("change", () => {
+      snapshot();
+      writeStyleProp(el, inp.dataset.style, inp.value);
+      markDirty();
+      rerender();
+      renderElementList();
+    });
+  });
+
+  const txt = els.inspector.querySelector("textarea[data-text-content]");
+  if (txt) {
+    txt.addEventListener("change", () => {
+      snapshot(); el.textContent = txt.value; markDirty(); rerender(); renderElementList();
+    });
+  }
+  const repl = els.inspector.querySelector("#i-replace-img");
+  if (repl) {
+    repl.addEventListener("click", () => {
+      els.imageInput.dataset.mode = "replace";
+      els.imageInput.dataset.targetIdx = el.getAttribute("data-edit-idx");
+      els.imageInput.click();
+    });
+  }
+  const pickLib = els.inspector.querySelector("#i-pick-library");
+  if (pickLib) {
+    pickLib.addEventListener("click", () => {
+      openImagePicker(async (chosen) => {
+        snapshot();
+        el.setAttribute("href", chosen.file_uri);
+        el.setAttributeNS(XLINK_NS, "href", chosen.file_uri);
+        // Refit height to new image's natural aspect, keep current width.
+        try {
+          const nat = await getImageNaturalSize(chosen.url);
+          const w = parseFloat(el.getAttribute("width") || 0);
+          if (w > 0 && nat.w > 0) {
+            el.setAttribute("height", fmt(round(w * (nat.h / nat.w))));
+          }
+        } catch {}
+        markDirty(); rerender(); renderInspector(); renderElementList();
+        setStatus("Image set → " + chosen.rel, "ok");
+      });
+    });
+  }
+  const fit = els.inspector.querySelector("#i-fit-aspect");
+  if (fit) {
+    fit.addEventListener("click", async () => {
+      const href = el.getAttribute("href") || el.getAttribute("xlink:href");
+      if (!href) { setStatus("No image href", "error"); return; }
+      try {
+        const nat = await getImageNaturalSize(href);
+        snapshot();
+        const w = parseFloat(el.getAttribute("width") || nat.w);
+        const newH = round(w * (nat.h / nat.w));
+        el.setAttribute("height", fmt(newH));
+        markDirty(); rerender(); renderInspector();
+        setStatus(`Fitted aspect ${nat.w}×${nat.h} → ${w}×${newH}`, "ok");
+      } catch (e) {
+        setStatus("Could not load image: " + e, "error");
+      }
+    });
+  }
+  const lock = els.inspector.querySelector("#i-lock-aspect");
+  if (lock) {
+    lock.addEventListener("change", () => { state.lockAspect = lock.checked; });
+  }
+}
+
+/* When width or height changed on an image with aspect-lock, derive the other
+ * from the image's natural ratio. */
+async function mirrorAspectFromAttr(imgEl, changedAttr) {
+  const href = imgEl.getAttribute("href") || imgEl.getAttribute("xlink:href");
+  if (!href) return;
+  try {
+    const nat = await getImageNaturalSize(href);
+    const ratio = nat.w / nat.h;
+    if (changedAttr === "width") {
+      const w = parseFloat(imgEl.getAttribute("width") || 0);
+      imgEl.setAttribute("height", fmt(round(w / ratio)));
+    } else {
+      const h = parseFloat(imgEl.getAttribute("height") || 0);
+      imgEl.setAttribute("width", fmt(round(h * ratio)));
+    }
+    rerender();
+    renderInspector();
+  } catch {}
+}
+
+/* Returns {w, h} natural dimensions of an image at `href` (URL or data: URL). */
+function getImageNaturalSize(href) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => reject(new Error("image failed to load"));
+    img.src = href;
+  });
+}
+
+/* Multi-selection inspector. When every selected item shares the same tag,
+ * surface a small editor for common style/typography fields. Each field
+ * shows the unified value if all selected elements agree, or "(mixed)" if
+ * they differ. Edits apply to every selected element in one snapshot. */
+function renderMultiInspector() {
+  // Body blocks aren't editable as a group — bail with the simple message.
+  const info = sameTagSelection();
+  if (!info) {
+    els.inspector.innerHTML = `
+      <div class="group-title">${state.selection.length} items selected</div>
+      <div class="help" style="font-size:11px">Mixed element types (or body-block markers included). Use the <strong>Align &amp; Position</strong> panel for layout operations.</div>`;
+    return;
+  }
+  const { tag, elements } = info;
+  const n = elements.length;
+
+  // Decide which fields make sense for this tag.
+  const STYLE_FIELDS_BY_TAG = {
+    text:   ["font-family", "font-size", "font-weight", "font-style", "text-anchor", "letter-spacing", "fill"],
+    tspan:  ["font-family", "font-size", "font-weight", "font-style", "text-anchor", "letter-spacing", "fill"],
+    rect:   ["fill", "stroke", "stroke-width", "opacity"],
+    circle: ["fill", "stroke", "stroke-width", "opacity"],
+    ellipse:["fill", "stroke", "stroke-width", "opacity"],
+    path:   ["fill", "stroke", "stroke-width", "opacity"],
+    line:   ["stroke", "stroke-width", "opacity"],
+    polygon:["fill", "stroke", "stroke-width", "opacity"],
+    image:  ["opacity"],
+    use:    ["opacity"],
+    g:      ["opacity"],
+  };
+  const fields = STYLE_FIELDS_BY_TAG[tag] || [];
+
+  let html = `<div class="group-title">${n} × <code>${tag}</code> selected</div>`;
+  html += `<div class="help" style="font-size:11px">Edits below apply to all ${n} items. <em>(mixed)</em> placeholders indicate different values — overwrite to unify.</div>`;
+
+  if (fields.length) {
+    html += `<div class="group-title" style="margin-top:10px">${tag === "text" || tag === "tspan" ? "Typography" : "Style"}</div>`;
+    for (const prop of fields) {
+      const values = elements.map(el => effectiveStyleValue(el, prop));
+      const uniform = values.every(v => v === values[0]);
+      const val = uniform ? (values[0] || "") : "";
+      const placeholder = uniform ? "" : "(mixed)";
+      html += `<div class="row"><label class="k">${prop}</label>
+        <input type="text" data-multi-style="${escapeHtml(prop)}" value="${escapeHtml(val)}" placeholder="${escapeHtml(placeholder)}"></div>`;
+    }
+  }
+
+  // class is an XML attribute, not a style property — kept separately.
+  const classVals = elements.map(el => el.getAttribute("class") || "");
+  const classUniform = classVals.every(c => c === classVals[0]);
+  html += `<div class="group-title" style="margin-top:10px">Attribute</div>`;
+  html += `<div class="row"><label class="k">class</label>
+    <input type="text" data-multi-attr="class" value="${escapeHtml(classUniform ? classVals[0] : "")}" placeholder="${classUniform ? "" : "(mixed)"}"></div>`;
+
+  // For text, also allow changing the literal text content if all match.
+  if (tag === "text" || tag === "tspan") {
+    const contents = elements.map(el => el.textContent);
+    const contentUniform = contents.every(c => c === contents[0]);
+    html += `<div class="row"><label class="k">text</label>
+      <textarea data-multi-text placeholder="${contentUniform ? "" : "(mixed — leave blank to keep individual values)"}">${escapeHtml(contentUniform ? contents[0] : "")}</textarea></div>`;
+  }
+
+  els.inspector.innerHTML = html;
+  wireMultiInspector(elements);
+}
+
+/* Returns {tag, elements: [...]} if every selected entry is a template node
+ * with the same tag, otherwise null. */
+function sameTagSelection() {
+  const elements = [];
+  for (const entry of state.selection) {
+    if (entry.bodyKey) return null;
+    const el = findTemplateNodeByIdx(entry.idx);
+    if (!el) return null;
+    elements.push(el);
+  }
+  if (!elements.length) return null;
+  const tag = elements[0].tagName.toLowerCase();
+  for (const el of elements) {
+    if (el.tagName.toLowerCase() !== tag) return null;
+  }
+  return { tag, elements };
+}
+
+function wireMultiInspector(elements) {
+  // Style-prop inputs — write inline style on every selected element.
+  els.inspector.querySelectorAll("input[data-multi-style]").forEach(inp => {
+    inp.addEventListener("change", () => {
+      const v = inp.value;
+      // Empty input means "keep mixed values as-is". Don't overwrite.
+      if (v === "" && inp.placeholder === "(mixed)") return;
+      snapshot();
+      for (const el of elements) writeStyleProp(el, inp.dataset.multiStyle, v);
+      markDirty(); rerender(); refreshSelectionUI();
+    });
+  });
+  // class attribute (XML attribute, not style)
+  els.inspector.querySelectorAll("input[data-multi-attr]").forEach(inp => {
+    inp.addEventListener("change", () => {
+      const v = inp.value;
+      if (v === "" && inp.placeholder === "(mixed)") return;
+      snapshot();
+      for (const el of elements) {
+        if (v === "") el.removeAttribute(inp.dataset.multiAttr);
+        else el.setAttribute(inp.dataset.multiAttr, v);
+      }
+      markDirty(); rerender(); refreshSelectionUI();
+    });
+  });
+  // Multi-text edit (applies same string to every selected text/tspan)
+  const txt = els.inspector.querySelector("textarea[data-multi-text]");
+  if (txt) {
+    txt.addEventListener("change", () => {
+      const v = txt.value;
+      if (v === "" && txt.placeholder.startsWith("(mixed")) return;
+      snapshot();
+      for (const el of elements) el.textContent = v;
+      markDirty(); rerender(); refreshSelectionUI();
+    });
+  }
+}
+
+function renderBodyBlockInspector(key) {
+  const b = state.bodyBlocks.find(x => x.key === key);
+  if (!b) { els.inspector.innerHTML = '<div class="empty">Body block not found</div>'; return; }
+  let html = `<div class="group-title">BODY_BLOCK · ${escapeHtml(b.key)}</div>
+    <div class="row bb-form"><label class="k">key</label><input type="text" data-bk="key" value="${escapeHtml(b.key)}"></div>
+    <div class="row bb-form"><label class="k">x</label><input type="number" step="0.1" data-bk="x" value="${b.x}"></div>
+    <div class="row bb-form"><label class="k">y</label><input type="number" step="0.1" data-bk="y" value="${b.y}"></div>
+    <div class="row bb-form"><label class="k">lineheight</label><input type="number" step="0.1" data-bk="lh" value="${b.lh}"></div>
+    <div class="row bb-form"><label class="k">width (chars)</label><input type="number" step="1" data-bk="width" value="${b.width}"></div>
+    <div class="row bb-form"><label class="k">maxlines</label><input type="number" step="1" data-bk="maxlines" value="${b.maxlines}"></div>
+    <div class="row bb-form"><label class="k">style</label><input type="text" data-bk="style" value="${escapeHtml(b.style)}" placeholder="body | flavor | …"></div>
+    <div class="row bb-form"><label class="k">anchor</label><input type="text" data-bk="anchor" value="${escapeHtml(b.anchor)}" placeholder="start|middle|end"></div>
+    <div class="row bb-form"><label class="k">short_fill</label><input type="text" data-bk="short_fill" value="${b.short_fill ? "true" : ""}" placeholder="true / blank"></div>`;
+  els.inspector.innerHTML = html;
+  els.inspector.querySelectorAll("input[data-bk]").forEach(inp => {
+    inp.addEventListener("change", () => {
+      snapshot();
+      const k = inp.dataset.bk;
+      let v = inp.value;
+      if (k === "x" || k === "y" || k === "lh") b[k] = parseFloat(v) || 0;
+      else if (k === "width" || k === "maxlines") b[k] = parseInt(v, 10) || 1;
+      else if (k === "short_fill") b[k] = v.toLowerCase() === "true";
+      else b[k] = v;
+      markDirty(); syncBodyBlockComments(); rerender(); renderElementList();
+    });
+  });
+}
+
+/* ---------- Template-size panel ---------- */
+function renderTemplateSize() {
+  if (!state.doc) { els.sizePanel.innerHTML = '<div class="empty">No template loaded</div>'; return; }
+  const root = state.doc.documentElement;
+  const w = root.getAttribute("width") || "";
+  const h = root.getAttribute("height") || "";
+  const vb = root.getAttribute("viewBox") || "";
+  els.sizePanel.innerHTML = `
+    <div class="row"><label class="k">width</label><input type="text" id="s-w" value="${escapeHtml(w)}"></div>
+    <div class="row"><label class="k">height</label><input type="text" id="s-h" value="${escapeHtml(h)}"></div>
+    <div class="row"><label class="k">viewBox</label><input type="text" id="s-vb" value="${escapeHtml(vb)}"></div>
+    <div class="row" style="margin-top:6px;color:var(--muted);font-size:11px">Preset:
+      <button data-preset="card-trim">card 63×88</button>
+    </div>`;
+  els.sizePanel.querySelector("#s-w").addEventListener("change", e => {
+    snapshot(); root.setAttribute("width", e.target.value); markDirty(); rerender();
+  });
+  els.sizePanel.querySelector("#s-h").addEventListener("change", e => {
+    snapshot(); root.setAttribute("height", e.target.value); markDirty(); rerender();
+  });
+  els.sizePanel.querySelector("#s-vb").addEventListener("change", e => {
+    snapshot(); root.setAttribute("viewBox", e.target.value); markDirty(); rerender();
+  });
+  els.sizePanel.querySelectorAll("button[data-preset]").forEach(b => {
+    b.addEventListener("click", () => {
+      snapshot();
+      root.setAttribute("width", "63mm");
+      root.setAttribute("height", "88mm");
+      root.setAttribute("viewBox", "0 0 63 88");
+      markDirty(); rerender(); renderTemplateSize();
+    });
+  });
+}
+
+/* ====================================================================
+ *  Align & Position panel
+ *  --------------------------------------------------------------------
+ *  For one selection: align/center against the canvas viewBox.
+ *  For 2+ selections: align/distribute against each other.
+ *  All ops compute each element's current rendered bbox, then translate
+ *  by (target - current) via the same applyOffsets() the drag handler uses.
+ * ==================================================================== */
+function renderAlignPanel() {
+  if (!els.alignPanel) return;
+  const n = state.selection.length;
+  if (!n) { els.alignPanel.innerHTML = '<div class="empty">Select element(s)</div>'; return; }
+
+  const union = unionBBoxOfSelection();
+  const xy = union ? `${fmt(union.x)} · ${fmt(union.y)}` : "—";
+  const wh = union ? `${fmt(union.width)} × ${fmt(union.height)}` : "—";
+
+  els.alignPanel.innerHTML = `
+    <div class="row">
+      <span class="pill-count">${n}</span>
+      <span style="color:var(--muted);font-size:11px">${n === 1 ? "item selected" : "items selected"}</span>
+    </div>
+
+    <div class="row subhead">Bounding box (selection)</div>
+    <div class="row bbox-row"><label class="k">x · y</label><input type="text" id="bbox-xy" value="${xy}" placeholder="x y" ${union ? "" : "disabled"}></div>
+    <div class="row bbox-row"><label class="k">w × h</label><input type="text" id="bbox-wh" value="${wh}" disabled></div>
+
+    <div class="row subhead">${n === 1 ? "Align on canvas" : "Align to selection bbox"}</div>
+    <div class="align-grid">
+      <button data-align="left"    title="Align left edges">⫷</button>
+      <button data-align="hcenter" title="Align horizontal centers">─⊕─</button>
+      <button data-align="right"   title="Align right edges">⫸</button>
+      <button data-align="top"     title="Align top edges">⫶ T</button>
+      <button data-align="vcenter" title="Align vertical centers">│⊕│</button>
+      <button data-align="bottom"  title="Align bottom edges">B ⫶</button>
+    </div>
+
+    <div class="row subhead">Center on canvas</div>
+    <div class="align-grid" style="grid-template-columns: 1fr 1fr">
+      <button data-canvas="h" title="Center horizontally on canvas">↔ canvas X</button>
+      <button data-canvas="v" title="Center vertically on canvas">↕ canvas Y</button>
+    </div>
+
+    ${n >= 3 ? `
+      <div class="row subhead">Distribute</div>
+      <div class="align-grid" style="grid-template-columns: 1fr 1fr">
+        <button data-dist="h" title="Distribute horizontally">↔ even X</button>
+        <button data-dist="v" title="Distribute vertically">↕ even Y</button>
+      </div>` : ""}
+
+    ${n >= 2 ? `
+      <div class="row subhead">Match size</div>
+      <div class="align-grid" style="grid-template-columns: 1fr 1fr">
+        <button data-match="w" title="Match width to largest">match W</button>
+        <button data-match="h" title="Match height to largest">match H</button>
+      </div>` : ""}
+
+    <div class="row subhead">Z-order (draw order)</div>
+    <div class="align-grid" style="grid-template-columns: repeat(4, 1fr)">
+      <button data-z="back"     title="Send to Back — render below everything (Alt+Shift+[)">⤓</button>
+      <button data-z="backward" title="Send Backward one step (Alt+[)">↓</button>
+      <button data-z="forward"  title="Bring Forward one step (Alt+])">↑</button>
+      <button data-z="front"    title="Bring to Front — render above everything (Alt+Shift+])">⤒</button>
+    </div>
+  `;
+
+  // Wire bbox X/Y → translate the whole selection
+  const xyInp = $("bbox-xy");
+  if (xyInp) {
+    xyInp.addEventListener("change", () => {
+      if (!union) return;
+      const parts = xyInp.value.trim().split(/[\s,]+/);
+      const tx = parseFloat(parts[0]);
+      const ty = parts.length > 1 ? parseFloat(parts[1]) : union.y;
+      if (Number.isNaN(tx) || Number.isNaN(ty)) return;
+      snapshot();
+      translateSelection(tx - union.x, ty - union.y);
+      markDirty(); rerender(); refreshSelectionUI();
+    });
+  }
+  // Wire align buttons
+  els.alignPanel.querySelectorAll("button[data-align]").forEach(b => {
+    b.addEventListener("click", () => alignSelection(b.dataset.align));
+  });
+  els.alignPanel.querySelectorAll("button[data-canvas]").forEach(b => {
+    b.addEventListener("click", () => centerOnCanvas(b.dataset.canvas));
+  });
+  els.alignPanel.querySelectorAll("button[data-dist]").forEach(b => {
+    b.addEventListener("click", () => distributeSelection(b.dataset.dist));
+  });
+  els.alignPanel.querySelectorAll("button[data-match]").forEach(b => {
+    b.addEventListener("click", () => matchSize(b.dataset.match));
+  });
+  els.alignPanel.querySelectorAll("button[data-z]").forEach(b => {
+    b.addEventListener("click", () => zOrder(b.dataset.z));
+  });
+}
+
+/* Z-order operations. SVG stacking is purely document order: later sibling
+ * draws on top of earlier. Body-block markers are comments and have no
+ * visual presence, so they're skipped. */
+function zOrder(mode) {
+  const els = [];
+  for (const entry of state.selection) {
+    if (entry.bodyKey) continue;
+    const el = findTemplateNodeByIdx(entry.idx);
+    if (el && el !== state.doc.documentElement) els.push(el);
+  }
+  if (!els.length) return;
+  snapshot();
+
+  // Sort selection in current document order so we keep their relative
+  // ordering when we restack them.
+  els.sort((a, b) =>
+    (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1
+  );
+
+  // Choose iteration direction so the multi-element relative order is
+  // preserved after the moves:
+  //   front     — appendChild moves to the END. Left-to-right preserves order
+  //               (each newly-appended item goes after the previous one).
+  //   back      — insertBefore the first visible child moves to the START.
+  //               Right-to-left preserves order (we add to the front,
+  //               last-selected first so first-selected ends up first).
+  //   forward   — each swap with nextSibling shifts an item right by one.
+  //               Right-to-left avoids consecutive items unwinding each other.
+  //   backward  — each swap with previousSibling shifts an item left by one.
+  //               Left-to-right avoids consecutive items unwinding each other.
+  const iter = (mode === "back" || mode === "forward")
+    ? [...els].reverse()
+    : els;
+
+  for (const el of iter) {
+    const parent = el.parentNode;
+    if (!parent) continue;
+    if (mode === "front") {
+      parent.appendChild(el);
+    } else if (mode === "back") {
+      // First non-defs/non-style sibling.
+      let firstVisual = parent.firstElementChild;
+      while (firstVisual && /^(defs|style)$/i.test(firstVisual.tagName)) {
+        firstVisual = firstVisual.nextElementSibling;
+      }
+      if (firstVisual && firstVisual !== el) parent.insertBefore(el, firstVisual);
+    } else if (mode === "forward") {
+      const next = el.nextElementSibling;
+      if (next) parent.insertBefore(next, el);
+    } else if (mode === "backward") {
+      const prev = el.previousElementSibling;
+      if (prev && !/^(defs|style)$/i.test(prev.tagName)) {
+        parent.insertBefore(el, prev);
+      }
+    }
+  }
+
+  // After reordering, data-edit-idx values shift. Re-index and re-fetch
+  // the selection by element reference, so the UI keeps the same items
+  // highlighted after the move.
+  indexTemplateNodes();
+  const newSelection = els.map(el => ({ idx: el.getAttribute("data-edit-idx") }));
+  // Keep any body-block entries we skipped earlier.
+  for (const entry of state.selection) {
+    if (entry.bodyKey) newSelection.push(entry);
+  }
+  markDirty();
+  rerender();
+  setSelection(newSelection);
+}
+
+/* Collect each selected item's current bbox in user-space mm. */
+function selectionBBoxes() {
+  const out = [];
+  for (const entry of state.selection) {
+    const node = renderedNodeFor(entry);
+    if (!node) continue;
+    const bb = safeBBox(node);
+    if (!bb) continue;
+    out.push({ entry, bb });
+  }
+  return out;
+}
+function unionBBoxOfSelection() {
+  const items = selectionBBoxes();
+  if (!items.length) return null;
+  let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+  for (const { bb } of items) {
+    x1 = Math.min(x1, bb.x); y1 = Math.min(y1, bb.y);
+    x2 = Math.max(x2, bb.x + bb.width); y2 = Math.max(y2, bb.y + bb.height);
+  }
+  return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
+}
+
+/* Move a single entry by (dx, dy). Works for template nodes (via offsets)
+ * AND body-block markers (mutate b.x/b.y). */
+function translateEntry(entry, dx, dy) {
+  if (entry.bodyKey) {
+    const b = state.bodyBlocks.find(x => x.key === entry.bodyKey);
+    if (b) { b.x = round(b.x + dx); b.y = round(b.y + dy); }
+  } else {
+    const el = findTemplateNodeByIdx(entry.idx);
+    if (el) applyOffsets(el, readOffsets(el), dx, dy);
+  }
+}
+function translateSelection(dx, dy) {
+  for (const entry of state.selection) translateEntry(entry, dx, dy);
+}
+
+/* The reference "frame" for alignment depends on the selection size:
+ *   1 item  → the canvas viewBox
+ *   2+ items → the union bounding box of all selected items
+ */
+function alignmentFrame() {
+  if (state.selection.length === 1) {
+    const vb = state.doc.documentElement.viewBox.baseVal;
+    return { x: vb.x, y: vb.y, width: vb.width, height: vb.height };
+  }
+  return unionBBoxOfSelection();
+}
+
+function alignSelection(mode) {
+  const items = selectionBBoxes();
+  if (!items.length) return;
+  const frame = alignmentFrame();
+  if (!frame) return;
+  snapshot();
+  for (const { entry, bb } of items) {
+    let dx = 0, dy = 0;
+    switch (mode) {
+      case "left":    dx = frame.x - bb.x; break;
+      case "right":   dx = (frame.x + frame.width) - (bb.x + bb.width); break;
+      case "hcenter": dx = (frame.x + frame.width / 2) - (bb.x + bb.width / 2); break;
+      case "top":     dy = frame.y - bb.y; break;
+      case "bottom":  dy = (frame.y + frame.height) - (bb.y + bb.height); break;
+      case "vcenter": dy = (frame.y + frame.height / 2) - (bb.y + bb.height / 2); break;
+    }
+    translateEntry(entry, dx, dy);
+  }
+  markDirty(); rerender(); refreshSelectionUI();
+}
+
+function centerOnCanvas(axis) {
+  const vb = state.doc.documentElement.viewBox.baseVal;
+  const items = selectionBBoxes();
+  if (!items.length) return;
+  // Use the union so the *group* gets centred rather than each item.
+  const u = unionBBoxOfSelection();
+  let dx = 0, dy = 0;
+  if (axis === "h") dx = (vb.x + vb.width / 2) - (u.x + u.width / 2);
+  if (axis === "v") dy = (vb.y + vb.height / 2) - (u.y + u.height / 2);
+  snapshot();
+  translateSelection(dx, dy);
+  markDirty(); rerender(); refreshSelectionUI();
+}
+
+function distributeSelection(axis) {
+  const items = selectionBBoxes();
+  if (items.length < 3) return;
+  // Sort along the axis, hold the extremes fixed, distribute centers evenly.
+  const sorted = items.slice().sort((a, b) => {
+    if (axis === "h") return (a.bb.x + a.bb.width/2) - (b.bb.x + b.bb.width/2);
+    return (a.bb.y + a.bb.height/2) - (b.bb.y + b.bb.height/2);
+  });
+  const first = sorted[0], last = sorted[sorted.length - 1];
+  const cFirst = axis === "h"
+    ? first.bb.x + first.bb.width / 2
+    : first.bb.y + first.bb.height / 2;
+  const cLast  = axis === "h"
+    ? last.bb.x + last.bb.width / 2
+    : last.bb.y + last.bb.height / 2;
+  const step = (cLast - cFirst) / (sorted.length - 1);
+  snapshot();
+  for (let i = 1; i < sorted.length - 1; i++) {
+    const target = cFirst + step * i;
+    const { entry, bb } = sorted[i];
+    if (axis === "h") translateEntry(entry, target - (bb.x + bb.width / 2), 0);
+    else translateEntry(entry, 0, target - (bb.y + bb.height / 2));
+  }
+  markDirty(); rerender(); refreshSelectionUI();
+}
+
+/* Match width/height of every selected node to the largest in the set.
+ * Only works on tags that have w/h attributes (rect, image, use). */
+function matchSize(axis) {
+  const items = selectionBBoxes();
+  if (items.length < 2) return;
+  const target = items.reduce((m, it) => Math.max(m, axis === "w" ? it.bb.width : it.bb.height), 0);
+  snapshot();
+  for (const { entry } of items) {
+    if (entry.bodyKey) continue;
+    const el = findTemplateNodeByIdx(entry.idx);
+    if (!el) continue;
+    const tag = el.tagName.toLowerCase();
+    if (["rect","image","use"].includes(tag)) {
+      el.setAttribute(axis === "w" ? "width" : "height", fmt(target));
+    }
+    // For other shapes, we'd need radius / path scaling — skip for now.
+  }
+  markDirty(); rerender(); refreshSelectionUI();
+}
+
+/* ====================================================================
+ *  Add / duplicate / delete elements
+ * ==================================================================== */
+function addNewText() {
+  if (!state.doc) return;
+  snapshot();
+  const vb = state.doc.documentElement.viewBox.baseVal;
+  const t = state.doc.createElementNS(SVG_NS, "text");
+  t.setAttribute("x", String(vb.width / 2));
+  t.setAttribute("y", String(vb.height / 2));
+  t.setAttribute("class", "body");
+  t.setAttribute("text-anchor", "middle");
+  t.textContent = "New text";
+  state.doc.documentElement.appendChild(t);
+  indexTemplateNodes();
+  markDirty();
+  rerender();
+  renderElementList();
+  setSelection({ idx: t.getAttribute("data-edit-idx") });
+}
+
+function addNewImage() {
+  if (!state.doc) return;
+  els.imageInput.dataset.mode = "add";
+  els.imageInput.click();
+}
+
+/* ====================================================================
+ *  Copy · Cut · Paste
+ *  --------------------------------------------------------------------
+ *  An in-memory clipboard (state.clipboard) plus best-effort OS-clipboard
+ *  sync so pastes work between browser tabs. Format:
+ *    [ {kind: "node", xml: "<text ...>...</text>"} ,
+ *      {kind: "body", text: " BODY_BLOCK: KEY @ x=... " } ]
+ * ==================================================================== */
+function copySelection() {
+  if (!state.selection.length) return;
+  const items = [];
+  for (const entry of state.selection) {
+    if (entry.bodyKey) {
+      const b = state.bodyBlocks.find(x => x.key === entry.bodyKey);
+      if (b) items.push({ kind: "body", text: bodyBlockToComment(b) });
+    } else {
+      const el = findTemplateNodeByIdx(entry.idx);
+      if (!el || el === state.doc.documentElement) continue;
+      // Resolve the element's class-based styles into inline `style` attributes
+      // so the paste keeps the source font/size/fill even when dropped into a
+      // template whose CSS classes resolve differently. Strip data-edit-idx
+      // — the paste side regenerates those.
+      const clone = el.cloneNode(true);
+      clone.removeAttribute("data-edit-idx");
+      clone.querySelectorAll("[data-edit-idx]").forEach(n => n.removeAttribute("data-edit-idx"));
+      freezeInheritedStyles(clone);
+      items.push({ kind: "node", xml: new XMLSerializer().serializeToString(clone) });
+    }
+  }
+  if (!items.length) return;
+  state.clipboard = items;
+  // Best-effort: also write to the OS clipboard so the user can paste in
+  // another tab. We wrap with a sentinel so we know it's our payload.
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText("NECROPOLIS_CLIP:" + JSON.stringify(items))
+      .catch(() => {});
+  }
+  setStatus(`Copied ${items.length} item${items.length > 1 ? "s" : ""}`, "ok");
+}
+
+function cutSelection() {
+  if (!state.selection.length) return;
+  copySelection();
+  // copySelection() doesn't modify state, so delete still works.
+  deleteSelectedNoConfirm();
+}
+
+function deleteSelectedNoConfirm() {
+  if (!state.selection.length) return;
+  snapshot();
+  for (const entry of state.selection) {
+    if (entry.bodyKey) {
+      const b = state.bodyBlocks.find(x => x.key === entry.bodyKey);
+      if (b && b.commentNode && b.commentNode.parentNode) {
+        b.commentNode.parentNode.removeChild(b.commentNode);
+      }
+    } else {
+      const el = findTemplateNodeByIdx(entry.idx);
+      if (el && el !== state.doc.documentElement) el.parentNode.removeChild(el);
+    }
+  }
+  indexTemplateNodes();
+  parseBodyBlocks();
+  setSelection(null);
+  markDirty(); rerender(); renderElementList();
+}
+
+async function pasteClipboard() {
+  // Try OS clipboard first (so a paste from another tab works).
+  let items = state.clipboard;
+  try {
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      const txt = await navigator.clipboard.readText();
+      if (txt && txt.startsWith("NECROPOLIS_CLIP:")) {
+        items = JSON.parse(txt.slice("NECROPOLIS_CLIP:".length));
+      }
+    }
+  } catch { /* permissions denied — fall back to in-memory */ }
+
+  if (!items || !items.length || !state.doc) {
+    setStatus("Nothing to paste", "error");
+    return;
+  }
+
+  snapshot();
+  const root = state.doc.documentElement;
+  const newSelection = [];
+
+  for (const it of items) {
+    if (it.kind === "body") {
+      // Re-parse the comment text to extract the original key + fields, then
+      // produce a unique key for the new marker (so build.py doesn't see a
+      // duplicate) and nudge by 2 mm so it's visually distinct from any
+      // original that may already be on the card.
+      const m = BODY_BLOCK_RE.exec(it.text);
+      if (!m) continue;
+      const stem = m[1].replace(/_(\d+)$/, "");
+      const newKey = uniqueBodyBlockKey(stem);
+      const b = {
+        key: newKey,
+        x: parseFloat(m[2]) + 2,
+        y: parseFloat(m[3]) + 2,
+        lh: parseFloat(m[4]),
+        width: parseInt(m[5], 10),
+        maxlines: parseInt(m[6], 10),
+        style: m[7] || "body",
+        anchor: m[8] || "",
+        short_fill: m[9] === "true",
+      };
+      const comment = state.doc.createComment(bodyBlockToComment(b));
+      root.appendChild(comment);
+      newSelection.push({ bodyKey: newKey });
+    } else if (it.kind === "node") {
+      // Parse the XML; the parser returns an HTMLDocument since our outer
+      // wrapper is invented, so we wrap in a temporary <svg> root with
+      // matching namespaces to give the parser a proper SVG context.
+      const wrapped = `<svg xmlns="${SVG_NS}" xmlns:xlink="${XLINK_NS}">${it.xml}</svg>`;
+      const doc = new DOMParser().parseFromString(wrapped, "image/svg+xml");
+      const imported = doc.documentElement.firstElementChild;
+      if (!imported) continue;
+      const adopted = state.doc.importNode(imported, true);
+      // Nudge so it doesn't sit on top of the original.
+      try { applyOffsets(adopted, readOffsets(adopted), 2, 2); } catch {}
+      root.appendChild(adopted);
+      // We'll grab its idx after re-indexing below.
+      adopted._fromPaste = true;
+    }
+  }
+
+  indexTemplateNodes();
+  parseBodyBlocks();
+
+  // Collect data-edit-idx values from the newly-pasted template nodes.
+  root.querySelectorAll("[data-edit-idx]").forEach(node => {
+    if (node._fromPaste) {
+      newSelection.push({ idx: node.getAttribute("data-edit-idx") });
+      delete node._fromPaste;
+    }
+  });
+
+  if (newSelection.length) setSelection(newSelection);
+  markDirty(); rerender();
+  setStatus(`Pasted ${items.length} item${items.length > 1 ? "s" : ""}`, "ok");
+}
+
+function duplicateSelected() {
+  if (!state.selection.length) return;
+  snapshot();
+  const cloneRefs = [];        // template-node clones (re-indexed below)
+  const newBodyKeys = [];      // duplicated body-block keys
+
+  for (const entry of state.selection) {
+    if (entry.bodyKey) {
+      const orig = state.bodyBlocks.find(b => b.key === entry.bodyKey);
+      if (!orig || !orig.commentNode) continue;
+      const newKey = uniqueBodyBlockKey(orig.key);
+      const clone = { ...orig, key: newKey, x: round(orig.x + 2), y: round(orig.y + 2) };
+      // Build the new comment text and insert after the original.
+      const newCommentText = bodyBlockToComment(clone);
+      const newComment = state.doc.createComment(newCommentText);
+      orig.commentNode.parentNode.insertBefore(newComment, orig.commentNode.nextSibling);
+      newBodyKeys.push(newKey);
+    } else {
+      const el = findTemplateNodeByIdx(entry.idx);
+      if (!el || el === state.doc.documentElement) continue;
+      const cp = el.cloneNode(true);
+      // Nudge so the clone is visually distinguishable from the original.
+      applyOffsets(cp, readOffsets(cp), 2, 2);
+      el.parentNode.insertBefore(cp, el.nextSibling);
+      cloneRefs.push(cp);
+    }
+  }
+
+  // Re-index so the new template clones get fresh data-edit-idx values, and
+  // re-parse body blocks so the new comment markers show up.
+  indexTemplateNodes();
+  parseBodyBlocks();
+
+  // Select the new things (so dragging immediately moves the clones).
+  const newSelection = [
+    ...cloneRefs.map(cp => ({ idx: cp.getAttribute("data-edit-idx") })),
+    ...newBodyKeys.map(k => ({ bodyKey: k })),
+  ];
+  if (newSelection.length) setSelection(newSelection);
+
+  markDirty(); rerender();
+}
+
+/* Generate a body-block key that doesn't collide with existing ones.
+ *   FLAVOR → FLAVOR_2, FLAVOR_3, … */
+function uniqueBodyBlockKey(base) {
+  const taken = new Set(state.bodyBlocks.map(b => b.key));
+  // Strip any trailing _N so consecutive duplicates don't grow forever.
+  const stem = base.replace(/_(\d+)$/, "");
+  for (let i = 2; i < 1000; i++) {
+    const cand = stem + "_" + i;
+    if (!taken.has(cand)) return cand;
+  }
+  return base + "_x";
+}
+
+function deleteSelected() {
+  if (!state.selection.length) return;
+  const n = state.selection.length;
+  if (!confirm(n === 1 ? "Delete this element?" : `Delete ${n} elements?`)) return;
+  snapshot();
+  for (const entry of state.selection) {
+    if (entry.bodyKey) {
+      const b = state.bodyBlocks.find(x => x.key === entry.bodyKey);
+      if (b && b.commentNode && b.commentNode.parentNode) {
+        b.commentNode.parentNode.removeChild(b.commentNode);
+      }
+    } else {
+      const el = findTemplateNodeByIdx(entry.idx);
+      if (el && el !== state.doc.documentElement) el.parentNode.removeChild(el);
+    }
+  }
+  indexTemplateNodes();
+  parseBodyBlocks();
+  setSelection(null);
+  markDirty(); rerender(); renderElementList();
+}
+
+/* ====================================================================
+ *  History (undo/redo)
+ * ==================================================================== */
+function snapshot() {
+  if (!state.doc) return;
+  state.history.push(new XMLSerializer().serializeToString(state.doc));
+  if (state.history.length > 100) state.history.shift();
+  state.future = [];
+}
+function undo() {
+  if (!state.history.length) return;
+  const cur = new XMLSerializer().serializeToString(state.doc);
+  state.future.push(cur);
+  const prev = state.history.pop();
+  state.doc = new DOMParser().parseFromString(prev, "image/svg+xml");
+  indexTemplateNodes();
+  parseBodyBlocks();
+  state.stylesMap = parseEmbeddedStyles(state.doc.documentElement);
+  rerender(); renderElementList(); renderTemplateSize(); renderInspector();
+}
+function redo() {
+  if (!state.future.length) return;
+  state.history.push(new XMLSerializer().serializeToString(state.doc));
+  const next = state.future.pop();
+  state.doc = new DOMParser().parseFromString(next, "image/svg+xml");
+  indexTemplateNodes();
+  parseBodyBlocks();
+  state.stylesMap = parseEmbeddedStyles(state.doc.documentElement);
+  rerender(); renderElementList(); renderTemplateSize(); renderInspector();
+}
+
+function markDirty() {
+  state.dirty = true;
+  setStatus("Unsaved changes · " + state.templateName + ".svg", "dirty");
+}
+
+/* ====================================================================
+ *  Image library picker
+ *  --------------------------------------------------------------------
+ *  A modal grid of every file under /home/luismars/necropolis-images/.
+ *  openImagePicker(callback) — opens the modal; the callback receives
+ *  the chosen image descriptor {rel, name, url, file_uri, ...} when the
+ *  user clicks Apply (or double-clicks a tile).
+ * ==================================================================== */
+const imgPicker = {
+  el: $("img-picker"),
+  grid: $("img-grid"),
+  search: $("img-search"),
+  folders: $("img-folders"),
+  count: $("img-count"),
+  apply: $("img-picker-apply"),
+  cancel: $("img-picker-cancel"),
+  close: $("img-picker-close"),
+  help: $("img-picker-help"),
+  images: null,           // cached list of {rel, name, dir, ...}
+  selected: null,
+  folder: "*",            // "*" = all, ".", "alpha", …
+  onChoose: null,
+};
+
+async function openImagePicker(onChoose, helpText) {
+  imgPicker.onChoose = onChoose;
+  imgPicker.selected = null;
+  imgPicker.apply.disabled = true;
+  imgPicker.help.textContent = helpText || "Click a tile to apply, or double-click to insert immediately.";
+  imgPicker.el.classList.add("open");
+  imgPicker.search.value = "";
+  if (!imgPicker.images) {
+    imgPicker.grid.innerHTML = '<div class="empty">loading…</div>';
+    try {
+      const j = await api("/api/images");
+      imgPicker.images = j.images || [];
+    } catch (e) {
+      imgPicker.grid.innerHTML = '<div class="empty">failed: ' + escapeHtml(e.message) + '</div>';
+      return;
+    }
+  }
+  renderImagePicker();
+  setTimeout(() => imgPicker.search.focus(), 50);
+}
+function closeImagePicker() {
+  imgPicker.el.classList.remove("open");
+  imgPicker.onChoose = null;
+}
+
+function imagePickerFolders() {
+  const folders = new Set([".", ...(imgPicker.images || []).map(i => i.dir)]);
+  return ["*", ...[...folders].sort()];
+}
+function renderImagePicker() {
+  // Folder breadcrumbs
+  imgPicker.folders.innerHTML = "";
+  for (const f of imagePickerFolders()) {
+    const label = f === "*" ? "all" : (f === "." ? "(root)" : f);
+    const span = document.createElement("span");
+    span.className = "breadcrumb" + (imgPicker.folder === f ? " current" : "");
+    span.textContent = label;
+    span.addEventListener("click", () => {
+      imgPicker.folder = f;
+      renderImagePicker();
+    });
+    imgPicker.folders.appendChild(span);
+  }
+
+  // Grid
+  const q = imgPicker.search.value.trim().toLowerCase();
+  const items = (imgPicker.images || []).filter(i => {
+    if (imgPicker.folder !== "*" && i.dir !== imgPicker.folder) return false;
+    if (q && !i.rel.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  imgPicker.count.textContent = items.length + " image" + (items.length === 1 ? "" : "s");
+  imgPicker.grid.innerHTML = "";
+  if (!items.length) {
+    imgPicker.grid.innerHTML = '<div class="empty">no images match</div>';
+    return;
+  }
+  for (const it of items) {
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    tile.innerHTML = `
+      <div class="imgwrap"><img loading="lazy" src="${escapeHtml(it.url)}" alt="${escapeHtml(it.name)}"></div>
+      <div class="info">
+        <span class="name" title="${escapeHtml(it.rel)}">${escapeHtml(it.name)}</span>
+        <span>${escapeHtml(it.dir === "." ? "" : it.dir)} · ${(it.size/1024).toFixed(0)} kB</span>
+      </div>`;
+    tile.addEventListener("click", () => {
+      imgPicker.grid.querySelectorAll(".tile.selected").forEach(t => t.classList.remove("selected"));
+      tile.classList.add("selected");
+      imgPicker.selected = it;
+      imgPicker.apply.disabled = false;
+    });
+    tile.addEventListener("dblclick", () => {
+      imgPicker.selected = it;
+      applyImagePickerSelection();
+    });
+    imgPicker.grid.appendChild(tile);
+  }
+}
+function applyImagePickerSelection() {
+  const choice = imgPicker.selected;
+  const cb = imgPicker.onChoose;
+  closeImagePicker();
+  if (cb && choice) cb(choice);
+}
+
+imgPicker.search.addEventListener("input", () => renderImagePicker());
+imgPicker.apply.addEventListener("click", applyImagePickerSelection);
+imgPicker.cancel.addEventListener("click", closeImagePicker);
+imgPicker.close.addEventListener("click", closeImagePicker);
+imgPicker.el.addEventListener("click", (e) => {
+  // Click outside the inner panel closes
+  if (e.target === imgPicker.el) closeImagePicker();
+});
+window.addEventListener("keydown", (e) => {
+  if (!imgPicker.el.classList.contains("open")) return;
+  if (e.key === "Escape") { e.preventDefault(); closeImagePicker(); }
+  else if (e.key === "Enter" && imgPicker.selected) { e.preventDefault(); applyImagePickerSelection(); }
+});
+
+/* Insert a new <image> element using a library pick. */
+async function insertImageFromLibrary(chosen) {
+  if (!state.doc) return;
+  let nat = { w: 0, h: 0 };
+  try { nat = await getImageNaturalSize(chosen.url); } catch {}
+  snapshot();
+  const vb = state.doc.documentElement.viewBox.baseVal;
+  const w = vb.width * 0.4;
+  const h = (nat.w > 0 && nat.h > 0) ? round(w * (nat.h / nat.w)) : vb.height * 0.3;
+  const img = state.doc.createElementNS(SVG_NS, "image");
+  img.setAttribute("x", fmt((vb.width - w) / 2));
+  img.setAttribute("y", fmt((vb.height - h) / 2));
+  img.setAttribute("width", fmt(w));
+  img.setAttribute("height", fmt(h));
+  img.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  img.setAttribute("href", chosen.file_uri);
+  img.setAttributeNS(XLINK_NS, "href", chosen.file_uri);
+  state.doc.documentElement.appendChild(img);
+  indexTemplateNodes();
+  markDirty(); rerender(); renderElementList();
+  setSelection({ idx: img.getAttribute("data-edit-idx") });
+  setStatus("Inserted " + chosen.rel, "ok");
+}
+
+/* ====================================================================
+ *  Wire-up
+ * ==================================================================== */
+els.modeTemplate.addEventListener("click", () => {
+  state.mode = "template";
+  els.modeTemplate.classList.add("on");
+  els.modePreview.classList.remove("on");
+  rerender();
+});
+els.modePreview.addEventListener("click", () => {
+  if (!state.dataRows.length) {
+    alert("No data file for this template.");
+    return;
+  }
+  state.mode = "preview";
+  els.modePreview.classList.add("on");
+  els.modeTemplate.classList.remove("on");
+  rerender();
+});
+els.dataRowSelect.addEventListener("change", e => {
+  state.dataIndex = parseInt(e.target.value, 10) || 0;
+  if (state.mode === "preview") rerender();
+});
+
+els.reloadBtn.addEventListener("click", () => {
+  if (!state.templateName) return;
+  if (state.dirty && !confirm("Discard unsaved changes and reload from disk?")) return;
+  state.dirty = false;
+  loadTemplate(state.templateName);
+});
+els.undoBtn.addEventListener("click", undo);
+els.redoBtn.addEventListener("click", redo);
+els.saveBtn.addEventListener("click", saveTemplate);
+els.addTextBtn.addEventListener("click", addNewText);
+els.addImageBtn.addEventListener("click", addNewImage);
+$("add-image-library-btn").addEventListener("click", () => {
+  if (!state.doc) { alert("Open a template first."); return; }
+  openImagePicker(insertImageFromLibrary, "Click a tile to insert it into the template.");
+});
+els.duplicateBtn.addEventListener("click", duplicateSelected);
+els.deleteBtn.addEventListener("click", deleteSelected);
+
+els.imageInput.addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const mode = els.imageInput.dataset.mode;
+  const targetIdx = els.imageInput.dataset.targetIdx;
+  els.imageInput.value = "";
+  els.imageInput.dataset.mode = "";
+  els.imageInput.dataset.targetIdx = "";
+
+  try {
+    const r = await fetch("/api/upload-image", {
+      method: "POST",
+      headers: {"X-Filename": f.name, "Content-Type": "application/octet-stream"},
+      body: await f.arrayBuffer(),
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const info = await r.json();   // {file_uri, url, rel}
+
+    // Get natural dimensions so we can place / refit the image proportionally.
+    let nat = { w: 0, h: 0 };
+    try { nat = await getImageNaturalSize(info.url); } catch {}
+
+    snapshot();
+    if (mode === "replace" && targetIdx != null) {
+      const el = findTemplateNodeByIdx(targetIdx);
+      if (el) {
+        el.setAttribute("href", info.file_uri);
+        el.setAttributeNS(XLINK_NS, "href", info.file_uri);
+        // Keep current width, refit the height to the new image's aspect.
+        if (nat.w > 0 && nat.h > 0) {
+          const curW = parseFloat(el.getAttribute("width") || 0);
+          if (curW > 0) {
+            const newH = round(curW * (nat.h / nat.w));
+            el.setAttribute("height", fmt(newH));
+          }
+        }
+      }
+    } else {
+      const vb = state.doc.documentElement.viewBox.baseVal;
+      // Fit width to 40% of the card, derive height from natural ratio
+      // so the image isn't stretched. Default to a 4:3 box if natural
+      // dims are unavailable for any reason.
+      const w = vb.width * 0.4;
+      let h = vb.height * 0.3;
+      if (nat.w > 0 && nat.h > 0) {
+        h = round(w * (nat.h / nat.w));
+      }
+      const img = state.doc.createElementNS(SVG_NS, "image");
+      img.setAttribute("x", fmt((vb.width - w) / 2));
+      img.setAttribute("y", fmt((vb.height - h) / 2));
+      img.setAttribute("width", fmt(w));
+      img.setAttribute("height", fmt(h));
+      img.setAttribute("preserveAspectRatio", "xMidYMid meet");
+      img.setAttribute("href", info.file_uri);
+      img.setAttributeNS(XLINK_NS, "href", info.file_uri);
+      state.doc.documentElement.appendChild(img);
+      indexTemplateNodes();
+      setSelection({ idx: img.getAttribute("data-edit-idx") });
+    }
+    markDirty(); rerender(); renderElementList();
+    const dims = (nat.w && nat.h) ? ` (${nat.w}×${nat.h} natural)` : "";
+    setStatus(`Image uploaded → ${info.rel}${dims}`, "ok");
+  } catch (err) {
+    setStatus("Upload failed: " + err.message, "error");
+  }
+});
+
+window.addEventListener("keydown", (e) => {
+  const inField = e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT";
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+    e.preventDefault(); saveTemplate(); return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+    if (inField) return;
+    e.preventDefault();
+    if (e.shiftKey) redo(); else undo();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+    if (inField) return;
+    e.preventDefault();
+    duplicateSelected();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+    // Don't steal the shortcut when the user is copying inside a text field.
+    if (inField) return;
+    if (window.getSelection && String(window.getSelection())) return;
+    e.preventDefault();
+    copySelection();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "x") {
+    if (inField) return;
+    e.preventDefault();
+    cutSelection();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+    if (inField) return;
+    e.preventDefault();
+    pasteClipboard();
+    return;
+  }
+  if (e.altKey && (e.key === "[" || e.key === "]")) {
+    if (inField) return;
+    e.preventDefault();
+    const mode = e.shiftKey
+      ? (e.key === "[" ? "back" : "front")
+      : (e.key === "[" ? "backward" : "forward");
+    zOrder(mode);
+    return;
+  }
+  // Ctrl/Cmd + arrow keys: resize (or font-size for text).
+  // Right/Left → width ; Down/Up → height (or font-size for text/tspan, Up = bigger).
+  if ((e.ctrlKey || e.metaKey) && /^Arrow/.test(e.key)) {
+    if (inField) return;
+    if (!state.selection.length) return;
+    e.preventDefault();
+    const step = e.shiftKey ? 1 : 0.1;
+    snapshot();
+    for (const entry of state.selection) {
+      if (entry.bodyKey) continue;
+      const el = findTemplateNodeByIdx(entry.idx);
+      if (!el) continue;
+      const tag = el.tagName.toLowerCase();
+      if (tag === "text" || tag === "tspan") {
+        // Up/Down → font-size. Left/Right ignored for text.
+        if (e.key !== "ArrowUp" && e.key !== "ArrowDown") continue;
+        const delta = e.key === "ArrowUp" ? step : -step;
+        const cur = parseFloat(effectiveStyleValue(el, "font-size")) || 4;
+        const next = Math.max(0.5, cur + delta);
+        writeStyleProp(el, "font-size", fmt(next) + "px");
+      } else if (["rect", "image", "use"].includes(tag)) {
+        if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+          const cur = parseFloat(el.getAttribute("width") || 0);
+          const delta = e.key === "ArrowRight" ? step : -step;
+          el.setAttribute("width", fmt(Math.max(0.1, cur + delta)));
+        } else {
+          const cur = parseFloat(el.getAttribute("height") || 0);
+          const delta = e.key === "ArrowDown" ? step : -step;
+          el.setAttribute("height", fmt(Math.max(0.1, cur + delta)));
+        }
+      } else if (tag === "circle") {
+        // Up/Down: r grows/shrinks. Left/Right: same.
+        const cur = parseFloat(el.getAttribute("r") || 0);
+        const grow = e.key === "ArrowUp" || e.key === "ArrowRight";
+        el.setAttribute("r", fmt(Math.max(0.1, cur + (grow ? step : -step))));
+      } else if (tag === "ellipse") {
+        if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+          const cur = parseFloat(el.getAttribute("rx") || 0);
+          el.setAttribute("rx", fmt(Math.max(0.1, cur + (e.key === "ArrowRight" ? step : -step))));
+        } else {
+          const cur = parseFloat(el.getAttribute("ry") || 0);
+          el.setAttribute("ry", fmt(Math.max(0.1, cur + (e.key === "ArrowDown" ? step : -step))));
+        }
+      }
+    }
+    markDirty(); rerender(); renderInspector(); refreshSelectionUI();
+    return;
+  }
+  if (inField) return;
+  // Select-all
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+    e.preventDefault();
+    if (!state.doc) return;
+    const sels = [];
+    state.svg.querySelectorAll("[data-edit-idx]").forEach(node => {
+      const tag = node.tagName.toLowerCase();
+      if (EDITABLE_TAGS.has(tag)) sels.push({ idx: node.getAttribute("data-edit-idx") });
+    });
+    for (const b of state.bodyBlocks) sels.push({ bodyKey: b.key });
+    setSelection(sels);
+    return;
+  }
+  if (e.key === "Escape") { setSelection(null); return; }
+  if (!state.selection.length) return;
+  let dx = 0, dy = 0;
+  const step = e.shiftKey ? 1 : 0.1;
+  if (e.key === "ArrowLeft") dx = -step;
+  else if (e.key === "ArrowRight") dx = step;
+  else if (e.key === "ArrowUp") dy = -step;
+  else if (e.key === "ArrowDown") dy = step;
+  else if (e.key === "Delete" || e.key === "Backspace") {
+    e.preventDefault(); deleteSelected(); return;
+  } else return;
+  e.preventDefault();
+  snapshot();
+  for (const entry of state.selection) {
+    if (entry.bodyKey) {
+      const b = state.bodyBlocks.find(x => x.key === entry.bodyKey);
+      if (b) { b.x = round(b.x + dx); b.y = round(b.y + dy); }
+    } else {
+      const el = findTemplateNodeByIdx(entry.idx);
+      if (el) applyOffsets(el, readOffsets(el), dx, dy);
+    }
+  }
+  markDirty(); rerender(); renderInspector(); renderAlignPanel();
+});
+
+window.addEventListener("beforeunload", (e) => {
+  if (state.dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ====================================================================
+ *  Zoom
+ *  --------------------------------------------------------------------
+ *  Applies a CSS transform on #canvas-inner. We also resize the wrapper
+ *  so the scrollbars track the scaled SVG, not the unscaled one.
+ * ==================================================================== */
+const ZOOM_MIN = 0.25, ZOOM_MAX = 8;
+function setZoom(z, around) {
+  if (!state.svg) { state.zoom = z; els.zoomReadout.textContent = Math.round(z * 100) + "%"; return; }
+  z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+  const wrap = els.canvasWrap;
+  let anchorRel = null;
+  if (around) {
+    const rect = state.svg.getBoundingClientRect();
+    anchorRel = {
+      // 0..1 fraction of cursor position over the SVG
+      fx: (around.clientX - rect.left) / rect.width,
+      fy: (around.clientY - rect.top)  / rect.height,
+      cx: around.clientX, cy: around.clientY,
+    };
+  }
+  state.zoom = z;
+  applyZoom();
+  if (anchorRel) {
+    // Keep the point under the cursor stationary
+    const rect = state.svg.getBoundingClientRect();
+    const newCx = rect.left + anchorRel.fx * rect.width;
+    const newCy = rect.top  + anchorRel.fy * rect.height;
+    wrap.scrollLeft += (newCx - anchorRel.cx);
+    wrap.scrollTop  += (newCy - anchorRel.cy);
+  }
+  els.zoomReadout.textContent = Math.round(z * 100) + "%";
+}
+function applyZoom() {
+  if (!state.svg) return;
+  // Base size = the SVG's intrinsic (1×) size, measured by temporarily
+  // forcing 100% width/height-auto. We just set CSS width as a percentage
+  // of a baseline derived from the viewBox + 1mm ≈ 3.78px conversion.
+  const vb = state.svg.viewBox.baseVal;
+  // Match the SVG's declared mm size to a px size at z=1.
+  const widthAttr = state.svg.getAttribute("width") || (vb.width + "mm");
+  const heightAttr = state.svg.getAttribute("height") || (vb.height + "mm");
+  const basePx = parseLengthToPx(widthAttr, vb.width);
+  const baseHPx = parseLengthToPx(heightAttr, vb.height);
+  state.svg.style.width  = (basePx * state.zoom) + "px";
+  state.svg.style.height = (baseHPx * state.zoom) + "px";
+}
+function parseLengthToPx(len, mmFallback) {
+  if (!len) return mmFallback * 3.7795;
+  const m = /^([\d.]+)([a-z%]*)$/.exec(len);
+  if (!m) return mmFallback * 3.7795;
+  const n = parseFloat(m[1]);
+  const u = m[2] || "px";
+  // CSS absolute units
+  if (u === "mm") return n * 3.7795;
+  if (u === "cm") return n * 37.795;
+  if (u === "in") return n * 96;
+  if (u === "pt") return n * 1.3333;
+  if (u === "pc") return n * 16;
+  if (u === "px" || u === "") return n;
+  return mmFallback * 3.7795;
+}
+function fitZoom() {
+  if (!state.svg) return;
+  const wrap = els.canvasWrap;
+  // Measure at zoom=1
+  state.zoom = 1; applyZoom();
+  const sR = state.svg.getBoundingClientRect();
+  const wR = wrap.getBoundingClientRect();
+  const margin = 48;
+  const fit = Math.min((wR.width - margin) / sR.width, (wR.height - margin) / sR.height);
+  setZoom(fit);
+  wrap.scrollLeft = 0;
+  wrap.scrollTop = 0;
+}
+
+els.zoomIn.addEventListener("click",  () => setZoom(state.zoom * 1.25));
+els.zoomOut.addEventListener("click", () => setZoom(state.zoom / 1.25));
+els.zoom100.addEventListener("click", () => setZoom(1));
+els.zoomFit.addEventListener("click", fitZoom);
+
+// Ctrl+wheel zooms around cursor; plain wheel keeps default scroll.
+els.canvasWrap.addEventListener("wheel", (e) => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+  setZoom(state.zoom * factor, e);
+}, { passive: false });
+
+// Ctrl/Cmd + +/- keyboard shortcuts (defensive: don't catch within inputs)
+window.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+  if (!(e.ctrlKey || e.metaKey)) return;
+  if (e.key === "+" || e.key === "=") { e.preventDefault(); setZoom(state.zoom * 1.25); }
+  else if (e.key === "-") { e.preventDefault(); setZoom(state.zoom / 1.25); }
+  else if (e.key === "0") { e.preventDefault(); setZoom(1); }
+});
+
+/* ====================================================================
+ *  Collapsible right-side sections (state persisted in localStorage)
+ * ==================================================================== */
+function wireCollapsibleSections() {
+  document.querySelectorAll(".panel-section").forEach(section => {
+    const h2 = section.querySelector("h2");
+    if (!h2) return;
+    const key = "editor.section." + h2.textContent.trim().toLowerCase().replace(/\s+/g, "-") + ".collapsed";
+    if (localStorage.getItem(key) === "1") section.classList.add("collapsed");
+    h2.addEventListener("click", () => {
+      section.classList.toggle("collapsed");
+      localStorage.setItem(key, section.classList.contains("collapsed") ? "1" : "0");
+    });
+  });
+}
+wireCollapsibleSections();
+
+/* ---------- boot ---------- */
+loadTemplateList().catch(e => setStatus("Failed: " + e.message, "error"));
+</script>
+</body>
+</html>

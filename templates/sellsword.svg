@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="63mm" height="88mm" viewBox="0 0 63 88" data-edit-idx="0">
+  <defs data-edit-idx="1">
+    <style data-edit-idx="2">
+      .parchment    { fill: #ffffff; }
+      .banner-title { font-family: 'JSL Blackletter', serif; font-size: 4.681px; fill: #ffffff; text-anchor: middle; }
+      .name         { font-family: 'JSL Blackletter', serif; font-size: 6.085px; fill: #000000; text-anchor: middle; }
+      .type-line    { font-family: 'Alegreya SC', serif; font-size: 2.715px; fill: #222222; text-anchor: middle; letter-spacing: 0.468px; font-style: italic; }
+      .label        { font-family: 'Alegreya SC', serif; font-size: 1.872px; fill: #000000; letter-spacing: 0.281px; font-weight: bold; }
+      .value        { font-family: 'Alegreya', serif; font-size: 2.247px; fill: #000000; }
+      .stat-on-frame{ font-family: 'Alegreya SC', serif; font-size: 1.685px; fill: #1a1a1a; letter-spacing: 0.094px; font-weight: bold; text-anchor: middle; }
+      .stat-val     { font-family: 'Alegreya', serif; font-size: 4.213px; font-weight: bold; fill: #000000; text-anchor: middle; }
+      .heading      { font-family: 'Alegreya SC', serif; font-size: 2.247px; fill: #000000; font-weight: bold; letter-spacing: 0.374px; }
+      .body         { font-family: 'Alegreya', serif; font-size: 2.34px; fill: #000000; }
+      .bodysm       { font-family: 'Alegreya', serif; font-size: 2.621px; fill: #000000; }
+      .divider      { fill: none; stroke: #000000; stroke-width: 0.187; }
+    </style>
+  </defs>
+
+  <rect class="parchment" x="0" y="0" width="63" height="88" data-edit-idx="3"/>
+
+  <!-- SPLOTCHES -->
+
+  <!-- Banner -->
+  <image xlink:href="file:///home/luismars/necropolis-images/alpha/img-029-048-alpha.png" x="-2.557" y="-2.715" width="67.565" height="18.443" preserveAspectRatio="none" data-edit-idx="4"/>
+  <text class="banner-title" x="31.5" y="8.8" style="font-size: 7.489px;" data-edit-idx="5">Sellsword</text>
+
+  <!-- Stat frame matching minion.svg's enlarged layout, shifted up to free
+       extra room at the bottom for SPECIAL RULES at a larger font. -->
+  <image xlink:href="file:///home/luismars/necropolis-images/alpha/img-060-101-alpha.png" x="-3.387" y="-9.68" width="73.043" height="93.617" preserveAspectRatio="xMidYMid meet" data-edit-idx="6"/>
+
+  <!-- Name + type-keyword (same Y positions as leader.svg / minion.svg). -->
+  <text class="name" x="31.5" y="18.536" data-edit-idx="7">{{NAME}}</text>
+  <text class="type-line" x="31.5" y="22.936" data-edit-idx="8">{{TYPE_KEYWORD}}</text>
+
+  <!-- Meta row — columns at 10.5 / 31.5 / 52.5 mm; AFFINITY from
+       Companion App's `profile.affinity`, empty for library cards. -->
+  <text text-anchor="middle" x="10.5" y="26.213" data-edit-idx="9"><tspan class="label">COST </tspan><tspan class="value">{{COST}}</tspan></text>
+  <text text-anchor="middle" x="31.5" y="26.213" data-edit-idx="11"><tspan class="label">BASE </tspan><tspan class="value">{{BASE}}</tspan></text>
+  <text text-anchor="middle" x="52.5" y="26.213" data-edit-idx="14"><tspan class="label">AFF </tspan><tspan class="value">{{AFFINITY}}</tspan></text>
+
+  <!-- Stat labels + values shifted up 6 mm with the frame. -->
+  <text class="stat-on-frame" x="8.126" y="40.63" style="font-size: 1.872pt;" data-edit-idx="13">AP</text>
+  <text class="stat-on-frame" x="17.896" y="40.63" style="font-size: 1.872pt;" data-edit-idx="14">Move</text>
+  <text class="stat-on-frame" x="30.614" y="40.63" style="font-size: 1.872pt;" data-edit-idx="15">Violence</text>
+  <text class="stat-on-frame" x="44.648" y="40.63" style="font-size: 1.872pt;" data-edit-idx="16">Ranged</text>
+  <text class="stat-on-frame" x="55.33" y="40.63" style="font-size: 1.872pt;" data-edit-idx="17">HP</text>
+
+  <text class="stat-val" x="8.053" y="45.685" data-edit-idx="18">{{AP}}</text>
+  <text class="stat-val" x="17.896" y="45.591" data-edit-idx="19">{{M}}</text>
+  <text class="stat-val" x="30.496" y="45.591" data-edit-idx="20">{{VIOL}}</text>
+  <text class="stat-val" x="44.639" y="45.591" data-edit-idx="21">{{RNGD}}</text>
+  <text class="stat-val" x="55.358" y="45.591" data-edit-idx="22">{{HP}}</text>
+
+  <line class="divider" x1="4.565" y1="58.043" x2="58.435" y2="58.043" data-edit-idx="23"/>
+
+  <text class="heading" x="4.565" y="60.851" data-edit-idx="24">ARMAMENTS</text>
+  <!-- BODY_BLOCK: ARMAMENTS @ x=4.565 y=64.128 lineheight=2.621 width=45chars maxlines=2 -->
+
+  <line class="divider" x1="4.565" y1="70.213" x2="58.435" y2="70.213" data-edit-idx="25"/>
+  <text class="heading" x="4.565" y="73.021" data-edit-idx="26">SPECIAL RULES</text>
+  <!-- BODY_BLOCK: SPECIAL_RULES @ x=4.565 y=76.298 lineheight=2.809 width=45chars maxlines=5 style=bodysm -->
+</svg>

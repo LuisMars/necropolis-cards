@@ -1,0 +1,92 @@
+# Greater Treasures — rulebook v0.9 p.69-70.
+# Roll 2d10 and choose the preferred result. Awarded for every 5 completed
+# ambitions. Leaders may carry up to 2 greater treasures; minions 1; Beast-
+# keyword minions none.
+
+- name: Sigils of Abnegation
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: Burn the ancient sigils into the air. Destroy the weak in a shower of cinders.
+  effect: |
+    Once per scenario, the model's melee weapon may be replaced with the following profile for one attack action:
+
+    Range 2 · Attacks 4 · Damage 2/4. May push 2" on glance and 4" on hit.
+
+- name: Cinder-Ash Bolts
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: Black iron missiles inscribed with the lost sorcery of embers.
+  effect: |
+    Once per scenario, after this model resolves a ranged attack you may make the following ranged attack against all other models within 3" of the target:
+
+    Range (as weapon) · Attacks 1 · Damage 1/4.
+
+- name: The Crow's Beak
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: Many have carried this warpick into battle; all see glory while their goals align with the weapon's own.
+  effect: |
+    One model may replace its weapon with The Crow's Beak (cannot replace it again afterwards).
+
+    Range 1 · Attacks 3 · Damage 1/3. Ignores 4 armour.
+
+- name: Azure Sigil Brand
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: A glowing brand seared into the surface of a weapon, moving like quicksilver in the presence of a rival power.
+  effect: |
+    If this model makes a melee attack action against a model with the Leader keyword, it gains an additional attack for this action.
+
+- name: Etherfall Talisman
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: A weightless metal ring hung from a belt loop.
+  effect: |
+    If this model falls for any reason it will only suffer a maximum of 2 damage.
+
+- name: Pyrite Mail
+  category: GREATER TREASURE
+  cost: —
+  armour: 1
+  flavor: False gold spun into armour infused with ancient magics of structure.
+  effect: |
+    One model may replace their armour with Pyrite Mail. Armour 1.
+
+    When an attack action is fully resolved against the wearer they may push their attacker 1", if they are not Shattered.
+
+- name: Ever-blinking Eye
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: A frigid lump of lapis lazuli inscribed with the cold eyes of stars. All is one.
+  effect: |
+    Once per scenario, at the end of the model's activation it may swap places with another friendly model.
+
+- name: Worming Circlet
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: A dark circlet woven from the husks of curse-worms — it twists and moves when worn.
+  effect: |
+    Each scenario, choose one spell an opponent's leader knows. Your leader also knows this spell for the duration of the scenario.
+
+- name: Doomrot Branch
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: A hex-sealed branch from the depths of Doomrot.
+  effect: |
+    Once per scenario, at the beginning of the model's activation you may swap the type (Blood/Bone/Plasm) of 1 mana dice in the gathering's mana pool to any other type. Does not count as picking up mana for other rules.
+
+- name: Embracing Diapason
+  category: GREATER TREASURE
+  cost: —
+  armour: "—"
+  flavor: The resonant notes of this silver diapason draw magical power toward the bearer.
+  effect: |
+    Once per scenario, during its activation, this model may collect all mana tokens within 6" as if they had moved over them.

@@ -1,0 +1,178 @@
+# Necropolis spell cards.
+# school is one of: NECROMANCY · BLOOD · BONE · PLASM
+# Channel uses the X+ format.
+
+- school: NECROMANCY
+  name: Summon
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: Bone, flesh and spirit swirl and coalesce into a shuddering new form.
+  effect: |
+    Choose a Shattered friendly model that does not have the Leader keyword. Place it back on the board within 5" of the caster and restore 4/6 HP to it.
+
+- school: NECROMANCY
+  name: Dominate
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: With a word of power the minds of the weak are overridden and controlled.
+  effect: |
+    Activate any single NPC within 8" as if they had 1/2 AP. This counts as the model's activation; this model can no longer be activated in any other step.
+
+- school: NECROMANCY
+  name: Flare
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: Mana swirls and contracts before bursting, tearing all around it asunder.
+  effect: |
+    Choose a mana token on the battlefield within 8" and line of sight: every model within 2" of the token suffers 1/3 damage. The mana token is then removed from play.
+
+- school: NECROMANCY
+  name: Vigour
+  ap: 1
+  channel: 7+
+  sigil: ""
+  flavor: Breaks set; muscles reknit and plasm condenses.
+  effect: |
+    Restore 3/5 HP to a model in 6" and line of sight of the caster.
+
+- school: NECROMANCY
+  name: Puppet
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: An expression of the caster's pure will overrides the target's agency, sending them staggering out of control.
+  effect: |
+    Choose a model within 6" and line of sight: push that model 1"/3".
+
+- school: NECROMANCY
+  name: Wither
+  ap: 1
+  channel: 5+
+  sigil: ""
+  flavor: Skulls crack, blood rots and spirit dissipates under a command of entropy.
+  effect: |
+    Choose a model in 6" and line of sight. It suffers 1/4 damage.
+
+- school: BLOOD
+  name: Blood Whip
+  ap: 1
+  channel: 7+
+  sigil: ""
+  flavor: Drawing coagulated blood from an unwilling body, the caster forms a whip of boiling crimson liquid.
+  effect: |
+    Choose any model with the Blood keyword within 3" and line of sight. The model suffers 1 damage. The caster may then make a melee attack with attacks 1/2*, damage 2/4, range 3". *Number of attacks based on spell success.
+
+- school: BLOOD
+  name: Congealed Blast
+  ap: 1
+  channel: 7+
+  sigil: ""
+  flavor: Blood and flesh explode in a shower of boiling viscera wounding all in the vicinity.
+  effect: |
+    Choose any model with the Blood keyword within 8" and line of sight. It suffers 2/4 damage. Every model within 2" of that model also suffers 2/4 damage. If the initial target is Shattered by the damage, the secondary targets suffer an additional 1 damage.
+
+- school: BLOOD
+  name: Invigorate
+  ap: 1
+  channel: 5+
+  sigil: ""
+  flavor: For a brief moment the caster turns the rotted blood of the dead into vital fluid.
+  effect: |
+    Choose a friendly model within 3"/6" and line of sight with the Blood keyword. They may make a free move action.
+
+- school: BLOOD
+  name: Tide of Vermin
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: Animating the remains of small creatures for a brief moment, the caster commands them to drown their enemies in a tide of crawling horrors.
+  effect: |
+    Choose 1/2 model(s) within 8" and line of sight. They suffer 1/2 damage; you may then push them 1"/2".
+
+# ---- Bone ----
+
+- school: BONE
+  name: Bone Armour
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: Pulling the very form of a somewhat willing minion apart, its bones are reshaped into armoured plates to protect the caster.
+  effect: |
+    Choose any friendly model with the Bone keyword within 3" and line of sight; it suffers 4/6 damage. The caster is then armour +1/+2 for the rest of the game. This spell may only be cast once per game.
+
+- school: BONE
+  name: Bone Spear
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: Tearing and reshaping a single bone from its host, forming a javelin hurled with pure force of will.
+  effect: |
+    Choose any model with the Bone keyword within 5" and line of sight; it suffers 2 damage. The caster may then make a ranged attack with attacks 1, damage 3/6, range 6". *If the channelling roll is a success the attack gains +1/+1 damage.
+
+- school: BONE
+  name: Teeth
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: Teeth and bones splinter from the target to pelt nearby enemies with a hail of razor-sharp shards.
+  effect: |
+    Choose any model with the Bone keyword within 3" and line of sight; it suffers 1 damage. Then choose up to 1/2 additional models within 3" of that model; the caster may make a ranged attack against each with attacks 1, damage 1/4, range 6".
+
+- school: BONE
+  name: Tireless Command
+  ap: 1
+  channel: 7+
+  sigil: ""
+  flavor: Skeletal forms blur as they are pushed into action by invisible hands.
+  effect: |
+    Choose a friendly model with the Bone keyword within 3"/5" and line of sight; they may make a free attack action with a melee weapon.
+
+# ---- Plasm ----
+
+- school: PLASM
+  name: Blink
+  ap: 1
+  channel: 7+
+  sigil: ""
+  flavor: The caster pushes their minion briefly out of the material plane, phasing them back in a new location.
+  effect: |
+    Choose a friendly model within 3" and line of sight; push that model 3"/5" as if it had the Fly keyword.
+
+- school: PLASM
+  name: Phantasm
+  ap: 2
+  channel: 7+
+  sigil: ""
+  flavor: A small and lingering spirit is drawn forth to do the caster's bidding.
+  effect: |
+    Place a friendly Phantasm model within 2"/5" of the caster. The Phantasm disappears at the end of the battle. This spell can only be cast once per scenario.
+
+- school: PLASM
+  name: Plasmic Emberburst
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: Azure balefire erupts from the caster, sending their attackers reeling.
+  effect: |
+    Every model (besides the caster) within 3" suffers 1/3 damage and is pushed 3" directly away from the caster.
+
+- school: PLASM
+  name: Plasmic Shield
+  ap: 1
+  channel: 5+
+  sigil: ""
+  flavor: A cracking corona of pale mana turns aside the strikes of enemies.
+  effect: |
+    Select a model within 3"/6" and line of sight; that model has +1 armour (maximum 4) until the caster's next activation.
+
+- school: PLASM
+  name: Spectral Pull
+  ap: 1
+  channel: 6+
+  sigil: ""
+  flavor: Hands of pure energy reach out to draw treasures close.
+  effect: |
+    Push an objective or relic model within 4"/7" and line of sight 3".

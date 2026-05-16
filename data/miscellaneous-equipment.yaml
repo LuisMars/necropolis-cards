@@ -1,0 +1,26 @@
+# Miscellaneous equipment (1 per model).
+
+- name: Rope and Hook
+  category: Miscellaneous Equipment
+  cost: 5 obols
+  armour: —
+  flavor: Sturdy rope with an iron hook, hands sewn with extra fingers, spider-like grace.
+  effect: 'Grants the action — Climb (AP 2): the model may move vertically up or down terrain up to twice the model''s movement.
+
+    '
+- name: Banner
+  category: Miscellaneous Equipment
+  cost: 20 obols
+  armour: —
+  flavor: A moth-eaten flag, a tarnished standard, the bones of a rival tied to a pole as warning.
+  effect: 'Grants the action — Plant the Banner (AP 1): until the model''s next activation, no friendly model within 3" can be pushed by an attack action.
+
+    '
+- name: Musical Instrument
+  category: Miscellaneous Equipment
+  cost: 20 obols
+  armour: —
+  flavor: An ornamental psaltery, a blarin shawm, a dirge sung from darkness.
+  effect: 'Grants the action — Toot Toot! (AP 1): choose a friendly model within 6" that has not activated this turn. You may activate that model immediately after this model''s activation ends.
+
+    '

@@ -1,0 +1,84 @@
+# Minor Treasures — rulebook v0.9 p.66.
+# Roll on this table after each scenario / completing 5 minor ambitions.
+# Leaders may carry up to 3; minions 2; Beast-keyword minions none.
+# All 10 obols each. Treated as Equipment (single-use, discarded).
+
+- name: Binding Pact
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: A coiled scrap of contract, signed in your dust.
+  effect: |
+    Discard at the deployment step and add an additional Small Beast of any type to your gathering for the duration of the battle.
+
+- name: Mana Bottle
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: Stoppered glass swirling with a single drop of unfocused power.
+  effect: |
+    Free action, discard to gain a mana dice of any type.
+
+- name: Soul Tether
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: A braided cord of hair and silver, knotted with binding sigils.
+  effect: |
+    Free action, discard to restore 5 HP.
+
+- name: Phantasm Bottle
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: A pale wisp circles inside the glass, faintly humming.
+  effect: |
+    Free action, discard to instantly cast the Phantasm spell as if you passed the channelling roll.
+
+- name: Quicksilver Powder
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: Liquid metal ground to a fine, restless dust.
+  effect: |
+    Free action, discard then +1 move for the rest of this model's activation.
+
+- name: Blade Oil
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: A vial of dark ichor that hisses against steel.
+  effect: |
+    Free action, discard then +1 violence for the rest of this model's activation.
+
+- name: Scroll of Insubstantiation
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: Parchment inked with the geometry of unbecoming.
+  effect: |
+    Free action, discard to gain the Fly keyword for the rest of this model's activation.
+
+- name: Iron Sludge Tincture
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: A black tar that hardens to a shell on the skin.
+  effect: |
+    Free action, discard then +1 armour until this model's next activation.
+
+- name: Summoning Scroll
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: A parchment that pulls itself flat in the presence of the dead.
+  effect: |
+    Free action, discard to instantly cast the Summon spell as if you passed the channelling roll.
+
+- name: Channeling Charm
+  category: MINOR TREASURE
+  cost: 10 obols
+  armour: "—"
+  flavor: A small focusing lens carved from a relic's bone.
+  effect: |
+    Free action, discard then +2 to channelling rolls for the rest of the model's activation.

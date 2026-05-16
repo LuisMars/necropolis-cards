@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="63mm" height="88mm" viewBox="0 0 63 88" data-edit-idx="0">
+  <defs data-edit-idx="1">
+    <style data-edit-idx="2">
+      .parchment    { fill: #ffffff; }
+      .banner-title { font-family: 'JSL Blackletter', serif; font-size: 7.021px; fill: #ffffff; text-anchor: middle; }
+      .category    { font-family: 'Alegreya SC', serif; font-size: 3.183px; fill: #333333; text-anchor: middle; letter-spacing: 0.562px; font-style: italic; }
+      .heading     { font-family: 'Alegreya SC', serif; font-size: 2.621px; fill: #000000; font-weight: bold; letter-spacing: 0.374px; }
+      .body        { font-family: 'Alegreya', serif; font-size: 2.996px; fill: #000000; }
+      .restrict    { font-family: 'Alegreya', serif; font-size: 2.809px; font-style: italic; fill: #555555; text-anchor: middle; }
+      .footer      { font-family: 'Alegreya SC', serif; font-size: 2.434px; fill: #444444; text-anchor: middle; letter-spacing: 0.562px; }
+      .divider     { fill: none; stroke: #000000; stroke-width: 0.187; }
+    </style>
+  </defs>
+
+  <rect class="parchment" x="0" y="-4.868" width="91.304" height="88" data-edit-idx="3"/>
+
+  <!-- SPLOTCHES -->
+
+  <image xlink:href="file:///home/luismars/necropolis-images/alpha/img-029-048-alpha.png" x="-2.557" y="-2.715" width="67.565" height="18.443" preserveAspectRatio="none" data-edit-idx="4"/>
+
+  <!-- Name alone on banner; category below in italic small caps -->
+  <text class="banner-title" x="31.5" data-edit-idx="5" y="8.8" style="font-size: 7.489px;">{{NAME}}</text>
+  <text class="category" x="31.5" y="18.536" data-edit-idx="6">{{CATEGORY}}</text>
+  <text class="restrict" x="31.5" y="23.123" data-edit-idx="7">{{RESTRICTIONS}}</text>
+
+  <line class="divider" x1="4.565" y1="29.021" x2="58.435" y2="29.021" data-edit-idx="8"/>
+  <text class="heading" x="4.565" y="32.766" data-edit-idx="9">EFFECT</text>
+  <!-- BODY_BLOCK: EFFECT @ x=4.565 y=37.447 lineheight=3.932 width=45chars maxlines=12 short_fill=true -->
+
+</svg>

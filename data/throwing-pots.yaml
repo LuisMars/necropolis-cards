@@ -1,0 +1,39 @@
+# Throwing Pots — rulebook v0.9 p.72. Single-use throwing weapons available
+# from the Alchemy Workshop lair upgrade. All 10 obols, discarded after use.
+# Rendered with weapon.svg since each has a range/attacks/damage profile.
+
+- name: Eater-Water
+  category: Thrown Pot · Alchemy
+  cost: 10 obols
+  range: 6
+  attacks: 1
+  damage: "—"
+  flavor: Boiling alchemical hunger in fragile glass.
+  special: Make a ranged attack. Reduce target's armour by 1/2 until the start of this unit's next activation. Discard after use.
+
+- name: Thunderclap
+  category: Thrown Pot · Alchemy
+  cost: 10 obols
+  range: 6
+  attacks: 1
+  damage: 1 / 5
+  flavor: A clay bomb wound with charged metal filings.
+  special: Every model within 3" of the target suffers 1 damage. Discard after use.
+
+- name: Sunburst
+  category: Thrown Pot · Alchemy
+  cost: 10 obols
+  range: 6
+  attacks: 1
+  damage: "—"
+  flavor: A blinding flash of azure phosphor.
+  special: Reduce the target's violence and ranged by 1/2 until the start of this unit's next activation. Discard after use.
+
+- name: Stonetar
+  category: Thrown Pot · Alchemy
+  cost: 10 obols
+  range: 6
+  attacks: 1
+  damage: "—"
+  flavor: A bituminous resin that sets in moments.
+  special: Reduce the target's move by 1"/2" until the start of this unit's next activation. Discard after use.

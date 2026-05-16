@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="63mm" height="88mm" viewBox="0 0 63 88" data-edit-idx="0">
+  <defs data-edit-idx="1">
+    <style data-edit-idx="2">
+      .parchment    { fill: #ffffff; }
+      .banner-title { font-family: 'JSL Blackletter', serif; font-size: 7px; fill: #ffffff; text-anchor: middle; }
+      .flavor       { font-family: 'Alegreya', serif; font-size: 2.6px; font-style: italic; fill: #444444; text-anchor: middle; }
+      .heading      { font-family: 'Alegreya SC', serif; font-size: 2.4px; fill: #000000; font-weight: bold; letter-spacing: 0.4px; }
+      .body         { font-family: 'Alegreya', serif; font-size: 2.6px; fill: #000000; }
+      .divider      { fill: none; stroke: #000000; stroke-width: 0.2; }
+    </style>
+  </defs>
+
+  <rect class="parchment" x="0" y="0" width="63" height="88" data-edit-idx="3"/>
+
+  <!-- SPLOTCHES -->
+
+  <image xlink:href="file:///home/luismars/necropolis-images/alpha/img-029-048-alpha.png"
+         x="-2.557" y="-2.715" width="67.565" height="18.443"
+         preserveAspectRatio="none" data-edit-idx="4"/>
+
+  <text class="banner-title" x="31.5" y="9.2" data-edit-idx="5">{{NAME}}</text>
+
+  <!-- Flavor — 1–2 lines under the banner. -->
+  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=17 lineheight=3 width=45chars maxlines=2 style=flavor anchor=middle -->
+
+  <line class="divider" x1="4.565" y1="24" x2="58.435" y2="24" data-edit-idx="6"/>
+  <text class="heading" x="4.565" y="27" data-edit-idx="7">OBJECTIVES</text>
+  <!-- BODY_BLOCK: OBJECTIVES @ x=5 y=30.5 lineheight=3 width=45chars maxlines=9 -->
+
+  <line class="divider" x1="4.565" y1="60" x2="58.435" y2="60" data-edit-idx="8"/>
+  <text class="heading" x="4.565" y="63" data-edit-idx="9">DEPLOYMENT</text>
+  <!-- BODY_BLOCK: DEPLOYMENT @ x=5 y=66.5 lineheight=3 width=45chars maxlines=3 -->
+
+  <line class="divider" x1="4.565" y1="74" x2="58.435" y2="74" data-edit-idx="10"/>
+  <text class="heading" x="4.565" y="77" data-edit-idx="11">VICTORY</text>
+  <!-- BODY_BLOCK: VICTORY @ x=5 y=80.5 lineheight=3 width=45chars maxlines=3 -->
+</svg>

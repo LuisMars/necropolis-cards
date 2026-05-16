@@ -1,0 +1,134 @@
+# Minion profiles — matched against the Companion App's 10-entry list and
+# the rulebook v0.9, p.31-35.
+#
+# The plain "Husk" rulebook entry has a `Choose Blood/Bone/Plasm` keyword
+# decision that applies stat modifiers (Bone +Violence, Blood +HP, Plasm
+# Fly/-2HP). The Companion App pre-resolves those into three named variants
+# (Corpse / Skeletal / Ghast Husk). We mirror that here so the printed
+# cards can stand alone without the player having to recalc stats.
+
+# ---- Husk variants (pre-resolved keyword choice) ----
+
+- name: Corpse Husk
+  type_keyword: Husk
+  keyword: Blood
+  cost: 50 obols
+  base: 20–40 mm
+  stats: { AP: 2, M: 3, VIOL: 7+, RNGD: 7+, HP: 12 }
+  flavor: A golem of blood, an ossified horror.
+  special_rules: |
+    Blood Warrior: +2 HP (already factored in).
+
+- name: Skeletal Husk
+  type_keyword: Husk
+  keyword: Bone
+  cost: 50 obols
+  base: 20–40 mm
+  stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 7+, HP: 10 }
+  flavor: A golem of blood, an ossified horror.
+  special_rules: |
+    Bone Warrior: Violence +1 (already factored in).
+
+- name: Ghast Husk
+  type_keyword: Husk · Fly
+  keyword: Plasm
+  cost: 50 obols
+  base: 20–40 mm
+  stats: { AP: 2, M: 3, VIOL: 7+, RNGD: 7+, HP: 8 }
+  flavor: A spectre of a scorned lover, a balefire revenant.
+  special_rules: |
+    Insubstantial: Ghast Husk cannot wear heavy armour.
+
+# ---- Other minions ----
+
+- name: Familiar
+  type_keyword: Familiar · Beast · Fly
+  keyword: Blood/Bone/Plasm
+  cost: 40 obols
+  base: 20–40 mm
+  stats: { AP: 2, M: 4, VIOL: 9+, RNGD: "—", HP: 6 }
+  flavor: A dark swarm of bats, a skull-faced crow, a poltergeist.
+  special_rules: |
+    Claws and Fangs only. No armour, no shield.
+
+    Unique. Each gathering may take only 1 Familiar.
+
+    Soul Link. If the familiar moves or is pushed across / into base contact with a mana token, the gathering gains an extra mana die of that type. The token is removed.
+
+- name: Aberrant Husk
+  type_keyword: Husk
+  keyword: Blood/Bone/Plasm
+  cost: 90 obols
+  base: 30–50 mm
+  stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 7+, HP: 12 }
+  flavor: A towering corpse, a great knight entombed in armour, a huge ghostly executioner.
+  special_rules: |
+    Bone Warrior: Violence +1.
+
+    Blood Warrior: +2 HP.
+
+    Plasm Warrior: gains Fly, -2 HP, cannot wear heavy armour.
+
+    Brutal: +1 damage on each attack action.
+
+- name: Necromantic Remnant
+  type_keyword: Beast · Husk · Remnant       # rulebook p.33 (app omits Beast)
+  keyword: Blood/Bone/Plasm
+  cost: 35 obols
+  base: 20–40 mm
+  stats: { AP: 2, M: 3, VIOL: 9+, RNGD: 9+, HP: 6 }
+  flavor: A bone-construct centipede, a herald homunculus, a wisp knight.
+  special_rules: |
+    Cannot take 2h weapons apart from Claws and Fangs.
+
+    Plasm Warrior: gains Fly and -1 HP.
+
+- name: Small Beast
+  type_keyword: Beast
+  keyword: Blood/Bone/Plasm
+  cost: 60 obols
+  base: 20–40 mm
+  stats: { AP: 2, M: 4, VIOL: 7+, RNGD: "—", HP: 10 }
+  flavor: The remains of a wolf, a twisting mass of bones.
+  special_rules: |
+    Claws and Fangs only. No heavy armour, no shield.
+
+    Plasm Warrior: gains Fly and -2 HP.
+
+- name: Flying Beast
+  type_keyword: Beast · Fly
+  keyword: Blood/Bone
+  cost: 70 obols
+  base: 20–40 mm
+  stats: { AP: 2, M: 4, VIOL: 7+, RNGD: "—", HP: 10 }
+  flavor: A fell bat, a skeletal winged horror.
+  special_rules: |
+    Claws and Fangs only. No armour, no shield.
+
+- name: Large Beast
+  type_keyword: Beast
+  keyword: Blood/Bone
+  cost: 80 obols
+  base: 40–60 mm
+  stats: { AP: 2, M: 3, VIOL: 7+, RNGD: "—", HP: 15 }
+  flavor: A patchwork beast, a tide of six dozen skulls.
+  special_rules: |
+    Claws and Fangs or Large Claws only. No shield.
+
+    Unique. Each gathering may take only 1 Large Beast.
+
+- name: Gigantic Horror
+  type_keyword: Colossal                     # rulebook p.35 (app adds Husk)
+  keyword: Blood/Bone/Plasm
+  cost: 190 obols
+  base: 50–60 mm
+  stats: { AP: 3, M: 3, VIOL: 7+, RNGD: 7+, HP: 25 }
+  flavor: A rotten chimeric horror, the skeleton of a giant knight, a screaming mass of souls.
+  special_rules: |
+    Colossal: may only take weapons from the Colossal Melee Weapon list.
+
+    Unique. Each gathering may take only 1 Gigantic Horror.
+
+    Threatening Aura: may take the Lurk action for 0 AP cost once per turn.
+
+    Plasm Warrior: gains Fly, -2 HP, cannot wear heavy armour.

@@ -1,0 +1,39 @@
+- name: Embalmed Hands
+  category: COVENANT
+  restrictions: Scions of the Rotten Goddess · Blood keyword only
+  effect: |
+    Time is the enemy. Though held fast through embalming and alchemical arts, the flesh withers. The Goddess fades, and so her Hands are sent out into the ruins of the world to seek ancient preserved flesh, vitrified blood, and mellified bodies sealed within lock-graves.
+
+    Your gathering may only contain models with the Blood keyword. Your leader gains the trait "Chosen of the Hands" in addition to any others.
+
+- name: Cairn-born
+  category: COVENANT
+  restrictions: Faithful of the First Grandlich · Bone keyword only
+  effect: |
+    Long before the age of the living ended, the First was already dead. It was the First who unlocked the secrets of necromancy, subjugated empires, amassed the knowledge of the Oblivisk, and sank the treacherous Aldmarsh.
+
+    Your gathering may only contain models with the Bone keyword. Your leader gains the trait "Osseous Sacrifice" in addition to any others.
+
+- name: The Crescent of Mourn
+  category: COVENANT
+  restrictions: Spectres of the Doomed Child · Plasm keyword only
+  effect: |
+    Sweeping from their sealed lairs in a tide of spectral balefire, the Crescent of Mourn do the inscrutable bidding of the Doomed Child. They spread discord, assassinate, and turn the petty fiefdoms of minor undead against each other.
+
+    Your gathering may only contain models with the Plasm keyword. Your leader gains the trait "Moonlight Flit" in addition to any others.
+
+- name: Recusant Maleficar
+  category: COVENANT
+  restrictions: Adherents of the Curse Path · Lich leader · starts with Necromancy spells only
+  effect: |
+    Submitting neither to the service of a Grandlich nor the division of the schools of necromancy themselves, they seek the purity of spellcasting in its original form.
+
+    The leader of this gathering must be a Lich and may initially only take spells from the Necromancy list. Spells of other types can be gained as normal during a campaign. Your leader gains the trait "Erudite" in addition to any others.
+
+- name: Crawling-Dark
+  category: COVENANT
+  restrictions: Swarms of the Hintertombs · Leader, Beast, or Remnant keyword only
+  effect: |
+    What becomes of those banished from the meagre protection of the towers? Those that seek refuge in the darkness of the labyrinth's depths, cobbling a following of failing scraps and darkling beasts, plotting naught but revenge.
+
+    Your gathering may only contain models with the Leader, Beast, or Remnant keyword. Your leader gains the trait "Crawling Lord" in addition to any others.

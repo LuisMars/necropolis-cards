@@ -1,0 +1,43 @@
+# Card-category index — single source of truth for the editor and build.py.
+# Each entry: { key, title, template, data }
+#   key      — slug used in URLs / CLI ("python3 build.py <key>")
+#   title    — human-readable label shown in the editor tree
+#   template — SVG file under templates/ (without ".svg") used to render rows
+#   data     — YAML file under data/ holding the rows, or null for blank cards
+#              (handwritten templates that have no data)
+groups:
+  - title: Reference Guide
+    items:
+      - { key: covenants,                title: Covenants,                template: rule,            data: covenants.yaml }
+      - { key: covenant-leader-traits,   title: Covenant Leader Traits,   template: rule,            data: covenant-leader-traits.yaml }
+      - { key: covenant-wretched-traits, title: Covenant Wretched Traits, template: rule,            data: covenant-wretched-traits.yaml }
+      - { key: leaders,                  title: Leaders,                  template: leader,          data: leaders.yaml }
+      - { key: basic-leader-traits,      title: Basic Leader Traits,      template: rule,            data: basic-leader-traits.yaml }
+      - { key: wretched-undead-traits,   title: Wretched Undead Traits,   template: rule,            data: wretched-undead-traits.yaml }
+      - { key: spells,                   title: Spells,                   template: spell,           data: spells.yaml }
+      - { key: minions,                  title: Minions,                  template: minion,          data: minions.yaml }
+      - { key: melee-weapons,            title: Melee Weapons,            template: weapon,          data: melee-weapons.yaml,            header: Weapon }
+      - { key: colossal-weapons,         title: Colossal Weapons,         template: weapon,          data: colossal-weapons.yaml,         header: Colossal Weapon }
+      - { key: ranged-weapons,           title: Ranged Weapons,           template: weapon,          data: ranged-weapons.yaml,           header: Weapon }
+      - { key: armours,                  title: Armours,                  template: equipment,       data: armours.yaml }
+      - { key: thrown-weapons,           title: Thrown Weapons,           template: weapon,          data: thrown-weapons.yaml, header: Thrown Weapon }
+      - { key: miscellaneous-equipment,  title: Miscellaneous Equipment,  template: equipment,       data: miscellaneous-equipment.yaml }
+
+  - title: Sellswords
+    items:
+      - { key: sellswords,         title: Sellswords,             template: sellsword,        data: sellswords.yaml }
+
+  - title: Campaign Items
+    items:
+      - { key: minor-treasures,    title: Minor Treasures,        template: equipment,        data: minor-treasures.yaml }
+      - { key: greater-treasures,  title: Greater Treasures,      template: equipment,        data: greater-treasures.yaml }
+      - { key: throwing-pots,      title: Throwing Pots,          template: weapon,           data: throwing-pots.yaml, header: Thrown Pot }
+      - { key: potions,            title: Potions,                template: equipment,        data: potions.yaml }
+
+  - title: Reference
+    items:
+      - { key: special-rules,      title: Special Rules,          template: rule,             data: special-rules.yaml }
+
+  - title: Scenarios
+    items:
+      - { key: missions,           title: Missions,               template: mission,          data: missions.yaml }
