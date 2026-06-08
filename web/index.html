@@ -14,8 +14,8 @@
 <header class="app">
   <h1>Necropolis <span>Card Printer</span></h1>
   <nav class="tabs">
-    <button data-tab="import" class="active">Import</button>
-    <button data-tab="library">Library</button>
+    <button data-tab="import">Import</button>
+    <button data-tab="library" class="active">Library</button>
     <button data-tab="print">Print</button>
   </nav>
   <span class="spacer"></span>
@@ -25,7 +25,7 @@
 
 <main>
 
-  <section class="tab active" data-tab="import">
+  <section class="tab" data-tab="import">
     <div class="row col">
       <p style="color:var(--muted); margin:0 0 6px;">
         Paste a JSON export from the
@@ -42,11 +42,29 @@
     <div id="match-list" class="match-list"></div>
   </section>
 
-  <section class="tab" data-tab="library">
+  <section class="tab active" data-tab="library">
     <div class="lib-toolbar">
       <input type="text" id="lib-search" placeholder="Filter by name…">
       <select id="lib-category"><option value="">All categories</option></select>
       <span style="color:var(--muted); font-size:11px;" id="lib-count"></span>
+      <span class="spacer" style="flex:1;"></span>
+      <button class="secondary" id="lib-add-all">+ Add all in view</button>
+    </div>
+    <div class="lib-inv-bar">
+      <span class="inv-label">Printed inventory:</span>
+      <button class="secondary" id="inv-export-file">⬇ Export file</button>
+      <button class="secondary" id="inv-copy">⧉ Copy JSON</button>
+      <button class="secondary" id="inv-import-file">⬆ Import file</button>
+      <button class="secondary" id="inv-paste-toggle">Paste JSON…</button>
+      <input type="file" id="inv-file-input" accept="application/json,.json" hidden>
+      <span class="inv-status muted" id="inv-status"></span>
+    </div>
+    <div class="lib-inv-paste" id="inv-paste-panel" hidden>
+      <textarea id="inv-paste-area" placeholder="Paste exported inventory JSON here, then Apply…"></textarea>
+      <div class="inv-paste-actions">
+        <button class="secondary" id="inv-paste-apply">Apply</button>
+        <button class="secondary" id="inv-paste-cancel">Cancel</button>
+      </div>
     </div>
     <div id="lib-grid" class="lib-grid"></div>
   </section>
@@ -55,9 +73,11 @@
     <div class="print-toolbar">
       <label><input type="checkbox" id="bleed-toggle"> add gap between cards</label>
       <label><input type="checkbox" id="backs-toggle"> print card backs</label>
+      <label title="Skip cards you've already printed enough of (queue − printed)"><input type="checkbox" id="need-toggle"> only what I still need</label>
       <span style="color:var(--muted)">·</span>
       <span id="sheet-count"></span>
       <span class="spacer" style="flex:1;"></span>
+      <button class="secondary" id="mark-printed-btn" title="Add this run's cards to your printed inventory">✓ Mark this run as printed</button>
       <button class="secondary" id="clear-queue-btn-2">Clear queue</button>
     </div>
     <div class="queue-panel">

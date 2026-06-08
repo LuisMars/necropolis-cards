@@ -5,7 +5,7 @@
  * exposes an `init*` + `render*` function.
  */
 
-import { state, loadQueue }   from "./state.js";
+import { state, loadQueue, loadPrinted } from "./state.js";
 import { loadBundle }         from "./data.js";
 import { loadFonts }          from "./fonts.js";
 import { initImport }         from "./import.js";
@@ -53,6 +53,7 @@ initLibrary({ onChange });
 initPrint({ onChange });
 
 loadQueue();
+loadPrinted();
 refreshHeader();
 
 // Fonts load in parallel with the data bundle; whichever finishes second

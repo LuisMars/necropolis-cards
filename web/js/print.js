@@ -6,16 +6,18 @@
  * page-break-after handles multi-page output cleanly.
  */
 
-import { state, saveQueue } from "./state.js";
+import { state, saveQueue, printedCount, addPrinted, cardId } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { renderCardSvg } from "./templates.js";
 
-const $queueList  = $("queue-list");
-const $sheetsWrap = $("sheets-wrap");
-const $sheetCount = $("sheet-count");
-const $bleed      = $("bleed-toggle");
-const $backs      = $("backs-toggle");
-const $clearBtn   = $("clear-queue-btn-2");
+const $queueList   = $("queue-list");
+const $sheetsWrap  = $("sheets-wrap");
+const $sheetCount  = $("sheet-count");
+const $bleed       = $("bleed-toggle");
+const $backs       = $("backs-toggle");
+const $needToggle  = $("need-toggle");
+const $markPrinted = $("mark-printed-btn");
+const $clearBtn    = $("clear-queue-btn-2");
 
 const CARDS_PER_SHEET = 9;
 
@@ -25,6 +27,8 @@ export function initPrint({ onChange } = {}) {
   onChangeCb = onChange;
   $bleed.addEventListener("change", renderPrint);
   $backs.addEventListener("change", renderPrint);
+  $needToggle.addEventListener("change", renderPrint);
+  $markPrinted.addEventListener("click", markRunPrinted);
   $clearBtn.addEventListener("click", () => {
     if (!state.queue.length) return;
     if (!confirm(`Clear all ${state.queue.length} card${state.queue.length === 1 ? "" : "s"} from the queue?`)) return;
@@ -33,6 +37,41 @@ export function initPrint({ onChange } = {}) {
     renderPrint();
     if (onChangeCb) onChangeCb();
   });
+}
+
+/* The cards that will actually print. With "only what I still need" off this
+ * is the whole queue; on, it drops the first `printed` copies of each card
+ * identity, leaving max(0, queued − printed) — i.e. just the shortfall. */
+export function printList() {
+  if (!$needToggle.checked) return state.queue.slice();
+  const seen = Object.create(null);
+  const out = [];
+  for (const q of state.queue) {
+    const id = cardId(q.key, q.row?.name);
+    const nth = (seen[id] = (seen[id] || 0) + 1);
+    if (nth > printedCount(q.key, q.row?.name)) out.push(q);
+  }
+  return out;
+}
+
+/* Add this run's cards to the printed inventory, so next time the same
+ * cards count as "already printed". Works in both modes: it bumps printed by
+ * exactly what this run lays out. */
+function markRunPrinted() {
+  const list = printList();
+  if (!list.length) return;
+  const counts = Object.create(null);
+  for (const q of list) counts[cardId(q.key, q.row?.name)] = (counts[cardId(q.key, q.row?.name)] || 0) + 1;
+  // Apply per identity once.
+  const applied = new Set();
+  for (const q of list) {
+    const id = cardId(q.key, q.row?.name);
+    if (applied.has(id)) continue;
+    applied.add(id);
+    addPrinted(q.key, q.row?.name, counts[id]);
+  }
+  renderPrint();
+  if (onChangeCb) onChangeCb();
 }
 
 export function renderPrint() {
@@ -212,22 +251,29 @@ function renderSheets() {
   $sheetsWrap.innerHTML = "";
   const cutGap = $bleed.checked;          // checkbox now toggles the cut gap
   const withBacks = $backs.checked;
-  if (!state.queue.length) {
+  const list = printList();
+  const needMode = $needToggle.checked;
+  $markPrinted.disabled = list.length === 0;
+
+  if (!list.length) {
     $sheetCount.textContent = "0 sheets";
     const e = document.createElement("div");
     e.className = "empty-msg";
-    e.textContent = "Print preview will appear here once you queue cards.";
+    e.textContent = !state.queue.length
+      ? "Print preview will appear here once you queue cards."
+      : "Nothing left to print — every queued card is already in your printed inventory.";
     $sheetsWrap.appendChild(e);
     return;
   }
-  const fronts  = Math.ceil(state.queue.length / CARDS_PER_SHEET);
+  const fronts  = Math.ceil(list.length / CARDS_PER_SHEET);
   const totals  = withBacks ? fronts * 2 : fronts;
   $sheetCount.textContent =
-    `${totals} sheet${totals === 1 ? "" : "s"} · ${state.queue.length} card${state.queue.length === 1 ? "" : "s"}`
+    `${totals} sheet${totals === 1 ? "" : "s"} · ${list.length} card${list.length === 1 ? "" : "s"}`
+    + (needMode ? ` still needed (of ${state.queue.length} queued)` : "")
     + (withBacks ? " (fronts + backs)" : "");
 
   for (let s = 0; s < fronts; s++) {
-    // Fronts sheet — 9 cards from the queue.
+    // Fronts sheet — 9 cards from the effective print list.
     const sheet = document.createElement("div");
     sheet.className = "sheet" + (cutGap ? " cut-gap" : "");
     const num = document.createElement("div");
@@ -236,7 +282,7 @@ function renderSheets() {
     sheet.appendChild(num);
     for (let i = 0; i < CARDS_PER_SHEET; i++) {
       const idx = s * CARDS_PER_SHEET + i;
-      const q = state.queue[idx];
+      const q = list[idx];
       const card = document.createElement("div");
       card.className = "card" + (q ? "" : " empty");
       if (q) card.innerHTML = renderCardSvg(q);
@@ -263,7 +309,7 @@ function renderSheets() {
       : "";
     for (let i = 0; i < CARDS_PER_SHEET; i++) {
       const idx = s * CARDS_PER_SHEET + i;
-      const filled = idx < state.queue.length;
+      const filled = idx < list.length;
       const card = document.createElement("div");
       card.className = "card" + (filled ? "" : " empty");
       if (filled && backHtml) card.innerHTML = backHtml;

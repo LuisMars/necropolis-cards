@@ -41,3 +41,4 @@ groups:
   - title: Scenarios
     items:
       - { key: missions,           title: Missions,               template: mission,          data: missions.yaml }
+      - { key: dread-omens,        title: Dread Omens,            template: rule,             data: dread-omens.yaml }

@@ -193,18 +193,30 @@ def fill_template(template: str, data: dict) -> str:
     return result
 
 # Title-name fitting strategy:
-#   ≤ 15 chars: render single-line at full size, no constraint
-#   16 – 22:    single-line with textLength=58 mm to gently compress
-#   ≥ 23:       wrap to 2 lines at a smaller font
-# Banner-position names (y < 18) are squeezed harder: the banner image's
-# dense ink only covers about the centre 50 mm, beyond which it feathers
-# out — a 58 mm-wide title overruns the feathered area and looks clipped
-# (visible on "Recusant Maleficar"). Use BANNER_FIT_WIDTH_MM for those.
+#   Banner titles (y < BANNER_Y_THRESHOLD): shrink the FONT so the
+#     blackletter keeps its natural proportions. Squeezing the glyphs to a
+#     fixed width (textLength) condensed the letters and looked bad; longer
+#     names overran the card edge entirely. Scaling the font instead keeps
+#     every title centred, undistorted, and inside the trim.
+#   Body names (below the banner):
+#     ≤ 15 chars: full size, no constraint
+#     16 – 22:    single-line, textLength compression
+#     ≥ 23:       wrap to 2 lines at a smaller font
 NAME_SHRINK_CHARS    = 16
 NAME_MAX_CHARS       = 23
-NAME_FIT_WIDTH_MM    = 58
-BANNER_FIT_WIDTH_MM  = 51
-BANNER_Y_THRESHOLD   = 18
+NAME_FIT_WIDTH_MM    = 53
+BANNER_Y_THRESHOLD   = 17
+BANNER_BASE_SIZE     = 7.0    # fallback banner font when none is set inline
+BANNER_FIT_CHARS     = 16.5   # chars that fit at the base size before shrinking
+BANNER_MIN_SIZE      = 4.4    # never shrink a title below this
+
+def _with_font_size(attrs: str, size: float) -> str:
+    """Force an inline font-size on a <text>, so it wins over the class rule."""
+    sm = re.search(r'style="([^"]*)"', attrs)
+    if sm:
+        cleaned = re.sub(r'font-size:\s*[^;]+;?\s*', '', sm.group(1))
+        return attrs.replace(sm.group(0), f'style="{cleaned}font-size: {size:.2f}px;"')
+    return attrs + f' style="font-size: {size:.2f}px;"'
 
 def _split_two_lines(text: str) -> list[str]:
     words = text.split()
@@ -221,13 +233,13 @@ def _split_two_lines(text: str) -> list[str]:
     return list(best) if best else [text]
 
 _NAME_TAG_RE = re.compile(
-    r'<text class="name"([^>]*)>([^<]+)</text>',
+    r'<text class="(name|banner-title)"([^>]*)>([^<]+)</text>',
     re.MULTILINE,
 )
 
 def _fit_long_names(svg: str) -> str:
     def repl(m: re.Match) -> str:
-        attrs, content = m.group(1), m.group(2)
+        cls, attrs, content = m.group(1), m.group(2), m.group(3)
         n = len(content)
         if n <= NAME_SHRINK_CHARS:
             return m.group(0)  # short, no change
@@ -237,23 +249,28 @@ def _fit_long_names(svg: str) -> str:
         if not (x_m and y_m):
             return m.group(0)
         x, y = float(x_m.group(1)), float(y_m.group(1))
-        fit_width = BANNER_FIT_WIDTH_MM if y < BANNER_Y_THRESHOLD else NAME_FIT_WIDTH_MM
 
+        if y < BANNER_Y_THRESHOLD:
+            # Banner title: shrink the font so the title keeps its natural
+            # blackletter proportions and stays within the trim.
+            base_m = re.search(r'font-size:\s*([\d.]+)px', attrs)
+            base = float(base_m.group(1)) if base_m else BANNER_BASE_SIZE
+            size = max(BANNER_MIN_SIZE, base * BANNER_FIT_CHARS / n)
+            return f'<text class="{cls}"{_with_font_size(attrs, size)}>{content}</text>'
+
+        # Body name: compress to width, wrapping the longest to 2 lines.
         if n < NAME_MAX_CHARS:
-            # Medium length: keep single-line but constrain to fit width
             return (
-                f'<text class="name"{attrs} '
-                f'textLength="{fit_width}" '
+                f'<text class="{cls}"{attrs} '
+                f'textLength="{NAME_FIT_WIDTH_MM}" '
                 f'lengthAdjust="spacingAndGlyphs">{content}</text>'
             )
-
-        # Long: wrap to 2 lines
         lines = _split_two_lines(content)
         if len(lines) < 2:
             # Single very long word — fall back to textLength compression
             return (
-                f'<text class="name"{attrs} '
-                f'textLength="{fit_width}" '
+                f'<text class="{cls}"{attrs} '
+                f'textLength="{NAME_FIT_WIDTH_MM}" '
                 f'lengthAdjust="spacingAndGlyphs">{content}</text>'
             )
         line_h = 5.4
@@ -264,7 +281,7 @@ def _fit_long_names(svg: str) -> str:
             + ' font-size="4.6"'
         )
         return (
-            f'<text class="name"{new_attrs}>'
+            f'<text class="{cls}"{new_attrs}>'
             f'<tspan x="{x}" y="{y1}">{lines[0]}</tspan>'
             f'<tspan x="{x}" y="{y2}">{lines[1]}</tspan>'
             f'</text>'

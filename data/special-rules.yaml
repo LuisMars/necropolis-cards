@@ -1,6 +1,13 @@
 # Special Rules — model-tied rules referenced from profile cards.
 
 - category: SPECIAL RULE
+  name: Soul Link
+  restrictions: Familiar
+  sigil: ''
+  effect: |
+    If the familiar moves or is pushed across, or into base contact with, a mana token, the gathering receives an additional mana dice of that type for its mana pool. The token is then removed.
+
+- category: SPECIAL RULE
   name: Ancient Skill
   restrictions: Lich
   sigil: ''

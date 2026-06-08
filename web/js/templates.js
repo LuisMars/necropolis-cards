@@ -76,22 +76,38 @@ export function renderCardSvg(q) {
 }
 
 /* Title-name fitting strategy — mirrors build.py:
- *   ≤ 15 chars: render at full size, no constraint
- *   16 – 22:   single-line with textLength to gently squeeze
- *   ≥ 23:     wrap to 2 lines at a smaller font
- * Banner-position names (y < 18) get a tighter target width since the
- * banner image's dense ink only covers the centre ~50 mm. */
+ *   Banner titles (y < BANNER_Y_THRESHOLD): shrink the FONT so the
+ *     blackletter keeps its natural proportions and stays inside the trim.
+ *     (Squeezing glyphs to a fixed width condensed the letters and looked
+ *     bad; longer names ran off the card edge.)
+ *   Body names (below the banner):
+ *     ≤ 15 chars: full size, no constraint
+ *     16 – 22:   single-line with textLength to gently squeeze
+ *     ≥ 23:     wrap to 2 lines at a smaller font */
 const NAME_SHRINK_CHARS   = 16;
 const NAME_MAX_CHARS      = 23;
 const NAME_FIT_WIDTH_MM   = 53;   // body names: ~84% of the 63 mm card width
-const BANNER_FIT_WIDTH_MM = 46;   // banner names: ~73% — banner art tapers in
 const BANNER_Y_THRESHOLD  = 17;   // y below this counts as "on the banner"
+const BANNER_BASE_SIZE    = 7.0;  // fallback banner font when none is set inline
+const BANNER_FIT_CHARS    = 16.5; // chars that fit at the base size before shrinking
+const BANNER_MIN_SIZE     = 4.4;  // never shrink a title below this
 
 // Match either the body name (`.name`) or the banner title (`.banner-title`).
 // Both can hold a card name that needs fitting; the y-coordinate decides
-// which width budget to use.
+// which strategy to use.
 const NAME_TAG_RE =
   /<text\s+class="(name|banner-title)"([^>]*)>([^<]+)<\/text>/g;
+
+// Force an inline font-size onto a <text>'s attribute string so it wins
+// over the class-level font-size in the SVG <style> block.
+function withFontSize(attrs, size) {
+  const styleMatch = /style="([^"]*)"/.exec(attrs);
+  if (styleMatch) {
+    const cleaned = styleMatch[1].replace(/font-size:\s*[^;]+;?\s*/, "");
+    return attrs.replace(/style="[^"]*"/, `style="${cleaned}font-size: ${size.toFixed(2)}px;"`);
+  }
+  return attrs + ` style="font-size: ${size.toFixed(2)}px;"`;
+}
 
 function fitLongNames(svg) {
   return svg.replace(NAME_TAG_RE, (full, cls, attrs, content) => {
@@ -103,16 +119,23 @@ function fitLongNames(svg) {
     if (!xMatch || !yMatch) return full;
     const x = parseFloat(xMatch[1]);
     const y = parseFloat(yMatch[1]);
-    const fitWidth = y < BANNER_Y_THRESHOLD ? BANNER_FIT_WIDTH_MM : NAME_FIT_WIDTH_MM;
+
+    if (y < BANNER_Y_THRESHOLD) {
+      // Banner title: shrink the font, keep natural proportions.
+      const baseMatch = /font-size:\s*([\d.]+)px/.exec(attrs);
+      const base = baseMatch ? parseFloat(baseMatch[1]) : BANNER_BASE_SIZE;
+      const size = Math.max(BANNER_MIN_SIZE, base * BANNER_FIT_CHARS / n);
+      return `<text class="${cls}"${withFontSize(attrs, size)}>${content}</text>`;
+    }
 
     if (n < NAME_MAX_CHARS) {
-      // Medium: textLength constraint, single line.
-      return `<text class="${cls}"${attrs} textLength="${fitWidth}" lengthAdjust="spacingAndGlyphs">${content}</text>`;
+      // Medium body name: textLength constraint, single line.
+      return `<text class="${cls}"${attrs} textLength="${NAME_FIT_WIDTH_MM}" lengthAdjust="spacingAndGlyphs">${content}</text>`;
     }
-    // Long: wrap at the most-balanced word boundary, shrink, 2 lines.
+    // Long body name: wrap at the most-balanced word boundary, shrink, 2 lines.
     const lines = splitTwoLines(content);
     if (lines.length < 2) {
-      return `<text class="${cls}"${attrs} textLength="${fitWidth}" lengthAdjust="spacingAndGlyphs">${content}</text>`;
+      return `<text class="${cls}"${attrs} textLength="${NAME_FIT_WIDTH_MM}" lengthAdjust="spacingAndGlyphs">${content}</text>`;
     }
     const lineH = 5.4;
     const y1 = y - lineH * 0.5;

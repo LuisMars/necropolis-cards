@@ -1,0 +1,85 @@
+# Dread Omens — WIP Necropolis Rules 0.9, p.60-61.
+# Optional battlefield-wide effects both players may agree to roll for
+# before a scenario. Each effect field leads with the rulebook flavour,
+# then the mechanical rule (rendered via rule.svg's EFFECT block).
+
+- category: DREAD OMEN
+  name: Magical Storm
+  restrictions: Omen I
+  sigil: ""
+  effect: |
+    The battlefield is whipped by a terrifying gale bringing swirling debris and ensorcelled thunder to bear on the gatherings as they try to take cover.
+
+    Any model that is not in base contact with a terrain feature (such as a wall or vertical structure) at the end of their activation suffers 2 damage.
+
+- category: DREAD OMEN
+  name: Sorcerous Duel Site
+  restrictions: Omen II
+  sigil: ""
+  effect: |
+    This place was once the site of a sorcerous battle of immense power, and mana still crackles in the air.
+
+    Each leader receives an additional mana dice of any kind at the start of the battle. In addition, arcane backlash occurs on a roll of 1-2 for the duration of the battle.
+
+- category: DREAD OMEN
+  name: Masterless Beasts
+  restrictions: Omen III
+  sigil: ""
+  effect: |
+    Rotting monstrosities long separated from their master stalk this area.
+
+    After players have deployed, each player may set up a large beast (NPC) of any type, armed with large claws, within 3" of the board centre.
+
+- category: DREAD OMEN
+  name: Swampy Mire
+  restrictions: Omen IV
+  sigil: ""
+  effect: |
+    The ground here is sodden, and those who do not struggle onwards are swallowed whole in the marshy ground.
+
+    Any model that does not make a move action during its activation suffers 2 damage as it sinks into the ground.
+
+- category: DREAD OMEN
+  name: Rising Murk
+  restrictions: Omen V
+  sigil: ""
+  effect: |
+    Dark mist rises from the earth, quickly blinding the gatherings.
+
+    From the beginning of turn 3, all ranged weapons have a maximum range of 6".
+
+- category: DREAD OMEN
+  name: Dust-Rot
+  restrictions: Omen VI
+  sigil: ""
+  effect: |
+    Ancient rot hangs in the air, eroding all from existence.
+
+    If a model is below their maximum HP at the end of their activation, that model suffers 1 damage.
+
+- category: DREAD OMEN
+  name: Soul Trap
+  restrictions: Omen VII
+  sigil: ""
+  effect: |
+    No respite from existence can be found here; the defeated are quickly reformed against their will by unknown powers.
+
+    In the initiative step of each turn, each player may choose one of their Shattered models and place it back on the board within 3" of their leader, restoring 4 HP to it.
+
+- category: DREAD OMEN
+  name: Scattered Treasures
+  restrictions: Omen VIII
+  sigil: ""
+  effect: |
+    Forgotten coins, discarded in the darkness.
+
+    Alternate placing 2 relic tokens per player. Relics must be 2" apart and as close to the centre of the board as possible. Players receive 1d10 obols for each relic token carried by their gathering at the end of the scenario.
+
+- category: DREAD OMEN
+  name: Lost Peddler
+  restrictions: Omen IX
+  sigil: ""
+  effect: |
+    Caught in the darkness of the battlefield is a peddler, who calls out to all to come and see their wares, heedless of the danger all around.
+
+    After players have deployed, set up a Peddler (NPC) of any type within 3" of the board centre. This NPC activates in the Others Phase as normal but may only take move actions of 3" and may not attack, be attacked, or be the target of any spells.
