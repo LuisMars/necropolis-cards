@@ -2,11 +2,18 @@
 # Keyword: Blood/Bone/Plasm is chosen at warband creation, so we record the
 # fixed keyword block (e.g. "Blood/Bone/Plasm · Leader") and let the player
 # circle the actual covenant on the printed card.
+#
+# `*_es` fields hold the Spanish card text (Liche / Renacido / No Muerto
+# Ascendido per the official Spanish rulebook, Necrópolis v1.1).
 
 - name: Lich
+  name_es: Liche
   type_keyword: Leader
+  type_keyword_es: Líder
   keyword: Blood/Bone/Plasm
+  keyword_es: Sangre/Hueso/Plasma
   cost: 0 obols
+  cost_es: 0 óbolos
   base: 20–50 mm
   lair: ""
   stats: { AP: 2, M: 3, VIOL: 7+, RNGD: 7+, HP: 15 }
@@ -14,13 +21,20 @@
   spells: Summon + 3
   traits: 1 Basic Leader Trait
   flavor: A rotten necromancer, an ancient lich, a phantasmal sorcerer.
+  flavor_es: Un nigromante podrido y antiguo; un hechicero fantasmal.
   special_rules: |
     Caster. A lich cannot wear heavy armour or carry a shield.
+  special_rules_es: |
+    Hechicero. Un liche no puede llevar armadura pesada ni escudo.
 
 - name: Revenant
+  name_es: Renacido
   type_keyword: Leader
+  type_keyword_es: Líder
   keyword: Blood/Bone/Plasm
+  keyword_es: Sangre/Hueso/Plasma
   cost: 0 obols
+  cost_es: 0 óbolos
   base: 20–50 mm
   lair: ""
   stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 7+, HP: 17 }
@@ -28,15 +42,24 @@
   spells: Summon + 1
   traits: 1 Basic Leader Trait
   flavor: A desiccated knight, a barrow monarch, a spectral martyr.
+  flavor_es: Un caballero disecado, un monarca tumular, un mártir espectral.
   special_rules: |
     Ancient Skill. On an unmodified 10 on attack dice, the dice is a critical hit (+1 damage).
 
     Fighter. A revenant can never gain more than 4 spells (including Summon) and 4 mana points.
+  special_rules_es: |
+    Habilidad Ancestral. Con un 10 sin modificar en los dados de ataque, ese dado es un golpe crítico (+1 de daño).
+
+    Guerrero. Un Renacido nunca puede tener más de 4 hechizos (incluyendo Invocar) y 4 puntos de maná.
 
 - name: Ascended Undead
+  name_es: No Muerto Ascendido
   type_keyword: Leader · Colossal
+  type_keyword_es: Líder · Colosal
   keyword: Blood/Bone/Plasm
+  keyword_es: Sangre/Hueso/Plasma
   cost: 225 obols
+  cost_es: 225 óbolos
   base: 40–60 mm
   lair: ""
   stats: { AP: 3, M: 3, VIOL: 5+, RNGD: 6+, HP: 25 }
@@ -44,7 +67,12 @@
   spells: Summon + 3
   traits: 1 Basic Leader Trait
   flavor: An imposing pontiff of sewn corpses, a multi-limbed skeletal sorcerer-monarch, spectral death incarnate.
+  flavor_es: Un pontífice imponente de cadáveres cosidos, un monarca hechicero esquelético con multitud de brazos, la muerte espectral encarnada.
   special_rules: |
     Colossal. This model can only take weapons from the Colossal Weapon lists.
 
     Threatening Aura. This model may take the Lurk action for 0 AP cost once per turn.
+  special_rules_es: |
+    Colosal. Esta miniatura solo puede coger armas de las listas de Armas Colosales.
+
+    Aura Amenazante. Esta miniatura puede realizar la acción Acechar sin gastar PA una vez por turno.

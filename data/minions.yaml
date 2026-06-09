@@ -6,62 +6,102 @@
 # Fly/-2HP). The Companion App pre-resolves those into three named variants
 # (Corpse / Skeletal / Ghast Husk). We mirror that here so the printed
 # cards can stand alone without the player having to recalc stats.
+#
+# `*_es` fields hold the Spanish card text (keywords sourced from the official
+# Spanish rulebook, Necrópolis v1.1: Husk→Cáscara, Beast→Bestia, etc.).
 
 # ---- Husk variants (pre-resolved keyword choice) ----
 
 - name: Corpse Husk
+  name_es: Cáscara de Cadáver
   type_keyword: Husk
+  type_keyword_es: Cáscara
   keyword: Blood
+  keyword_es: Sangre
   cost: 50 obols
+  cost_es: 50 óbolos
   base: 20–40 mm
   stats: { AP: 2, M: 3, VIOL: 7+, RNGD: 7+, HP: 12 }
   flavor: A golem of blood, an ossified horror.
+  flavor_es: Un gólem de sangre, un horror osificado.
   special_rules: |
     Blood Warrior: +2 HP (already factored in).
+  special_rules_es: |
+    Guerrero de Sangre: +2 HP (ya aplicado).
 
 - name: Skeletal Husk
+  name_es: Cáscara Esquelética
   type_keyword: Husk
+  type_keyword_es: Cáscara
   keyword: Bone
+  keyword_es: Hueso
   cost: 50 obols
+  cost_es: 50 óbolos
   base: 20–40 mm
   stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 7+, HP: 10 }
   flavor: A golem of blood, an ossified horror.
+  flavor_es: Un gólem de sangre, un horror osificado.
   special_rules: |
     Bone Warrior: Violence +1 (already factored in).
+  special_rules_es: |
+    Guerrero de Hueso: Violencia +1 (ya aplicado).
 
 - name: Ghast Husk
+  name_es: Cáscara Espectral
   type_keyword: Husk · Fly
+  type_keyword_es: Cáscara · Vuelo
   keyword: Plasm
+  keyword_es: Plasma
   cost: 50 obols
+  cost_es: 50 óbolos
   base: 20–40 mm
   stats: { AP: 2, M: 3, VIOL: 7+, RNGD: 7+, HP: 8 }
   flavor: A spectre of a scorned lover, a balefire revenant.
+  flavor_es: El espectro de un amante despechado, un renacido de fuego fúnebre.
   special_rules: |
     Insubstantial: Ghast Husk cannot wear heavy armour.
+  special_rules_es: |
+    Insustancial: la Cáscara Espectral no puede llevar armadura pesada.
 
 # ---- Other minions ----
 
 - name: Familiar
+  name_es: Familiar
   type_keyword: Familiar · Beast · Fly
+  type_keyword_es: Familiar · Bestia · Vuelo
   keyword: Blood/Bone/Plasm
+  keyword_es: Sangre/Hueso/Plasma
   cost: 40 obols
+  cost_es: 40 óbolos
   base: 20–40 mm
   stats: { AP: 2, M: 4, VIOL: 9+, RNGD: "—", HP: 6 }
   flavor: A dark swarm of bats, a skull-faced crow, a poltergeist.
+  flavor_es: Un enjambre oscuro de murciélagos, un cuervo con rostro de calavera, un poltergeist.
   special_rules: |
     Claws and Fangs only. No armour, no shield.
 
     Unique. Each gathering may take only 1 Familiar.
 
     Soul Link. (See its Special Rule card.)
+  special_rules_es: |
+    Solo Garras y Colmillos. Sin armadura ni escudo.
+
+    Único. Cada Séquito solo puede llevar 1 Familiar.
+
+    Vínculo de Almas. (Ver su carta de Regla Especial.)
 
 - name: Aberrant Husk
+  name_es: Cáscara Aberrante
   type_keyword: Husk
+  type_keyword_es: Cáscara
   keyword: Blood/Bone/Plasm
+  keyword_es: Sangre/Hueso/Plasma
   cost: 90 obols
+  cost_es: 90 óbolos
   base: 30–50 mm
   stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 7+, HP: 12 }
   flavor: A towering corpse, a great knight entombed in armour, a huge ghostly executioner.
+  flavor_es: Un cadáver imponente, un gran caballero encerrado en su armadura, un verdugo espectral enorme.
   special_rules: |
     Bone Warrior: Violence +1.
 
@@ -70,60 +110,107 @@
     Plasm Warrior: gains Fly, -2 HP, cannot wear heavy armour.
 
     Brutal: +1 damage on each attack action.
+  special_rules_es: |
+    Guerrero de Hueso: Violencia +1.
+
+    Guerrero de Sangre: +2 HP.
+
+    Guerrero de Plasma: gana Vuelo, -2 HP, no puede llevar armadura pesada.
+
+    Brutal: +1 al daño en cada acción de ataque.
 
 - name: Necromantic Remnant
+  name_es: Remanente Nigromántico
   type_keyword: Beast · Husk · Remnant       # rulebook p.33 (app omits Beast)
+  type_keyword_es: Bestia · Cáscara · Remanente
   keyword: Blood/Bone/Plasm
+  keyword_es: Sangre/Hueso/Plasma
   cost: 35 obols
+  cost_es: 35 óbolos
   base: 20–40 mm
   stats: { AP: 2, M: 3, VIOL: 9+, RNGD: 9+, HP: 6 }
   flavor: A bone-construct centipede, a herald homunculus, a wisp knight.
+  flavor_es: Un ciempiés construido de huesos, un homúnculo heraldo, un caballero espectral.
   special_rules: |
     Cannot take 2h weapons apart from Claws and Fangs.
 
     Plasm Warrior: gains Fly and -1 HP.
+  special_rules_es: |
+    No puede llevar armas a 2 manos salvo Garras y Colmillos.
+
+    Guerrero de Plasma: gana Vuelo y -1 HP.
 
 - name: Small Beast
+  name_es: Bestia Pequeña
   type_keyword: Beast
+  type_keyword_es: Bestia
   keyword: Blood/Bone/Plasm
+  keyword_es: Sangre/Hueso/Plasma
   cost: 60 obols
+  cost_es: 60 óbolos
   base: 20–40 mm
   stats: { AP: 2, M: 4, VIOL: 7+, RNGD: "—", HP: 10 }
   flavor: The remains of a wolf, a twisting mass of bones.
+  flavor_es: Los restos de un lobo, una masa retorcida de huesos.
   special_rules: |
     Claws and Fangs only. No heavy armour, no shield.
 
     Plasm Warrior: gains Fly and -2 HP.
+  special_rules_es: |
+    Solo Garras y Colmillos. Sin armadura pesada ni escudo.
+
+    Guerrero de Plasma: gana Vuelo y -2 HP.
 
 - name: Flying Beast
+  name_es: Bestia Voladora
   type_keyword: Beast · Fly
+  type_keyword_es: Bestia · Vuelo
   keyword: Blood/Bone
+  keyword_es: Sangre/Hueso
   cost: 70 obols
+  cost_es: 70 óbolos
   base: 20–40 mm
   stats: { AP: 2, M: 4, VIOL: 7+, RNGD: "—", HP: 10 }
   flavor: A fell bat, a skeletal winged horror.
+  flavor_es: Un murciélago nefasto, un horror alado esquelético.
   special_rules: |
     Claws and Fangs only. No armour, no shield.
+  special_rules_es: |
+    Solo Garras y Colmillos. Sin armadura ni escudo.
 
 - name: Large Beast
+  name_es: Bestia Grande
   type_keyword: Beast
+  type_keyword_es: Bestia
   keyword: Blood/Bone
+  keyword_es: Sangre/Hueso
   cost: 80 obols
+  cost_es: 80 óbolos
   base: 40–60 mm
   stats: { AP: 2, M: 3, VIOL: 7+, RNGD: "—", HP: 15 }
   flavor: A patchwork beast, a tide of six dozen skulls.
+  flavor_es: Una bestia hecha de retazos, una marea de seis docenas de calaveras.
   special_rules: |
     Claws and Fangs or Large Claws only. No shield.
 
     Unique. Each gathering may take only 1 Large Beast.
+  special_rules_es: |
+    Solo Garras y Colmillos o Grandes Garras. Sin escudo.
+
+    Único. Cada Séquito solo puede llevar 1 Bestia Grande.
 
 - name: Gigantic Horror
+  name_es: Horror Colosal
   type_keyword: Colossal                     # rulebook p.35 (app adds Husk)
+  type_keyword_es: Colosal
   keyword: Blood/Bone/Plasm
+  keyword_es: Sangre/Hueso/Plasma
   cost: 190 obols
+  cost_es: 190 óbolos
   base: 50–60 mm
   stats: { AP: 3, M: 3, VIOL: 7+, RNGD: 7+, HP: 25 }
   flavor: A rotten chimeric horror, the skeleton of a giant knight, a screaming mass of souls.
+  flavor_es: Un horror quimérico podrido, el esqueleto de un caballero gigante, una masa gritona de almas.
   special_rules: |
     Colossal: may only take weapons from the Colossal Melee Weapon list.
 
@@ -132,3 +219,11 @@
     Threatening Aura: may take the Lurk action for 0 AP cost once per turn.
 
     Plasm Warrior: gains Fly, -2 HP, cannot wear heavy armour.
+  special_rules_es: |
+    Colosal: solo puede coger armas de la lista de Armas Colosales cuerpo a cuerpo.
+
+    Único. Cada Séquito solo puede llevar 1 Horror Colosal.
+
+    Aura Amenazante: puede realizar la acción Acechar sin gastar PA una vez por turno.
+
+    Guerrero de Plasma: gana Vuelo, -2 HP, no puede llevar armadura pesada.

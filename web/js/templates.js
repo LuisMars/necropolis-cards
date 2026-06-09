@@ -11,6 +11,7 @@
  */
 
 import { state } from "./state.js";
+import { translateLabels, pickField } from "./i18n.js";
 
 const BODY_BLOCK_RE =
   /<!--\s*BODY_BLOCK:\s*(\w+)\s*@\s*x=([\d.]+)\s+y=([\d.]+)\s+lineheight=([\d.]+)\s+width=(\d+)chars\s+maxlines=(\d+)(?:\s+style=(\w+))?(?:\s+anchor=(\w+))?(?:\s+short_fill=(\w+))?\s*-->/g;
@@ -35,8 +36,12 @@ export function renderCardSvg(q) {
   let tpl = state.templates[cat.template];
   if (!tpl) return "<div>Missing template</div>";
 
+  const lang = state.lang || "en";
   const row = { ...q.row, ...(q.override || {}) };
-  tpl = substituteTemplate(tpl, row);
+  // Localise static template chrome (banner defaults, headings, stat labels)
+  // before substitution so {{KEY}} placeholders are never matched.
+  tpl = translateLabels(tpl, lang);
+  tpl = substituteTemplate(tpl, row, lang);
 
   // Decorate the card with a few random ink splotches, seeded by name so
   // a given card always looks the same. Ports build.py's _render_splotches.
@@ -170,10 +175,10 @@ function splitTwoLines(text) {
   return best || [text];
 }
 
-function substituteTemplate(tpl, row) {
+function substituteTemplate(tpl, row, lang = "en") {
   // First: expand BODY_BLOCK markers into wrapped <text> lines.
   tpl = tpl.replace(BODY_BLOCK_RE, (_, key, x, y, lh, width, maxlines, style, anchor /*, shortFill*/) => {
-    const value = String(row[key.toLowerCase()] ?? "");
+    const value = String(pickField(row, key.toLowerCase(), lang) ?? "");
     if (!value) return "";
     const lines = wrap(value, parseInt(width, 10)).slice(0, parseInt(maxlines, 10));
     const cls = style || "body";
@@ -184,7 +189,7 @@ function substituteTemplate(tpl, row) {
   });
   // Second: simple {{KEY}} substitution.
   tpl = tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => {
-    const v = row[k.toLowerCase()];
+    const v = pickField(row, k.toLowerCase(), lang);
     return v == null ? "" : escapeXml(String(v));
   });
   return tpl;

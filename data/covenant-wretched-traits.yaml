@@ -6,35 +6,59 @@
 # Covenant name moved into `restrictions`.
 
 - category: COVENANT TRAIT
+  category_es: RASGO DE PACTO
   name: March of the Hands
+  name_es: Marcha de las Manos
   restrictions: Embalmed Hands · Blood
+  restrictions_es: Manos Embalsamadas · Sangre
   sigil: ""
   effect: |
     Moving ever forward; the goddess's goals above all else.
 
     On the first turn, before rolling for initiative, you may push this model 4".
+  effect_es: |
+    Avanzando siempre hacia adelante; los objetivos de la Diosa por encima de todo.
+
+    En el primer turno, antes de la tirada de iniciativa, puedes mover esta miniatura hasta 4".
 
 - category: COVENANT TRAIT
+  category_es: RASGO DE PACTO
   name: Adamant Structure
+  name_es: Estructura Recia
   restrictions: Cairn-born · Bone
+  restrictions_es: Nacidos del Túmulo · Hueso
   sigil: ""
   effect: |
     A body of ancient, blackened bone, nigh indestructible.
 
     When this model "suffers" damage (falling, terrain, spellcasting), reduce that damage by 1, to a minimum of 1. This is not armour and has no effect against attacks.
+  effect_es: |
+    Un cuerpo de hueso antiguo, ennegrecido, casi indestructible.
+
+    Cuando esta miniatura sufre daño (caída, terreno peligroso o lanzamiento de hechizos), ese daño se reduce en 1, hasta un mínimo de 1. Esto no se considera armadura y no tiene efecto contra los ataques.
 
 - category: COVENANT TRAIT
+  category_es: RASGO DE PACTO
   name: Mournful Curse
+  name_es: Maldición Lúgubre
   restrictions: The Crescent of Mourn · Plasm
+  restrictions_es: El Lamento de la Luna Creciente · Plasma
   sigil: ""
   effect: |
     When struck down this ghast burns attackers in a final burst of balefire.
 
     When this model is Shattered, every model within 3" suffers 2 damage.
+  effect_es: |
+    Cuando es derribado, este espectro quema a sus atacantes en un estallido final de fuego fúnebre.
+
+    Cuando esta miniatura es Hecha añicos, cada miniatura en un rango de hasta 3" sufre 2 puntos de daño.
 
 - category: COVENANT TRAIT
+  category_es: RASGO DE PACTO
   name: Apprentice
+  name_es: Aprendiz
   restrictions: Recusant Maleficar · Husk
+  restrictions_es: Recusantes Malignos · Cáscara
   sigil: ""
   effect: |
     Few share knowledge freely in the Endless City — but some submit to eternal servitude to gain a glimpse of the truth.
@@ -42,12 +66,25 @@
     Knows 1 spell shared with the gathering's leader. When spellcasting they use the gathering's mana pool. Arcane backlash on a channelling roll of 1-2.
 
     Cannot be taken by a leader; max one per gathering.
+  effect_es: |
+    Pocos comparten conocimiento libremente en la Ciudad Infinita, pero algunos se someten a la servidumbre eterna para vislumbrar la verdad.
+
+    Conoce 1 hechizo que también conoce el líder del Séquito. Al lanzar hechizos usa la reserva de maná del Séquito. Sufre Revés arcano en una tirada de canalización de 1-2.
+
+    No puede ser tomado por un líder; máximo uno por Séquito.
 
 - category: COVENANT TRAIT
+  category_es: RASGO DE PACTO
   name: Eternal Loyalty
+  name_es: Lealtad Eterna
   restrictions: Crawling-Dark · Remnant/Beast
+  restrictions_es: Oscuridad Reptante · Remanente/Bestia
   sigil: ""
   effect: |
     Shielding the master with their own fragile form.
 
     If within 3" of a friendly leader that is the target of an attack action, this model may become the target and is immediately Shattered before any dice are rolled. The targeted leader takes no damage.
+  effect_es: |
+    Protegiendo al amo con su frágil forma.
+
+    Si está en un rango de hasta 3" de un líder aliado que es el objetivo de una acción de ataque, esta miniatura puede convertirse en el objetivo y es inmediatamente Hecha añicos antes de que se tiren los dados. El líder objetivo no recibe daño.

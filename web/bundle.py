@@ -91,7 +91,11 @@ def adapt_profile(d: dict) -> dict:
 def adapt_equipment(d: dict) -> dict:
     out = dict(d)
     a = d.get("armour")
-    out["armour_tag"] = f"Armour {a}" if isinstance(a, int) and a > 0 else ""
+    has_armour = isinstance(a, int) and a > 0
+    out["armour_tag"] = f"Armour {a}" if has_armour else ""
+    # Spanish equivalent of the derived armour tag (the card renderer prefers
+    # `*_es` fields when Spanish is selected).
+    out["armour_tag_es"] = f"Armadura {a}" if has_armour else ""
     return out
 
 def adapt_row(template_name: str, d: dict) -> dict:
@@ -105,7 +109,7 @@ def adapt_row(template_name: str, d: dict) -> dict:
 # ---------- main bundle ----------
 
 def load_categories() -> list[dict]:
-    raw = yaml.safe_load((DATA_DIR / "_categories.yaml").read_text())
+    raw = yaml.safe_load((DATA_DIR / "_categories.yaml").read_text(encoding="utf-8"))
     out = []
     for g in (raw.get("groups") or []):
         for it in (g.get("items") or []):
@@ -178,7 +182,7 @@ def main():
     }
 
     # Re-assemble groups for the tree view
-    raw = yaml.safe_load((DATA_DIR / "_categories.yaml").read_text())
+    raw = yaml.safe_load((DATA_DIR / "_categories.yaml").read_text(encoding="utf-8"))
     for g in (raw.get("groups") or []):
         bundle["groups"].append({
             "title": g.get("title", ""),
@@ -193,13 +197,16 @@ def main():
         if cat.get("data"):
             data_path = DATA_DIR / cat["data"]
             if data_path.exists():
-                raw_rows = yaml.safe_load(data_path.read_text()) or []
+                raw_rows = yaml.safe_load(data_path.read_text(encoding="utf-8")) or []
                 if not isinstance(raw_rows, list):
                     raw_rows = [raw_rows]
                 tpl = cat["template"]
                 rows = [adapt_row(tpl, r) for r in raw_rows]
-                # Inject category-level fields (header / title / group)
-                injectable = {k: cat.get(k) for k in ("header", "title", "group") if cat.get(k) is not None}
+                # Inject category-level fields (header / title / group, plus
+                # their Spanish header/title variants for localised banners).
+                injectable = {k: cat.get(k) for k in
+                              ("header", "header_es", "title", "title_es", "group")
+                              if cat.get(k) is not None}
                 for r in rows:
                     for k, v in injectable.items():
                         r.setdefault(k, v)
@@ -225,9 +232,9 @@ def main():
         if not src.exists():
             print(f"  (template missing: {src})", file=sys.stderr)
             continue
-        svg = src.read_text()
+        svg = src.read_text(encoding="utf-8")
         used_images |= collect_images(svg)
-        (OUT_TPL / f"{stem}.svg").write_text(rewrite_svg(svg))
+        (OUT_TPL / f"{stem}.svg").write_text(rewrite_svg(svg), encoding="utf-8")
         bundle["templates"][stem] = f"templates/{stem}.svg"
         print(f"  template: {stem}")
 
@@ -247,7 +254,7 @@ def main():
         shutil.copy2(src, dst)
     print(f"  copied {len(used_images)} image(s)")
 
-    (WEB_DIR / "data.json").write_text(json.dumps(bundle, indent=2, ensure_ascii=False))
+    (WEB_DIR / "data.json").write_text(json.dumps(bundle, indent=2, ensure_ascii=False), encoding="utf-8")
     bytes_written = (WEB_DIR / "data.json").stat().st_size
     print(f"  wrote web/data.json ({bytes_written:,} bytes)")
     print(f"  serve with:  python3 -m http.server -d web 8000")

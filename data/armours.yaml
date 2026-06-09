@@ -1,28 +1,47 @@
 # Armours and shields.
 
 - name: Light Armour
+  name_es: Armadura Ligera
   category: Armour
+  category_es: Armadura
   cost: 20 obols
+  cost_es: 20 óbolos
   armour: 1
   flavor: A tattered gambeson, crumbling scalemail, robes sewn with protective sigils.
+  flavor_es: Un gambesón andrajoso, una cota de escamas agrietadas, túnicas cosidas con hechizos protectores.
   effect: —
 - name: Heavy Armour
+  name_es: Armadura Pesada
   category: Armour
+  category_es: Armadura
   cost: 50 obols
+  cost_es: 50 óbolos
   armour: 2
   flavor: Plate of blackened metals, a twisted covering of ensorcelled bone, winged armour long faded.
+  flavor_es: Armadura de metales ennegrecidos, una cobertura retorcida de hueso encantado, armadura alada descolorida hace tiempo.
   effect: —
 - name: Shield
+  name_es: Escudo
   category: Shield · requires 1-handed weapon
+  category_es: Escudo · requiere arma a 1 mano
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: 1
   flavor: A heater stuck with a dozen arrows, a roundel carved with prayers, a broken buckler.
+  flavor_es: Un escudo de hierro clavado con una docena de flechas, una rodela grabada con oraciones, un broquel roto.
   effect: —
 - name: Great Shield
+  name_es: Escudo grande
   category: Shield · requires 1-handed weapon
+  category_es: Escudo · requiere arma a 1 mano
   cost: 20 obols
+  cost_es: 20 óbolos
   armour: 1
   flavor: A faded crimson pavise, a pitted greatshield, a small door dragged as cover.
+  flavor_es: Un deslucido pavés carmesí, un gran escudo picado, una pequeña puerta arrastrada como cobertura.
   effect: '+1 armour against attack actions from ranged weapons. The model cannot be pushed by attacks from ranged attack actions.
+
+    '
+  effect_es: '+1 de armadura contra acciones de ataque con armas a distancia. La miniatura no puede ser empujada por acciones de ataque a distancia.
 
     '

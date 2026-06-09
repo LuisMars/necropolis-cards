@@ -2,71 +2,121 @@
 # Every leader chooses 1 Basic Leader Trait at warband creation.
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Unyielding Will
+  name_es: Voluntad Inquebrantable
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Gain +2 max HP.
+  effect_es: |
+    Gana +2 de HP máximo.
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Combatant
+  name_es: Combatiente
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Improve violence by 1 (e.g. 7+ becomes 6+).
+  effect_es: |
+    Mejora la Violencia en 1 (p. ej., 7+ se vuelve 6+).
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Perceptive
+  name_es: Perspicaz
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Improve ranged by 1 (e.g. 7+ becomes 6+).
+  effect_es: |
+    Mejora A Distancia en 1 (p. ej., 7+ se vuelve 6+).
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Celerity
+  name_es: Celeridad
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Improve move by 1.
+  effect_es: |
+    Mejora el Movimiento en 1.
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Stalwart
+  name_es: Firme
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Reduce the distance this model is pushed by 1", to a minimum of 1".
+  effect_es: |
+    Reduce la distancia a la que esta miniatura es empujada en 1", hasta un mínimo de 1".
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Sorcerous Talent
+  name_es: Talento hechicero
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Choose an additional mana point of any type.
+  effect_es: |
+    Elige 1 punto de maná adicional de cualquier tipo.
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Studious
+  name_es: Estudioso
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Choose an additional spell of any type.
+  effect_es: |
+    Elige un hechizo adicional de cualquier tipo.
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Regenerating Soul
+  name_es: Alma regenerativa
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Each time this leader activates, they restore 1 HP.
+  effect_es: |
+    Cada vez que este líder se activa, restaura 1 punto de HP.
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Spirit Syphon
+  name_es: Sifón de espíritus
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     If the leader inflicts any damage with melee attack actions, they restore 2 HP at the end of their activation.
+  effect_es: |
+    Si el líder inflige cualquier daño con acciones de ataque cuerpo a cuerpo, restaura 2 de HP al final de su activación.
 
 - category: BASIC LEADER TRAIT
+  category_es: RASGO BÁSICO DE LÍDER
   name: Miserly
+  name_es: Miserable
   restrictions: Leader
+  restrictions_es: Líder
   sigil: ""
   effect: |
     Receive 50 obols. Note this does not increase your initial deployment limit.
+  effect_es: |
+    Recibe 50 óbolos. Esto no aumenta tu límite de despliegue inicial.
