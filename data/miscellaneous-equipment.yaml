@@ -1,26 +1,47 @@
 # Miscellaneous equipment (1 per model).
 
 - name: Rope and Hook
+  name_es: Cuerda y Gancho
   category: Miscellaneous Equipment
+  category_es: Equipo Miscelaneo
   cost: 5 obols
+  cost_es: 5 óbolos
   armour: —
   flavor: Sturdy rope with an iron hook, hands sewn with extra fingers, spider-like grace.
+  flavor_es: Cuerda resistente con un gancho de hierro, manos cosidas con extraños dedos, gracia arácnida.
   effect: 'Grants the action — Climb (AP 2): the model may move vertically up or down terrain up to twice the model''s movement.
 
     '
+  effect_es: 'Otorga la acción — Trepar (PA 2): la miniatura puede moverse verticalmente hacia arriba o hacia abajo por un terreno hasta el doble de su movimiento.
+
+    '
 - name: Banner
+  name_es: Estandarte
   category: Miscellaneous Equipment
+  category_es: Equipo Miscelaneo
   cost: 20 obols
+  cost_es: 20 óbolos
   armour: —
   flavor: A moth-eaten flag, a tarnished standard, the bones of a rival tied to a pole as warning.
+  flavor_es: Una bandera apolillada, un ornamentado estandarte, los huesos de un rival atados a un poste como advertencia.
   effect: 'Grants the action — Plant the Banner (AP 1): until the model''s next activation, no friendly model within 3" can be pushed by an attack action.
 
     '
+  effect_es: 'Otorga la acción — Plantar el Estandarte (PA 1): hasta la próxima activación de la miniatura, ninguna miniatura aliada en un rango de 3" puede ser empujada por una acción de ataque.
+
+    '
 - name: Musical Instrument
+  name_es: Instrumento Musical
   category: Miscellaneous Equipment
+  category_es: Equipo Miscelaneo
   cost: 20 obols
+  cost_es: 20 óbolos
   armour: —
   flavor: An ornamental psaltery, a blarin shawm, a dirge sung from darkness.
+  flavor_es: Un ornamentado salterio, una chirimía estridente, una endecha cantada desde la oscuridad.
   effect: 'Grants the action — Toot Toot! (AP 1): choose a friendly model within 6" that has not activated this turn. You may activate that model immediately after this model''s activation ends.
+
+    '
+  effect_es: 'Otorga la acción — ¡Tutú Tutú! (PA 1): elige una miniatura aliada en un rango de 6" que no se haya activado este turno. Puedes activarla inmediatamente después de que termine la activación de esta miniatura.
 
     '

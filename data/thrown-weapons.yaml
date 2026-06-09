@@ -3,19 +3,29 @@
 # weapon.svg template since they have range/attacks/damage stat blocks.
 
 - name: Wardart
+  name_es: Dardo de Guerra
   category: Thrown · 1-handed
+  category_es: Arrojadiza · 1 mano
   cost: 5 obols
+  cost_es: 5 óbolos
   range: 6
   attacks: 1
   damage: 1 / 4
   flavor: A worn plumbata, a ceremonial wardart, a shard of animal femur.
+  flavor_es: Una plumbata gastada, un dardo de guerra ceremonial, un fragmento de fémur animal.
   special: This attack action can only be made once per game.
+  special_es: Esta acción de ataque solo puede realizarse una vez por partida.
 
 - name: Throwing Axe or Mallet
+  name_es: Hacha Arrojadiza
   category: Thrown · 1-handed
+  category_es: Arrojadiza · 1 mano
   cost: 5 obols
+  cost_es: 5 óbolos
   range: 4
   attacks: 1
   damage: 1 / 5
   flavor: A balanced francisca, a sliver of star metal, an iron mallet.
+  flavor_es: Una francisca equilibrada, una lámina de metal estelar, un mazo de hierro.
   special: This attack action can only be made once per game.
+  special_es: Esta acción de ataque solo puede realizarse una vez por partida.

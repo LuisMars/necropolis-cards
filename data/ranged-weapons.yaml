@@ -4,26 +4,41 @@
 # regular ranged weapons).
 
 - name: Sling
+  name_es: Honda
   category: Ranged · 2-handed
+  category_es: A Distancia · 2 manos
   cost: 10 obols
+  cost_es: 10 óbolos
   range: 6
   attacks: 1
   damage: 1 / 3
   flavor: Cords and lead, an heirloom kestros, a stone flung with terrible force.
+  flavor_es: Cuerdas y plomo, una kestros heredada, una piedra lanzada con fuerza terrible.
   special: —
+  special_es: —
 - name: Bow
+  name_es: Arco
   category: Ranged · 2-handed
+  category_es: A Distancia · 2 manos
   cost: 30 obols
+  cost_es: 30 óbolos
   range: 12
   attacks: 1
   damage: 1 / 4
   flavor: A longbow painted in forgotten patterns, a half-broken shortbow, spectral arrows flung from the shadows.
+  flavor_es: Un arco largo decorado con patrones olvidados, un arco corto roto, flechas espectrales lanzadas desde las sombras.
   special: Only 1 Attack action per activation. May alternatively fire R6 A2 D1/3.
+  special_es: Solo se puede realizar una acción de ataque por activación. Alternativamente puede disparar Alc 6, At 2, Da 1/3.
 - name: Crossbow
+  name_es: Ballesta
   category: Ranged · 2-handed
+  category_es: A Distancia · 2 manos
   cost: 40 obols
+  cost_es: 40 óbolos
   range: 10
   attacks: 1
   damage: 1 / 6
   flavor: A creaking arbalest, a stonebow with bronze shot, a composite rampart crossbow.
+  flavor_es: Una chirriante arbalesta, un arco de piedra con flechas de bronce, una ballesta de muralla compuesta.
   special: Only 1 Attack action per activation.
+  special_es: Solo se puede realizar una acción de ataque por activación.

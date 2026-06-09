@@ -343,7 +343,7 @@ def load_categories() -> list[dict]:
             for k in ("weapon", "equipment", "spell", "rule", "sellsword")
         ]
         return _CATEGORIES_CACHE
-    raw = yaml.safe_load(idx.read_text()) or {}
+    raw = yaml.safe_load(idx.read_text(encoding="utf-8")) or {}
     out = []
     for group in (raw.get("groups") or []):
         for it in (group.get("items") or []):
@@ -404,8 +404,8 @@ def build_type(card_type: str) -> list[tuple[str, Path, Path]]:
     if not tpl_path.exists():
         print(f"  (no template at {tpl_path}, skipping)")
         return []
-    cards = yaml.safe_load(data_path.read_text()) or []
-    template = tpl_path.read_text()
+    cards = yaml.safe_load(data_path.read_text(encoding="utf-8")) or []
+    template = tpl_path.read_text(encoding="utf-8")
     # Category-level fields injected into every row so templates can use
     # {{HEADER}} / {{TITLE}} / {{GROUP}} placeholders.
     injected = {k: cat.get(k) for k in ("header", "title", "group") if cat.get(k) is not None}
@@ -418,7 +418,7 @@ def build_type(card_type: str) -> list[tuple[str, Path, Path]]:
         row = adapt(card_type, cat["template"], d)
         for k, v in injected.items():
             row.setdefault(k, v)
-        svg_out.write_text(fill_template(template, row))
+        svg_out.write_text(fill_template(template, row), encoding="utf-8")
         render_svg_to_pdf(svg_out, pdf_out)
         results.append((slug, svg_out, pdf_out))
     return results
@@ -494,7 +494,7 @@ def _inline_card_content(card_svg: Path) -> str:
     """Read a card SVG and return its inner content (everything between
     <svg> and </svg>) so it can be wrapped in a nested <svg> tag.
     The wrapping <svg> provides viewBox + width/height for positioning."""
-    src = card_svg.read_text()
+    src = card_svg.read_text(encoding="utf-8")
     src = _SVG_OPEN_RE.sub("", src, count=1)
     src = _SVG_CLOSE_RE.sub("", src)
     return src

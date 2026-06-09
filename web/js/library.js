@@ -13,6 +13,7 @@ import {
   printedCount, addPrinted, cardId, savePrinted,
 } from "./state.js";
 import { $, escapeHtml } from "./util.js";
+import { pickField } from "./i18n.js";
 
 const $search = $("lib-search");
 const $cat    = $("lib-category");
@@ -76,15 +77,21 @@ const PREVIEW_FIELDS = [
   "armaments", "restrictions", "flavor",
 ];
 
-/** Short single-line description of a card for the library tile. */
+/** Short single-line description of a card for the library tile, in the
+ *  currently-selected card language (falls back to English per field). */
 function previewText(row) {
   for (const f of PREVIEW_FIELDS) {
-    const v = row[f];
+    const v = pickField(row, f, state.lang);
     if (typeof v === "string" && v.trim()) {
       return v.replace(/\s+/g, " ").trim();
     }
   }
   return "";
+}
+
+/** Card name in the selected card language (English fallback). */
+function displayName(row) {
+  return pickField(row, "name", state.lang) || row.name || "(unnamed)";
 }
 
 /** How many copies of (key, name) are already in the print queue. */
@@ -108,7 +115,7 @@ function renderGrid() {
   for (const [key, cat] of Object.entries(state.bundle.categories)) {
     if (catFilter && key !== catFilter) continue;
     for (const row of (cat.rows || [])) {
-      const n = (row.name || "").toLowerCase();
+      const n = ((row.name || "") + " " + (row.name_es || "")).toLowerCase();
       if (q && !n.includes(q)) continue;
       inView.push({ key, row });
       $grid.appendChild(buildTile(key, cat, row));
@@ -137,7 +144,7 @@ function buildTile(key, cat, row) {
       ${queued ? `<span class="in-queue">${queued} queued</span>` : ""}
       <span class="add">+ Add</span>
     </div>
-    <span class="name">${escapeHtml(row.name || "(unnamed)")}</span>
+    <span class="name">${escapeHtml(displayName(row))}</span>
     ${preview ? `<span class="preview">${escapeHtml(preview)}</span>` : ""}
     <div class="tile-foot">
       <span class="printed-ctl" title="How many you've already printed">

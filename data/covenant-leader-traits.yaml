@@ -6,46 +6,81 @@
 # footer band). Covenant name is in `restrictions` instead.
 
 - category: COVENANT LEADER TRAIT
+  category_es: RASGO DE LÍDER DE PACTO
   name: Chosen of the Hands
+  name_es: Elegido de las Manos
   restrictions: Embalmed Hands · Leader · Blood
+  restrictions_es: Manos Embalsamadas · Líder · Sangre
   sigil: ""
   effect: |
     The rush of power, boiling through dead veins and reinvigorating her thrall.
 
     When this gathering receives blood mana dice for its mana pool, this model restores 2 HP.
+  effect_es: |
+    Arremetida de poder, hirviendo a través de venas muertas revitalizando a su siervo.
+
+    Cuando este Séquito recibe dados de maná de sangre para su reserva de maná, esta miniatura recupera 2 HP.
 
 - category: COVENANT LEADER TRAIT
+  category_es: RASGO DE LÍDER DE PACTO
   name: Osseous Sacrifice
+  name_es: Sacrificio Óseo
   restrictions: Cairn-born · Leader · Bone
+  restrictions_es: Nacidos del Túmulo · Líder · Hueso
   sigil: ""
   effect: |
     Shaping and sacrificing their own form to ensure the destruction of their foes.
 
     On activation you may choose to suffer 2 damage; Bone-school spells then gain +1 damage that activation. This bonus damage does not affect friendly models.
+  effect_es: |
+    Moldeando y sacrificando su propia forma para asegurar la destrucción de sus enemigos.
+
+    Al activarte puedes elegir sufrir 2 puntos de daño; los hechizos de la escuela Hueso ganan entonces +1 al daño esa activación. Este daño adicional no afecta a las miniaturas aliadas.
 
 - category: COVENANT LEADER TRAIT
+  category_es: RASGO DE LÍDER DE PACTO
   name: Moonlight Flit
+  name_es: Revoloteo bajo la luz de la luna
   restrictions: The Crescent of Mourn · Leader · Plasm
+  restrictions_es: El Lamento de la Luna Creciente · Líder · Plasma
   sigil: ""
   effect: |
     Flitting in and out of reality, confounding the senses.
 
     After an enemy attack action and any subsequent pushes are resolved against your leader, you may push your leader up to 2".
+  effect_es: |
+    Revoloteando dentro y fuera de la realidad, confundiendo los sentidos.
+
+    Después de que una acción de ataque enemiga y cualquier empujón posterior se resuelvan contra tu líder, puedes mover a tu líder hasta 2".
 
 - category: COVENANT LEADER TRAIT
+  category_es: RASGO DE LÍDER DE PACTO
   name: Erudite
+  name_es: Erudito
   restrictions: Recusant Maleficar · Leader
+  restrictions_es: Recusantes Malignos · Líder
   sigil: ""
   effect: |
     Talent is admired by the worthless; only repetition and application have value.
 
     Each time this leader rolls mana dice for spellcasting, mana dice rolling 9-10 are not discarded from the gathering's mana pool.
+  effect_es: |
+    El talento es admirado por los indignos; solo la repetición y la aplicación tienen valor.
+
+    Cada vez que este líder tire dados de maná para lanzar un hechizo y obtenga un 9-10, ese dado de maná no se descarta de la reserva de dados de maná del Séquito.
 
 - category: COVENANT LEADER TRAIT
+  category_es: RASGO DE LÍDER DE PACTO
   name: Crawling Lord
+  name_es: Señor de la Oscuridad Reptante
   restrictions: Crawling-Dark · Leader
+  restrictions_es: Oscuridad Reptante · Líder
   sigil: ""
   effect: |
     Striding forward, surrounded by a skittering horde.
 
     When this leader finishes their activation they may immediately activate a friendly model within 6" with the Beast or Remnant keyword that has not yet activated.
+  effect_es: |
+    Avanzando con determinación rodeado de una horda escurridiza.
+
+    Cuando este líder termina su activación, puede activar inmediatamente una miniatura aliada con la palabra clave Bestia o Remanente en un rango de hasta 6" que aún no se haya activado.

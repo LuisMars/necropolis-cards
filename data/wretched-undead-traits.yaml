@@ -3,118 +3,209 @@
 # limits). Restrictions field repeats the rulebook's keyword line.
 
 - category: TRAIT
+  category_es: RASGO
   name: Acolyte
+  name_es: Acólito
   restrictions: Blood/Bone/Plasm
+  restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
   effect: |
     Bending the soul itself in service of a master.
 
     Grants the action — Chant (AP 2): praying, chanting and drawing forth wisps of mana. The gathering receives an additional mana dice of any type for its mana pool.
+  effect_es: |
+    Doblando el alma misma al servicio de un amo.
+
+    Otorga la acción — Canto (PA 2): rezando, cantando y extrayendo volutas de maná. El Séquito recibe un dado de maná adicional de cualquier tipo para su reserva de maná.
 
 - category: TRAIT
+  category_es: RASGO
   name: Balefire Body
+  name_es: Cuerpo de Fuego Fúnebre
   restrictions: Plasm
+  restrictions_es: Plasma
   sigil: ""
   effect: |
     A form of balefire that leaves all scorched in its wake.
 
     If this model moves or is pushed over or through an enemy model, that model suffers 1 damage. An enemy model can only suffer this damage once per move or push action.
+  effect_es: |
+    Una forma de fuego fúnebre que deja todo quemado a su paso.
+
+    Si esta miniatura se mueve o es empujada sobre o a través de una miniatura enemiga, esa miniatura sufre 1 de daño. Solo puede sufrir este daño una vez por acción de movimiento o empujón.
 
 - category: TRAIT
+  category_es: RASGO
   name: Breaking Wheel
+  name_es: Rueda de Quebrantar
   restrictions: Blood/Bone
+  restrictions_es: Sangre/Hueso
   sigil: ""
   effect: |
     Broken on the wheel and braided within.
 
     If this model moves so that its base is touching an enemy model, that model suffers 2 damage. This model then suffers 1 damage. Only 1 enemy model can suffer this damage once per move activation.
+  effect_es: |
+    Quebrado en la rueda y entrelazado en su interior.
+
+    Si esta miniatura se mueve de modo que su base toque una miniatura enemiga, esa miniatura sufre 2 de daño. Esta miniatura sufre luego 1 de daño. Solo 1 miniatura enemiga puede sufrir este daño una vez por activación de movimiento.
 
 - category: TRAIT
+  category_es: RASGO
   name: Filthy or Shrouded
+  name_es: Sucio o Envuelto
   restrictions: Blood/Bone/Plasm
+  restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
   effect: |
     Obscured by grime and filth or shrouded in mystical darkness.
 
     If this model is targeted by an attack or spell action from over 5" away, it is deemed obscured (attacker takes -1 to their violence/ranged roll). This bonus cannot stack with terrain-obscured.
+  effect_es: |
+    Oculto por la suciedad y la inmundicia o envuelto en oscuridad mística.
+
+    Si esta miniatura es objetivo de una acción de ataque/hechizo desde más de 5" de distancia, se considera que está Oculta (el atacante recibe un -1 a su tirada de Violencia/A Distancia). Esta bonificación no se puede acumular estando oculto por terreno.
 
 - category: TRAIT
+  category_es: RASGO
   name: Fulminate
+  name_es: Fulminar
   restrictions: Blood/Bone/Plasm
+  restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
   effect: |
     Coated in pitch or inscribed with sigils of cinders.
 
     Grants the action — Fulminate (AP 1): every model within 3" of this model suffers 3 damage. This model is then Shattered. This model cannot be summoned after completing this action.
+  effect_es: |
+    Cubierto de brea o marcado con los sigilos de las ascuas.
+
+    Otorga la acción — Fulminar (PA 1): cada miniatura en un rango de hasta 3" de esta miniatura sufre 3 de daño; después esta miniatura queda Hecha añicos. Esta miniatura no puede ser invocada después de completar esta acción.
 
 - category: TRAIT
+  category_es: RASGO
   name: Fungal Bloom
+  name_es: Floración Fúngica
   restrictions: Blood/Bone
+  restrictions_es: Sangre/Hueso
   sigil: ""
   effect: |
     Covered in fungal colonies and mushrooms that fill the air with acidic spores.
 
     On activation, you may choose a single model within 3" of this model; it suffers 1 damage.
+  effect_es: |
+    Cubierto de colonias de hongos en crecimiento y setas que llenan el aire de esporas ácidas.
+
+    Al activarse, puedes elegir una única miniatura en un rango de hasta 3" de esta miniatura para que sufra 1 de daño.
 
 - category: TRAIT
+  category_es: RASGO
   name: Gnarled
+  name_es: Nudoso
   restrictions: Blood/Bone
+  restrictions_es: Sangre/Hueso
   sigil: ""
   effect: |
     Grown through with branch and bramble.
 
     Once per game, when this model is targeted by an attack action, it receives +2 armour for the duration of that action.
+  effect_es: |
+    Cubierto de ramas y zarzas.
+
+    Una vez por partida, cuando esta miniatura es el objetivo de una acción de ataque, recibe +2 de armadura durante esa acción.
 
 - category: TRAIT
+  category_es: RASGO
   name: Grafted or Many Limbed
+  name_es: Injertado o de Múltiples Brazos
   restrictions: Blood/Bone/Plasm
+  restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
   effect: |
     Twisting additional limbs for work and war.
 
     On a single melee attack action per game, this model receives +1 attacks to one weapon it has.
+  effect_es: |
+    Posee extremidades adicionales para el trabajo y la guerra.
+
+    En una única acción de ataque cuerpo a cuerpo por partida, la miniatura recibe +1 a los ataques de 1 arma que tenga.
 
 - category: TRAIT
+  category_es: RASGO
   name: Ineffable Dead
+  name_es: Muerto Inefable
   restrictions: Blood/Bone/Plasm
+  restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
   effect: |
     Indescribable forms wind and twist, defying reality.
 
     Reduce the distance this model is pushed by 1", to a minimum of 1".
+  effect_es: |
+    Formas indescriptibles se retuercen y contorsionan, desafiando la realidad.
+
+    Reduce la distancia a la que esta miniatura puede ser empujada en 1" hasta un mínimo de 1".
 
 - category: TRAIT
+  category_es: RASGO
   name: Purloiner
+  name_es: Hurtador
   restrictions: Blood/Bone/Plasm
+  restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
   effect: |
     A thief by guile or threats — both yield profit.
 
     After each scenario, roll a d10. If equal or lower than this model's move characteristic, gain d10 obols.
+  effect_es: |
+    Roba mediante astucia o amenazas: ambas producen beneficios.
+
+    Después de cada escenario, tira un 1D10; si el resultado es igual o menor que el atributo de movimiento de esta miniatura, ganas 1D10 óbolos.
 
 - category: TRAIT
+  category_es: RASGO
   name: Skitter
+  name_es: Escurridizo
   restrictions: Blood/Bone
+  restrictions_es: Sangre/Hueso
   sigil: ""
   effect: |
     Preternatural speed — leaping, running and vaulting like quicksilver.
 
     +1 move. Ignores falling damage when falling from 3" or lower. Falling damage still applies to any model it lands on in base-to-base contact.
+  effect_es: |
+    Dotado de velocidad sobrenatural, saltando y corriendo como el azogue.
+
+    +1 al movimiento. Ignora el daño por caída si cae desde 3" o menos. El daño por caída aún se aplica a cualquier miniatura con la que entre en contacto al aterrizar.
 
 - category: TRAIT
+  category_es: RASGO
   name: Sluglike or Fleshy Amalgam
+  name_es: Baboso o Amalgama Carnosa
   restrictions: Blood/Bone
+  restrictions_es: Sangre/Hueso
   sigil: ""
   effect: |
     A form so twisted it resembles a slug.
 
     Movement up or down a vertical surface counts as half the distance for this model. A 4" move up a wall becomes a 2" climb.
+  effect_es: |
+    Una forma tan retorcida y distorsionada que parece más una babosa.
+
+    El movimiento hacia arriba o hacia abajo por una superficie vertical cuenta como solo la mitad de la distancia para esta miniatura. Un movimiento de 4" hacia arriba se trata como solo 2" de movimiento.
 
 - category: TRAIT
+  category_es: RASGO
   name: Voices from the Firmament
+  name_es: Voces del Firmamento
   restrictions: Leader · Blood/Bone/Plasm
+  restrictions_es: Líder · Sangre/Hueso/Plasma
   sigil: ""
   effect: |
     Mouths sprout across bone, flesh and plasm.
 
     Grants the action — Speak (AP 1): choose a single model within 5" and push it 1".
+  effect_es: |
+    Bocas brotan a través de hueso, carne y plasma.
+
+    Otorga la acción — Hablar (PA 1): elige una única miniatura en un rango de 5" y empújala 1".

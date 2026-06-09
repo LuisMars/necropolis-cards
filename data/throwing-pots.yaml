@@ -3,37 +3,57 @@
 # Rendered with weapon.svg since each has a range/attacks/damage profile.
 
 - name: Eater-Water
+  name_es: Agua Devoradora
   category: Thrown Pot · Alchemy
+  category_es: Frasco Arrojadizo · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   range: 6
   attacks: 1
   damage: "—"
   flavor: Boiling alchemical hunger in fragile glass.
+  flavor_es: Hambre alquímica hirviendo en un frasco frágil.
   special: Make a ranged attack. Reduce target's armour by 1/2 until the start of this unit's next activation. Discard after use.
+  special_es: Realiza una acción de ataque a distancia. Reduce la armadura del objetivo en 1/2 hasta el inicio de la siguiente activación de esta unidad. Se descarta después de usarlo.
 
 - name: Thunderclap
+  name_es: Estallido Atronador
   category: Thrown Pot · Alchemy
+  category_es: Frasco Arrojadizo · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   range: 6
   attacks: 1
   damage: 1 / 5
   flavor: A clay bomb wound with charged metal filings.
+  flavor_es: Polvo explosivo en un recipiente; magia inestable.
   special: Every model within 3" of the target suffers 1 damage. Discard after use.
+  special_es: Cada miniatura en un radio de hasta 3" del objetivo sufre 1 punto de daño. Se descarta después de usarlo.
 
 - name: Sunburst
+  name_es: Estallido Solar
   category: Thrown Pot · Alchemy
+  category_es: Frasco Arrojadizo · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   range: 6
   attacks: 1
   damage: "—"
   flavor: A blinding flash of azure phosphor.
+  flavor_es: Un destello cegador de fósforo azur.
   special: Reduce the target's violence and ranged by 1/2 until the start of this unit's next activation. Discard after use.
+  special_es: Reduce la Violencia y A Distancia del objetivo en 1/2 hasta el inicio de la siguiente activación de esta unidad. Se descarta después de usarlo.
 
 - name: Stonetar
+  name_es: Alquitrán Pétreo
   category: Thrown Pot · Alchemy
+  category_es: Frasco Arrojadizo · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   range: 6
   attacks: 1
   damage: "—"
   flavor: A bituminous resin that sets in moments.
+  flavor_es: Una resina bituminosa que fragua en instantes.
   special: Reduce the target's move by 1"/2" until the start of this unit's next activation. Discard after use.
+  special_es: Reduce el Movimiento del objetivo en 1"/2" hasta el inicio de la siguiente activación de esta unidad. Se descarta después de usarlo.

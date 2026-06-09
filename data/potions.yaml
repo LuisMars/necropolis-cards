@@ -4,49 +4,85 @@
 # roll for them.
 
 - name: Mana Bottle
+  name_es: Frasco de Maná
   category: POTION · Alchemy
+  category_es: POCIÓN · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: Stoppered glass swirling with a single drop of unfocused power.
+  flavor_es: Vidrio taponado que arremolina una sola gota de poder sin enfocar.
   effect: |
     Free action, discard to gain a mana dice of any type.
+  effect_es: |
+    Acción gratuita: descártala para ganar un dado de maná de cualquier tipo.
 
 - name: Phantasm Bottle
+  name_es: Frasco de Fantasma
   category: POTION · Alchemy
+  category_es: POCIÓN · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A pale wisp circles inside the glass, faintly humming.
+  flavor_es: Un pálido fuego fatuo gira dentro del cristal, zumbando débilmente.
   effect: |
     Free action, discard to instantly cast the Phantasm spell as if you failed the channelling roll.
+  effect_es: |
+    Acción gratuita: descártala para lanzar instantáneamente el hechizo Fantasmagoría como si hubieras fallado la tirada de canalización.
 
 - name: Quicksilver Powder
+  name_es: Polvo de Azogue
   category: POTION · Alchemy
+  category_es: POCIÓN · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: Liquid metal ground to a fine, restless dust.
+  flavor_es: Metal líquido molido hasta un polvo fino e inquieto.
   effect: |
     Free action, discard then +1 move for the rest of this model's activation.
+  effect_es: |
+    Acción gratuita: descártala para ganar +1 al Movimiento durante el resto de la activación de esta miniatura.
 
 - name: Blade Oil
+  name_es: Aceite para Filos
   category: POTION · Alchemy
+  category_es: POCIÓN · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A vial of dark ichor that hisses against steel.
+  flavor_es: Un vial de icor oscuro que sisea contra el acero.
   effect: |
     Free action, discard then +1 to violence rolls for the rest of this model's activation.
+  effect_es: |
+    Acción gratuita: descártala para ganar +1 a la Violencia durante el resto de la activación de esta miniatura.
 
 - name: Iron Sludge Tincture
+  name_es: Tintura de Lodo de Hierro
   category: POTION · Alchemy
+  category_es: POCIÓN · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A black tar that hardens to a shell on the skin.
+  flavor_es: Un alquitrán negro que se endurece formando una coraza sobre la piel.
   effect: |
     Free action, discard then +1 armour until this model's next activation.
+  effect_es: |
+    Acción gratuita: descártala para ganar +1 de Armadura hasta la siguiente activación de esta miniatura.
 
 - name: Black Cloud
+  name_es: Nube Negra
   category: POTION · Alchemy
+  category_es: POCIÓN · Alquimia
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A noxious vapour the user inhales and exhales as cover.
+  flavor_es: Un vapor nocivo que el usuario inhala y exhala como cobertura.
   effect: |
     Free action, discard then this model and every other model within 2" is considered obscured until the beginning of next activation.
+  effect_es: |
+    Acción gratuita: descártala para que esta miniatura y todas las demás en un radio de hasta 2" se consideren Ocultas hasta el inicio de su siguiente activación.

@@ -4,81 +4,141 @@
 # All 10 obols each. Treated as Equipment (single-use, discarded).
 
 - name: Binding Pact
+  name_es: Pacto Vinculante
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A coiled scrap of contract, signed in your dust.
+  flavor_es: Un retazo de contrato enrollado, firmado con tu polvo.
   effect: |
     Discard at the deployment step and add an additional Small Beast of any type to your gathering for the duration of the battle.
+  effect_es: |
+    Descártalo en la fase de despliegue para añadir una Bestia Pequeña adicional de cualquier tipo a tu Séquito durante la batalla.
 
 - name: Mana Bottle
+  name_es: Frasco de Maná
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: Stoppered glass swirling with a single drop of unfocused power.
+  flavor_es: Vidrio taponado que arremolina una sola gota de poder sin enfocar.
   effect: |
     Free action, discard to gain a mana dice of any type.
+  effect_es: |
+    Acción gratuita: descártalo para ganar un dado de maná de cualquier tipo.
 
 - name: Soul Tether
+  name_es: Atadura del Alma
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A braided cord of hair and silver, knotted with binding sigils.
+  flavor_es: Un cordón trenzado de pelo y plata, anudado con sigilos vinculantes.
   effect: |
     Free action, discard to restore 5 HP.
+  effect_es: |
+    Acción gratuita: descártalo para ganar 5 HP.
 
 - name: Phantasm Bottle
+  name_es: Botella Fantasma
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A pale wisp circles inside the glass, faintly humming.
+  flavor_es: Un pálido fuego fatuo gira dentro del cristal, zumbando débilmente.
   effect: |
     Free action, discard to instantly cast the Phantasm spell as if you passed the channelling roll.
+  effect_es: |
+    Acción gratuita: descártalo para lanzar instantáneamente el hechizo Fantasmagoría como si hubieras pasado la tirada de canalización.
 
 - name: Quicksilver Powder
+  name_es: Polvo de Mercurio
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: Liquid metal ground to a fine, restless dust.
+  flavor_es: Metal líquido molido hasta un polvo fino e inquieto.
   effect: |
     Free action, discard then +1 move for the rest of this model's activation.
+  effect_es: |
+    Acción gratuita: descártalo para ganar +1 al Movimiento durante el resto de la activación de esta miniatura.
 
 - name: Blade Oil
+  name_es: Aceite para Cuchillas
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A vial of dark ichor that hisses against steel.
+  flavor_es: Un vial de icor oscuro que sisea contra el acero.
   effect: |
     Free action, discard then +1 violence for the rest of this model's activation.
+  effect_es: |
+    Acción gratuita: descártalo para ganar +1 a la Violencia durante el resto de la activación de esta miniatura.
 
 - name: Scroll of Insubstantiation
+  name_es: Pergamino de Insubstanciación
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: Parchment inked with the geometry of unbecoming.
+  flavor_es: Pergamino entintado con la geometría del desvanecimiento.
   effect: |
     Free action, discard to gain the Fly keyword for the rest of this model's activation.
+  effect_es: |
+    Acción gratuita: descártalo para ganar la palabra clave Volar durante el resto de la activación de esta miniatura.
 
 - name: Iron Sludge Tincture
+  name_es: Tintura de Lodo de Hierro
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A black tar that hardens to a shell on the skin.
+  flavor_es: Un alquitrán negro que se endurece formando una coraza sobre la piel.
   effect: |
     Free action, discard then +1 armour until this model's next activation.
+  effect_es: |
+    Acción gratuita: descártalo para ganar +1 de Armadura hasta la siguiente activación de esta miniatura.
 
 - name: Summoning Scroll
+  name_es: Pergamino de Invocación
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A parchment that pulls itself flat in the presence of the dead.
+  flavor_es: Un pergamino que se aplana por sí solo en presencia de los muertos.
   effect: |
     Free action, discard to instantly cast the Summon spell as if you passed the channelling roll.
+  effect_es: |
+    Acción gratuita: descártalo para lanzar instantáneamente el hechizo Invocación como si hubieras pasado la tirada de canalización.
 
 - name: Channeling Charm
+  name_es: Encantamiento Canalizador
   category: MINOR TREASURE
+  category_es: TESORO MENOR
   cost: 10 obols
+  cost_es: 10 óbolos
   armour: "—"
   flavor: A small focusing lens carved from a relic's bone.
+  flavor_es: Una pequeña lente de enfoque tallada del hueso de una reliquia.
   effect: |
     Free action, discard then +2 to channelling rolls for the rest of the model's activation.
+  effect_es: |
+    Acción gratuita: descártalo para ganar +2 a las tiradas de canalización durante el resto de la activación de esta miniatura.

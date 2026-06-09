@@ -1,59 +1,102 @@
 # Necropolis sellswords — prefilled per rulebook (p.60, p.73-76).
 # Each sellsword may be added to your roster for the listed cost.
 # Only one sellsword may be deployed per gathering per scenario.
+# `*_es` fields hold the Spanish card text (names sourced from the official
+# Spanish rulebook, Necrópolis v1.1).
 
 - name: Peddler
+  name_es: Mercader
   type_keyword: Peddler — Blood/Bone/Plasm
+  type_keyword_es: Mercader — Sangre/Hueso/Plasma
   cost: scenario only
+  cost_es: solo escenario
   base: 20–50 mm
   flavor: A hunched relic bearer, a skeletal merchant dripping in medallions of silver.
+  flavor_es: Un portador de reliquias encorvado, un comerciante esquelético cubierto de medallones de plata.
   stats: { AP: 2, M: 3, VIOL: 7+, RNGD: 7+, HP: 15 }
   armaments: Improvised weapon
+  armaments_es: Arma improvisada
   special_rules: |
     May be summoned by any leader's Summon spell as if part of their gathering, but only within 1" of the caster. Cannot be summoned after being Shattered.
+  special_rules_es: |
+    Puede ser invocado con el hechizo Invocar de cualquier líder como si fuera parte de su Séquito, pero solo a un máximo de 1" del lanzador. No puede ser invocado tras ser Hecho añicos.
 
 - name: Desperate Rabble
+  name_es: Chusma Desesperada
   type_keyword: Husk · Remnant · Blood/Bone/Plasm
+  type_keyword_es: Cáscara · Remanente · Sangre/Hueso/Plasma
   cost: 10 roster / 20 deploy
+  cost_es: 10 lista / 20 despliegue
   base: 20–40 mm
   flavor: With failing, incomplete forms cloaked in rags, these miserable denizens stumble ever forward.
+  flavor_es: Con formas fallidas e incompletas envueltas en harapos, estos miserables tropiezan siempre hacia adelante.
   stats: { AP: 2, M: 3, VIOL: 9+, RNGD: 9+, HP: 5 }
   armaments: Improvised weapon
+  armaments_es: Arma improvisada
   special_rules: |
     Rabble. Deploy 3 Desperate Rabble models instead of 1 during the deployment step.
 
     Weak Mind. These models can be affected by the Dominate spell as if they were NPCs (must be cast before activation).
+  special_rules_es: |
+    Chusma. Despliega 3 miniaturas de Chusma Desesperada en lugar de 1 durante la fase de despliegue.
+
+    Mente Débil. Estas miniaturas pueden ser afectadas por el hechizo Dominar como si fueran PNJ (debe lanzarse antes de su activación).
 
 - name: Blightblade, Beast Hunter
+  name_es: Hojanegra, el Cazador de Bestias
   type_keyword: Husk · Blood/Bone
+  type_keyword_es: Cáscara · Sangre/Hueso
   cost: 30 roster / 20 deploy
+  cost_es: 30 lista / 20 despliegue
   base: 20–40 mm
   flavor: Clad in armour of spikes and rings designed to break the claws of beasts and horrors.
+  flavor_es: Revestido con una armadura de pinchos y anillos diseñada para romper las garras de bestias y horrores.
   stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 6+, HP: 10 }
   armaments: Blighted Spear (2H polearm; +1 dmg vs Beast — damage becomes 1/4)
+  armaments_es: Lanza Marchita (arma de asta a 2 manos; vs Bestia el daño pasa a 1/4)
   special_rules: |
     Hunters Mail. Wears armour 1. If attacked with Claws and Fangs or Large Claws, attacker suffers 1 damage after the attack resolves.
 
     Scout. Deploys last, may be placed anywhere on the board more than 8" from any enemy model.
+  special_rules_es: |
+    Malla de Cazador. Lleva armadura 1. Si es atacado con Garras y Colmillos o Grandes Garras, el atacante sufre 1 punto de daño tras resolver el ataque.
+
+    Explorador. Se despliega el último; puede colocarse en cualquier lugar del tablero a más de 8" de cualquier miniatura enemiga.
 
 - name: Threefold Hunter of the Waste
+  name_es: Tríada Cazadora del Yermo
   type_keyword: Husk · Blood/Bone
+  type_keyword_es: Cáscara · Sangre/Hueso
   cost: 30 roster / 20 deploy
+  cost_es: 30 lista / 20 despliegue
   base: 20–40 mm
   flavor: Wielding strange blades of meteoric metal, these silent hunters have dedicated themselves to hunting down wielders of magic.
+  flavor_es: Blandiendo extrañas espadas de metal meteórico, estos silenciosos cazadores se han dedicado a cazar a los usuarios de la magia.
   stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 6+, HP: 10 }
   armaments: Ancient Blade (1H blade; +1 dmg vs Leader — damage becomes 1/4)
+  armaments_es: Espada Ancestral (Espada a 1 mano; vs Líder el daño pasa a 1/4)
   special_rules: |
     Punishing Parry. If any model attacks this model with a 1H melee weapon, the attacker suffers 1 damage for each glance they roll.
+  special_rules_es: |
+    Contraataque Castigador. Si una miniatura ataca a esta miniatura con un arma cuerpo a cuerpo a 1 mano, el atacante sufre 1 punto de daño por cada roce que obtenga.
 
 - name: Neoteric Arcuballista
+  name_es: Arcubalista Espectral
   type_keyword: Husk · Blood/Bone
+  type_keyword_es: Cáscara · Sangre/Hueso
   cost: 30 roster / 30 deploy
+  cost_es: 30 lista / 30 despliegue
   base: 20–40 mm
   flavor: A skeleton wreathed in the garb of a fallen empire carries an unwieldy projectile weapon of intricate design.
+  flavor_es: Un esqueleto envuelto en las vestiduras de un imperio caído que porta un arma de proyectil pesada de intrincado diseño.
   stats: { AP: 2, M: 3, VIOL: 6+, RNGD: 6+, HP: 10 }
   armaments: Arcuballista (2H; R16, A1, D2/8; AP 2 per shot, requires Reload action AP 1)
+  armaments_es: Arcubalista (2 manos; Alc 16, At 1, Da 2/8; PA 2 por disparo, requiere acción Recargar PA 1)
   special_rules: |
     Wears light armour (armour 1).
 
     Reload (AP 1). After firing the Arcuballista, this action must be performed before it can be fired again.
+  special_rules_es: |
+    Lleva armadura ligera (armadura 1).
+
+    Recargar (PA 1). Tras disparar la Arcubalista, debe realizarse esta acción antes de poder disparar de nuevo.

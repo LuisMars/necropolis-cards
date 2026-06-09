@@ -1,39 +1,74 @@
 - name: Embalmed Hands
+  name_es: Manos Embalsamadas
   category: COVENANT
+  category_es: PACTO
   restrictions: Scions of the Rotten Goddess · Blood keyword only
+  restrictions_es: Vástagos de la Diosa Putrefacta · solo palabra clave Sangre
   effect: |
     Time is the enemy. Though held fast through embalming and alchemical arts, the flesh withers. The Goddess fades, and so her Hands are sent out into the ruins of the world to seek ancient preserved flesh, vitrified blood, and mellified bodies sealed within lock-graves.
 
     Your gathering may only contain models with the Blood keyword. Your leader gains the trait "Chosen of the Hands" in addition to any others.
+  effect_es: |
+    El tiempo es el enemigo. Aunque la mantienen firme el embalsamamiento y las artes alquímicas, la carne se marchita. La Diosa se desvanece, y así sus Manos son enviadas a las ruinas del mundo a buscar carne antigua conservada, sangre vitrificada y cuerpos melificados sellados dentro de tumbas.
+
+    Tu Séquito solo puede contener miniaturas con la palabra clave Sangre. Tu líder gana el rasgo «Elegido de las Manos» además de cualquier otro.
 
 - name: Cairn-born
+  name_es: Nacidos del Túmulo
   category: COVENANT
+  category_es: PACTO
   restrictions: Faithful of the First Grandlich · Bone keyword only
+  restrictions_es: Fieles del Primero de los Grandes Liches · solo palabra clave Hueso
   effect: |
     Long before the age of the living ended, the First was already dead. It was the First who unlocked the secrets of necromancy, subjugated empires, amassed the knowledge of the Oblivisk, and sank the treacherous Aldmarsh.
 
     Your gathering may only contain models with the Bone keyword. Your leader gains the trait "Osseous Sacrifice" in addition to any others.
+  effect_es: |
+    Mucho antes de que terminara la era de los vivos, el Primero ya estaba muerto. Fue él quien desveló los secretos de la nigromancia, subyugó imperios, acumuló el conocimiento del Oblivisco y hundió el traicionero pantano de Áldmarsh.
+
+    Tu Séquito solo puede contener miniaturas con la palabra clave Hueso. Tu líder gana el rasgo «Sacrificio Óseo» además de cualquier otro.
 
 - name: The Crescent of Mourn
+  name_es: El Lamento de la Luna Creciente
   category: COVENANT
+  category_es: PACTO
   restrictions: Spectres of the Doomed Child · Plasm keyword only
+  restrictions_es: Espectros del Niño Maldito · solo palabra clave Plasma
   effect: |
     Sweeping from their sealed lairs in a tide of spectral balefire, the Crescent of Mourn do the inscrutable bidding of the Doomed Child. They spread discord, assassinate, and turn the petty fiefdoms of minor undead against each other.
 
     Your gathering may only contain models with the Plasm keyword. Your leader gains the trait "Moonlight Flit" in addition to any others.
+  effect_es: |
+    Brotando de sus guaridas selladas en una marea de fuego fúnebre espectral, el Lamento de la Luna Creciente cumple los insondables designios del Niño Maldito. Siembran la discordia, asesinan y vuelven a los no muertos menores unos contra otros.
+
+    Tu Séquito solo puede contener miniaturas con la palabra clave Plasma. Tu líder gana el rasgo «Revoloteo bajo la luz de la luna» además de cualquier otro.
 
 - name: Recusant Maleficar
+  name_es: Recusantes Malignos
   category: COVENANT
+  category_es: PACTO
   restrictions: Adherents of the Curse Path · Lich leader · starts with Necromancy spells only
+  restrictions_es: Adeptos de la Senda Maldita · líder Liche · empieza solo con hechizos de Nigromancia
   effect: |
     Submitting neither to the service of a Grandlich nor the division of the schools of necromancy themselves, they seek the purity of spellcasting in its original form.
 
     The leader of this gathering must be a Lich and may initially only take spells from the Necromancy list. Spells of other types can be gained as normal during a campaign. Your leader gains the trait "Erudite" in addition to any others.
+  effect_es: |
+    Sin someterse ni al servicio de un Gran Liche ni a la división de las escuelas de nigromancia, buscan la pureza de la magia en su forma original.
+
+    El líder de este Séquito debe ser un Liche e inicialmente solo puede acceder a hechizos de la lista de Nigromancia. Los hechizos de otros tipos pueden obtenerse normalmente durante una campaña. Tu líder gana el rasgo «Erudito» además de cualquier otro.
 
 - name: Crawling-Dark
+  name_es: Oscuridad Reptante
   category: COVENANT
+  category_es: PACTO
   restrictions: Swarms of the Hintertombs · Leader, Beast, or Remnant keyword only
+  restrictions_es: Enjambres de los Sepulcros Inferiores · solo palabra clave Líder, Bestia o Remanente
   effect: |
     What becomes of those banished from the meagre protection of the towers? Those that seek refuge in the darkness of the labyrinth's depths, cobbling a following of failing scraps and darkling beasts, plotting naught but revenge.
 
     Your gathering may only contain models with the Leader, Beast, or Remnant keyword. Your leader gains the trait "Crawling Lord" in addition to any others.
+  effect_es: |
+    ¿Qué sucede con aquellos desterrados de la escasa protección de las torres? Quienes buscan refugio en la oscuridad de las profundidades del laberinto, reuniendo un séquito de mendigos fracasados y bestias oscuras, maquinando nada más que venganza.
+
+    Tu Séquito solo puede contener miniaturas con las palabras clave Líder, Bestia o Remanente. Tu líder gana el rasgo «Señor de la Oscuridad Reptante» además de cualquier otro.

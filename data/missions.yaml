@@ -6,77 +6,136 @@
 
 - category: MISSION
   name: Secure the Artefacts
+  name_es: Asegurar los Artefactos
   flavor: Caches of treasure from the age of the living still sit in the darkness of the ruins.
+  flavor_es: Almacenes de tesoros de la era de los vivos aún permanecen en la oscuridad de las ruinas.
   objectives: |
     Place 3 objectives: 1 in the centre of the board and 2 placed 3" from the table edges in opposite corners. Any leader that ends their activation next to an objective gains a mana dice of any kind.
+  objectives_es: |
+    Coloca 3 objetivos: 1 en el centro del tablero y 2 a 3" de los bordes en esquinas opuestas. Cualquier líder que termine su activación junto a un objetivo obtiene un dado de maná de cualquier tipo.
   deployment: Follow the normal rules for deployment. Players may not deploy in the corners containing objectives.
+  deployment_es: Sigue las reglas normales de despliegue. Los jugadores no pueden desplegar en las esquinas que contienen objetivos.
   victory: |
     Each gathering controls an objective if it has the most models in base-to-base contact. The gathering with the most controlled objectives at the end of 5 turns wins.
+  victory_es: |
+    Un Séquito controla un objetivo si tiene más miniaturas en contacto base con base con él. El Séquito con más objetivos controlados al final de 5 turnos gana.
 
 - category: MISSION
   name: Strike down the Rival
+  name_es: Derribar al Rival
   flavor: Nothing is more offensive to those who seek power than others on the same path.
+  flavor_es: Nada es más ofensivo para los que buscan poder que otros con el mismo objetivo.
   objectives: |
     Players alternate placing 3 mana tokens each, at least 3" from a board edge and 3" from any other token. When a model picks up a mana token, roll a d10: 1–2 it suffers 1 damage, 3–10 it restores 1 HP.
+  objectives_es: |
+    Los jugadores se turnan para colocar 3 marcadores de maná cada uno, al menos a 3" de un borde del tablero y a 3" de cualquier otro marcador. Cuando una miniatura recoge un marcador de maná, tira un 1D10: con 1-2 sufre 1 de daño, con 3-10 restaura 1 HP.
   deployment: Follow the normal rules for deployment.
+  deployment_es: Sigue las reglas normales de despliegue.
   victory: |
     The gathering that shatters the rival leader wins; the game ends at the end of the current turn. If neither leader is shattered after 5 turns, the gathering with their leader closer to the centre wins.
+  victory_es: |
+    El Séquito que deja Hecho añicos al líder rival gana; la partida termina al final del turno actual. Si ningún líder es Hecho añicos tras 5 turnos, gana el Séquito cuyo líder esté más cerca del centro.
 
 - category: MISSION
   name: Relic Hunters
+  name_es: Cazadores de Reliquias
   flavor: A book, an ancient wine, a mote of comfort — all worth fighting for.
+  flavor_es: Un libro, un vino ancestral, una pizca de consuelo; todo por lo que vale la pena luchar.
   objectives: |
     Alternate placing 2 relic tokens per player, plus 1 additional relic in the centre. Relics must be 3" apart and 3" from any board edge.
+  objectives_es: |
+    Alternad colocando 2 marcadores de reliquia por jugador, más 1 reliquia adicional en el centro. Las reliquias deben estar a 3" entre sí y a 3" de cualquier borde del tablero.
   deployment: |
     Roll off; winner picks a corner, opponent takes the opposite. Alternate placing a model touching both table edges, then alternate placing models touching a table edge and a friendly base or two friendly bases.
+  deployment_es: |
+    Tras una tirada, el ganador elige una esquina y el oponente la opuesta. Alternad colocando una miniatura que toque ambos bordes del tablero; luego, miniaturas que toquen un borde y la peana de otra aliada o las peanas de dos aliadas.
   victory: The gathering carrying the most relics after 5 turns wins.
+  victory_es: El Séquito que porte más reliquias tras 5 turnos gana.
 
 - category: MISSION
   name: Ancient Horror
+  name_es: Horror Ancestral
   flavor: An undead weapon, a rampaging beast, bringing renown to those who dare its lair.
+  flavor_es: Un arma no muerta, una bestia desenfrenada que trae fama a quienes se atreven a entrar en su guarida.
   objectives: |
     Deploy a Gigantic Horror NPC armed with a colossal weapon in the centre; it has 5 armour. Alternate placing 2 objectives per player + 1 in the centre, 3" apart and 3" from any board edge. Models base-to-base with an objective may take "Investigate Lair Detritus" (AP 1) to roll on the rulebook's lair table.
+  objectives_es: |
+    Despliega un Horror Colosal (PNJ) armado con un arma colosal en el centro; tiene 5 de armadura. Alternad colocando 2 objetivos por jugador + 1 en el centro, a 3" entre sí y a 3" de cualquier borde. Las miniaturas en contacto base con base con un objetivo pueden realizar «Investigar Restos de la Guarida» (PA 1) para tirar en la tabla de guaridas del reglamento.
   deployment: Follow the normal rules for deployment.
+  deployment_es: Sigue las reglas normales de despliegue.
   victory: The gathering that deals the most damage to the Horror by the end of 5 turns wins.
+  victory_es: El Séquito que inflija más daño al Horror al final de 5 turnos gana.
 
 - category: MISSION
   name: Claim the Mellified Corpse
+  name_es: Reclamar el Cadáver Melificado
   flavor: Unblemished flesh steeped in sweet honey, the most valuable commodity in a dead world.
+  flavor_es: Carne inmaculada macerada en dulce miel, la mercancía más valiosa en un mundo sin vida.
   objectives: Place an objective in the centre of the board, preferably a honeyed corpse.
+  objectives_es: Coloca un objetivo en el centro del tablero, preferiblemente un cadáver melificado.
   deployment: Follow the normal rules for deployment.
+  deployment_es: Sigue las reglas normales de despliegue.
   victory: |
     To claim the corpse a leader must be within 3" of it at the end of 5 turns. If both leaders are within 3", the player with more friendly models within 3" wins.
+  victory_es: |
+    Para reclamar el cadáver, un líder debe estar a 3" de él al final de 5 turnos. Si ambos líderes están a 3", gana el jugador con más miniaturas aliadas a 3".
 
 - category: MISSION
   name: The Horde
+  name_es: La Horda
   flavor: A petty band of masterless dead swarms, malevolent and lost in the darkness.
+  flavor_es: Un grupo insignificante de muertos sin amo, malévolo y perdido en la oscuridad.
   objectives: |
     After deployment, players alternate placing 3 NPC Husk minions each (6 total in a 2-player game) at least 6" from any player model and 2" from each other. All NPCs are armed with any 1h weapon both players agree on.
+  objectives_es: |
+    Tras el despliegue, los jugadores se turnan para colocar 3 secuaces PNJ con la palabra clave Cáscara cada uno (6 en total en una partida de 2 jugadores) al menos a 6" de cualquier miniatura de los jugadores y a 2" entre sí. Los PNJ van armados con cualquier arma a una mano que ambos jugadores acuerden.
   deployment: Follow the normal rules for deployment.
+  deployment_es: Sigue las reglas normales de despliegue.
   victory: The player that causes the most models to become Shattered by the end of 5 turns wins.
+  victory_es: El jugador que haga que más miniaturas sean Hechas añicos al final de 5 turnos gana.
 
 - category: MISSION
   name: The Hidden Stash
+  name_es: El Alijo Oculto
   flavor: Great treasure, hidden and protected by ancient hands.
+  flavor_es: Grandes tesoros ocultos protegidos por manos ancestrales.
   objectives: |
     Alternate placing 2 objectives per player + 1 in the centre, 3" apart and 3" from any board edge. Models base-to-base with an objective may take "Pick Up Relic" — remove it and roll on the rulebook's stash table (traps, restless minions, mana wisps, or hidden treasure).
+  objectives_es: |
+    Alternad colocando 2 objetivos por jugador + 1 en el centro, a 3" entre sí y a 3" de cualquier borde. Las miniaturas en contacto base con base con un objetivo pueden realizar «Recoger Reliquia»: retíralo y tira en la tabla de alijos del reglamento (trampas, secuaces inquietos, volutas de maná o tesoro oculto).
   deployment: Follow the normal rules for deployment.
+  deployment_es: Sigue las reglas normales de despliegue.
   victory: The gathering carrying the most relics after 5 turns wins. Shattered models drop their relics.
+  victory_es: El Séquito que porte más reliquias tras 5 turnos gana. Las miniaturas Hechas añicos sueltan sus reliquias.
 
 - category: MISSION
   name: Curse-Wormed Relics
+  name_es: Reliquias Carcomidas Malditas
   flavor: What would you trade for ascendancy?
+  flavor_es: ¿Qué estarías dispuesto a ofrecer por alcanzar la trascendencia?
   objectives: |
     Place a relic in the centre of the board, then alternate placing 2 relics per player. Relics must be 3" apart and 3" from any board edge. Each relic carried improves AP by 1 (max 4 AP), but on each activation roll d10: on 9+ (5+ if carrying 2+) the model is Shattered in a shower of embers.
+  objectives_es: |
+    Coloca una reliquia en el centro del tablero, luego alternad colocando 2 reliquias por jugador. Las reliquias deben estar a 3" entre sí y a 3" de cualquier borde. Cada reliquia portada mejora el PA en 1 (máx. 4 PA), pero en cada activación tira 1D10: con 9+ (5+ si lleva 2 o más) la miniatura queda Hecha añicos en una lluvia de cenizas.
   deployment: Follow the normal rules for deployment.
+  deployment_es: Sigue las reglas normales de despliegue.
   victory: The gathering carrying the most relics after 5 turns wins. Shattered models drop their relics.
+  victory_es: El Séquito que porte más reliquias tras 5 turnos gana. Las miniaturas Hechas añicos sueltan sus reliquias.
 
 - category: MISSION
   name: Escort the Relic Peddler
+  name_es: Escoltar al Mercader de Reliquias
   flavor: Protection has its benefits — and so does taking the relics from the peddler's shattered body.
+  flavor_es: La protección tiene sus beneficios, al igual que arrebatar las reliquias del cuerpo destrozado del mercader.
   objectives: |
     Roll off; winner chooses attacker or defender. The defender adds a Peddler (Base 20–50 mm, Keyword Blood/Bone/Plasm Peddler, AP 2 M 3 V 7+ R 7+ HP 15) to their gathering, armed with an improvised weapon. Defender may Summon the Peddler, but only within 1" of the caster.
+  objectives_es: |
+    Tirad para la iniciativa; el ganador elige ser atacante o defensor. El defensor añade un Mercader (Base 20–50 mm, palabra clave Sangre/Hueso/Plasma Mercader, PA 2, M 3, V 7+, A Dist. 7+, HP 15) a su Séquito, armado con un arma improvisada. El defensor puede Invocar al Mercader, pero solo a 1" del lanzador.
   deployment: |
     Defender chooses a corner; attacker takes the 2 adjacent corners. Alternate placing models touching both table edges, then a table edge plus a friendly base. Attacker deploys freely between their corners.
+  deployment_es: |
+    El defensor elige una esquina; el atacante ocupa las 2 esquinas adyacentes. Alternad colocando miniaturas que toquen ambos bordes del tablero, luego un borde más una peana aliada. El atacante despliega libremente entre sus esquinas.
   victory: |
     Defender wins if the Peddler touches both board edges of a corner on the opposite side. Attacker wins if the Peddler has not achieved this by the end of 6 turns.
+  victory_es: |
+    El defensor gana si el Mercader toca ambos bordes de una esquina del lado opuesto. El atacante gana si el Mercader no lo ha logrado al cabo de 6 turnos.

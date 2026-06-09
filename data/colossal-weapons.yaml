@@ -1,50 +1,79 @@
 # Colossal-only weapons (melee + ranged).
 
 - name: Improvised Weapon
+  name_es: Arma Improvisada
   category: Colossal Melee · 1-handed
+  category_es: Colosal cuerpo a cuerpo · 1 mano
   cost: —
   range: 2
   attacks: 2
   damage: 2 / 4
   flavor: A broken signpost, the bones of a great beast, smashing of great weight.
+  flavor_es: Un poste de señal roto, huesos rotos de una gran bestia, el golpe de un gran peso.
   special: —
+  special_es: —
 - name: Massive Hand Weapon
+  name_es: Arma de Mano Masiva
   category: Colossal Melee · 1-handed
+  category_es: Colosal cuerpo a cuerpo · 1 mano
   cost: 10 obols
+  cost_es: 10 óbolos
   range: 2
   attacks: 3
   damage: 2 / 4
   flavor: Bronze blade made for a statue, a lance wielded in a colossal hand, a swung corpse.
+  flavor_es: Una hoja de bronce hecha para una estatua, una lanza empuñada por una mano colosal, un cadáver esgrimido.
   special: —
+  special_es: —
 - name: Colossal Weapon
+  name_es: Arma Colosal
   category: Colossal Melee · 2-handed
+  category_es: Colosal cuerpo a cuerpo · 2 manos
   cost: 40 obols
+  cost_es: 40 óbolos
   range: 2
   attacks: 2
   damage: 3 / 7
   flavor: A heap of raw iron, a greatsword forged from a portcullis, a desiccated tree.
+  flavor_es: Un montón de hierro en bruto, una gran espada forjada a partir de una reja levadiza, un árbol seco.
   special: —
+  special_es: —
 - name: Dual Massive Weapons
+  name_es: Armas Duales Masivas
   category: Colossal Melee · 2-handed
+  category_es: Colosal cuerpo a cuerpo · 2 manos
   cost: 40 obols
+  cost_es: 40 óbolos
   range: 2
   attacks: 4
   damage: 2 / 4
   flavor: A pair of executioner's axes, stained and terrible great mauls.
+  flavor_es: Un par de temibles hachas de verdugo, grandes mazas manchadas.
   special: −1 to Violence rolls.
+  special_es: −1 a las tiradas de Violencia.
 - name: Massive Claws
+  name_es: Garras Masivas
   category: Colossal Melee · 2-handed
+  category_es: Colosal cuerpo a cuerpo · 2 manos
   cost: 40 obols
+  cost_es: 40 óbolos
   range: 2
   attacks: 2
   damage: 3 / 7
   flavor: Gargantuan rotting talons, vast bestial jaws, a crown of terrible greathorns.
+  flavor_es: Garras gigantescas y podridas, enormes mandíbulas bestiales, una corona de terribles cuernos colosales.
   special: —
+  special_es: —
 - name: Massive Ranged Weapon
+  name_es: Arma Colosal a Distancia
   category: Colossal Ranged · 2-handed
+  category_es: Colosal a Distancia · 2 manos
   cost: 40 obols
+  cost_es: 40 óbolos
   range: 24
   attacks: 1
   damage: 3 / 8
   flavor: A sinew-bound greatbow, a creaking ballista, an ancient harpax.
+  flavor_es: Un gran arco atado con tendones, una balista chirriante, un antiguo harpagón.
   special: May Push 2". Only 1 Attack action per activation.
+  special_es: Puede Empujar 2". Solo se puede realizar una acción de ataque por activación.

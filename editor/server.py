@@ -67,7 +67,7 @@ def load_categories() -> list[dict]:
     idx = DATA_DIR / "_categories.yaml"
     if not idx.exists():
         return []
-    raw = yaml.safe_load(idx.read_text()) or {}
+    raw = yaml.safe_load(idx.read_text(encoding="utf-8")) or {}
     out = []
     for group in (raw.get("groups") or []):
         for it in (group.get("items") or []):
@@ -246,14 +246,14 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/categories":
             # Grouped category tree with row counts. Editor uses this to
             # render the left-side navigation.
-            raw = yaml.safe_load((DATA_DIR / "_categories.yaml").read_text()) if (DATA_DIR / "_categories.yaml").exists() else {"groups": []}
+            raw = yaml.safe_load((DATA_DIR / "_categories.yaml").read_text(encoding="utf-8")) if (DATA_DIR / "_categories.yaml").exists() else {"groups": []}
             groups = raw.get("groups") or []
             for g in groups:
                 for it in (g.get("items") or []):
                     if it.get("data"):
                         p = DATA_DIR / it["data"]
                         try:
-                            rows = yaml.safe_load(p.read_text()) or [] if p.exists() else []
+                            rows = yaml.safe_load(p.read_text(encoding="utf-8")) or [] if p.exists() else []
                             it["row_count"] = len(rows) if isinstance(rows, list) else 1
                         except Exception:
                             it["row_count"] = 0
@@ -270,7 +270,7 @@ class Handler(BaseHTTPRequestHandler):
             tpl = TPL_DIR / f"{tpl_name}.svg"
             if not tpl.exists():
                 return self._send_error(404, f"no such template: {tpl_name}")
-            return self._send_text(200, tpl.read_text(), "image/svg+xml; charset=utf-8")
+            return self._send_text(200, tpl.read_text(encoding="utf-8"), "image/svg+xml; charset=utf-8")
 
         m = re.match(r"^/api/data/([^/]+)$", path)
         if m:
@@ -289,7 +289,7 @@ class Handler(BaseHTTPRequestHandler):
                 data_path = data_file_for(name)
                 if not data_path:
                     return self._send_json(200, {"rows": [], "source": None})
-            rows = yaml.safe_load(data_path.read_text()) or []
+            rows = yaml.safe_load(data_path.read_text(encoding="utf-8")) or []
             if not isinstance(rows, list):
                 rows = [rows]
             # Apply the same row-shaping the PDF build does, so the editor's
@@ -391,7 +391,7 @@ class Handler(BaseHTTPRequestHandler):
             if "<svg" not in text:
                 return self._send_error(400, "body doesn't look like SVG")
             back_up_once(tpl)
-            tpl.write_text(text)
+            tpl.write_text(text, encoding="utf-8")
             try:
                 rel = str(tpl.relative_to(TPL_DIR.parent))
             except ValueError:

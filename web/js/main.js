@@ -5,7 +5,7 @@
  * exposes an `init*` + `render*` function.
  */
 
-import { state, loadQueue, loadPrinted } from "./state.js";
+import { state, loadQueue, loadPrinted, loadLang, saveLang } from "./state.js";
 import { loadBundle }         from "./data.js";
 import { loadFonts }          from "./fonts.js";
 import { initImport }         from "./import.js";
@@ -51,6 +51,18 @@ window.addEventListener("beforeprint", () => renderPrint());
 initImport({ onChange, switchToPrint: () => switchTo("print") });
 initLibrary({ onChange });
 initPrint({ onChange });
+
+// Card-language selector. Only the printed cards are localised, so changing
+// it just re-renders the library tiles and print sheets.
+loadLang();
+const $langSelect = document.getElementById("lang-select");
+$langSelect.value = state.lang;
+$langSelect.addEventListener("change", () => {
+  state.lang = $langSelect.value === "es" ? "es" : "en";
+  saveLang();
+  if (currentTab() === "library") renderLibrary();
+  renderPrint();
+});
 
 loadQueue();
 loadPrinted();

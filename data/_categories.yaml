@@ -16,11 +16,11 @@ groups:
       - { key: wretched-undead-traits,   title: Wretched Undead Traits,   template: rule,            data: wretched-undead-traits.yaml }
       - { key: spells,                   title: Spells,                   template: spell,           data: spells.yaml }
       - { key: minions,                  title: Minions,                  template: minion,          data: minions.yaml }
-      - { key: melee-weapons,            title: Melee Weapons,            template: weapon,          data: melee-weapons.yaml,            header: Weapon }
-      - { key: colossal-weapons,         title: Colossal Weapons,         template: weapon,          data: colossal-weapons.yaml,         header: Colossal Weapon }
-      - { key: ranged-weapons,           title: Ranged Weapons,           template: weapon,          data: ranged-weapons.yaml,           header: Weapon }
+      - { key: melee-weapons,            title: Melee Weapons,            template: weapon,          data: melee-weapons.yaml,            header: Weapon,        header_es: Arma }
+      - { key: colossal-weapons,         title: Colossal Weapons,         template: weapon,          data: colossal-weapons.yaml,         header: Colossal Weapon, header_es: Arma Colosal }
+      - { key: ranged-weapons,           title: Ranged Weapons,           template: weapon,          data: ranged-weapons.yaml,           header: Weapon,        header_es: Arma }
       - { key: armours,                  title: Armours,                  template: equipment,       data: armours.yaml }
-      - { key: thrown-weapons,           title: Thrown Weapons,           template: weapon,          data: thrown-weapons.yaml, header: Thrown Weapon }
+      - { key: thrown-weapons,           title: Thrown Weapons,           template: weapon,          data: thrown-weapons.yaml, header: Thrown Weapon, header_es: Arma Arrojadiza }
       - { key: miscellaneous-equipment,  title: Miscellaneous Equipment,  template: equipment,       data: miscellaneous-equipment.yaml }
 
   - title: Sellswords
@@ -31,7 +31,7 @@ groups:
     items:
       - { key: minor-treasures,    title: Minor Treasures,        template: equipment,        data: minor-treasures.yaml }
       - { key: greater-treasures,  title: Greater Treasures,      template: equipment,        data: greater-treasures.yaml }
-      - { key: throwing-pots,      title: Throwing Pots,          template: weapon,           data: throwing-pots.yaml, header: Thrown Pot }
+      - { key: throwing-pots,      title: Throwing Pots,          template: weapon,           data: throwing-pots.yaml, header: Thrown Pot, header_es: Frasco }
       - { key: potions,            title: Potions,                template: equipment,        data: potions.yaml }
 
   - title: Reference

@@ -1,178 +1,275 @@
 # Necropolis spell cards.
 # school is one of: NECROMANCY · BLOOD · BONE · PLASM
 # Channel uses the X+ format.
+# `*_es` fields hold the Spanish card text (spell names/terms sourced from the
+# official Spanish rulebook, Necrópolis v1.1). English numbers are kept.
 
 - school: NECROMANCY
+  school_es: NIGROMANCIA
   name: Summon
+  name_es: Invocación
   ap: 1
   channel: 6+
   sigil: ""
   flavor: Bone, flesh and spirit swirl and coalesce into a shuddering new form.
+  flavor_es: Hueso, carne y espíritu giran entremezclándose hasta que se materializan en una nueva forma escalofriante.
   effect: |
     Choose a Shattered friendly model that does not have the Leader keyword. Place it back on the board within 5" of the caster and restore 4/6 HP to it.
+  effect_es: |
+    Elige una miniatura aliada Hecha añicos que no tenga la palabra clave Líder. Colócala de nuevo en el tablero a 5" del hechicero y restáurale 4/6 HP.
 
 - school: NECROMANCY
+  school_es: NIGROMANCIA
   name: Dominate
+  name_es: Dominar
   ap: 1
   channel: 6+
   sigil: ""
   flavor: With a word of power the minds of the weak are overridden and controlled.
+  flavor_es: Con una sola palabra de poder las mentes de los débiles son suprimidas y controladas.
   effect: |
     Activate any single NPC within 8" as if they had 1/2 AP. This counts as the model's activation; this model can no longer be activated in any other step.
+  effect_es: |
+    Activa cualquier PNJ en un radio de hasta 8" como si tuviera 1/2 PA. Esto cuenta como su activación; esta miniatura ya no podrá activarse en ninguna otra fase.
 
 - school: NECROMANCY
+  school_es: NIGROMANCIA
   name: Flare
+  name_es: Destello
   ap: 1
   channel: 6+
   sigil: ""
   flavor: Mana swirls and contracts before bursting, tearing all around it asunder.
+  flavor_es: El maná se arremolina y se contrae justo antes de explotar desgarrando todo lo que le rodea.
   effect: |
     Choose a mana token on the battlefield within 8" and line of sight: every model within 2" of the token suffers 1/3 damage. The mana token is then removed from play.
+  effect_es: |
+    Elige un marcador de maná en el campo de batalla a 8" y con línea de visión: cada miniatura en un radio de hasta 2" del marcador sufre 1/3 de daño. El marcador se retira del juego.
 
 - school: NECROMANCY
+  school_es: NIGROMANCIA
   name: Vigour
+  name_es: Vigor
   ap: 1
   channel: 7+
   sigil: ""
   flavor: Breaks set; muscles reknit and plasm condenses.
+  flavor_es: Los huesos rotos se solidifican, los músculos vuelven a formarse y el plasma se condensa.
   effect: |
     Restore 3/5 HP to a model in 6" and line of sight of the caster.
+  effect_es: |
+    Restaura 3/5 HP a una miniatura a 6" y con línea de visión del hechicero.
 
 - school: NECROMANCY
+  school_es: NIGROMANCIA
   name: Puppet
+  name_es: Marioneta
   ap: 1
   channel: 6+
   sigil: ""
   flavor: An expression of the caster's pure will overrides the target's agency, sending them staggering out of control.
+  flavor_es: La férrea voluntad del hechicero anula al objetivo, que se tambalea sin control.
   effect: |
     Choose a model within 6" and line of sight: push that model 1"/3".
+  effect_es: |
+    Elige una miniatura a 6" y con línea de visión: empuja esa miniatura 1"/3".
 
 - school: NECROMANCY
+  school_es: NIGROMANCIA
   name: Wither
+  name_es: Marchitar
   ap: 1
   channel: 5+
   sigil: ""
   flavor: Skulls crack, blood rots and spirit dissipates under a command of entropy.
+  flavor_es: Los cráneos se quiebran, la sangre se pudre y el espíritu se disipa bajo una orden entrópica.
   effect: |
     Choose a model in 6" and line of sight. It suffers 1/4 damage.
+  effect_es: |
+    Elige una miniatura a 6" y con línea de visión. Sufre 1/4 de daño.
 
 - school: BLOOD
+  school_es: SANGRE
   name: Blood Whip
+  name_es: Látigo de Sangre
   ap: 1
   channel: 7+
   sigil: ""
   flavor: Drawing coagulated blood from an unwilling body, the caster forms a whip of boiling crimson liquid.
+  flavor_es: Drenando la sangre coagulada de un cuerpo, el hechicero da forma a un látigo de líquido carmesí en ebullición.
   effect: |
     Choose any model with the Blood keyword within 3" and line of sight. The model suffers 1 damage. The caster may then make a melee attack with attacks 1/2*, damage 2/4, range 3". *Number of attacks based on spell success.
+  effect_es: |
+    Elige una miniatura con la palabra clave Sangre a 3" y con línea de visión. La miniatura sufre 1 punto de daño. El hechicero puede entonces hacer un ataque cuerpo a cuerpo con Ataques 1/2*, Daño 2/4, Alcance 3". *Número de ataques según el éxito del hechizo.
 
 - school: BLOOD
+  school_es: SANGRE
   name: Congealed Blast
+  name_es: Explosión Coagulada
   ap: 1
   channel: 7+
   sigil: ""
   flavor: Blood and flesh explode in a shower of boiling viscera wounding all in the vicinity.
+  flavor_es: Sangre y carne explotan en una lluvia de vísceras hirvientes hiriendo a todos en las cercanías.
   effect: |
     Choose any model with the Blood keyword within 8" and line of sight. It suffers 2/4 damage. Every model within 2" of that model also suffers 2/4 damage. If the initial target is Shattered by the damage, the secondary targets suffer an additional 1 damage.
+  effect_es: |
+    Elige una miniatura con la palabra clave Sangre a 8" y con línea de visión. Sufre 2/4 de daño. Toda miniatura en un radio de hasta 2" de ella también sufre 2/4 de daño. Si el objetivo inicial es Hecho añicos, los objetivos secundarios sufren 1 punto de daño adicional.
 
 - school: BLOOD
+  school_es: SANGRE
   name: Invigorate
+  name_es: Vigorizar
   ap: 1
   channel: 5+
   sigil: ""
   flavor: For a brief moment the caster turns the rotted blood of the dead into vital fluid.
+  flavor_es: Por un breve momento, el hechicero transmuta la sangre putrefacta de los muertos en fluido vital.
   effect: |
     Choose a friendly model within 3"/6" and line of sight with the Blood keyword. They may make a free move action.
+  effect_es: |
+    Elige una miniatura aliada con la palabra clave Sangre a 3"/6" y con línea de visión. Puede realizar una acción de movimiento gratuita.
 
 - school: BLOOD
+  school_es: SANGRE
   name: Tide of Vermin
+  name_es: Marea de alimañas
   ap: 1
   channel: 6+
   sigil: ""
   flavor: Animating the remains of small creatures for a brief moment, the caster commands them to drown their enemies in a tide of crawling horrors.
+  flavor_es: Reanimando por un breve instante los restos de pequeñas criaturas, el hechicero les ordena que ahoguen a sus enemigos bajo una marea de horrores reptantes.
   effect: |
     Choose 1/2 model(s) within 8" and line of sight. They suffer 1/2 damage; you may then push them 1"/2".
+  effect_es: |
+    Elige 1/2 miniatura/s con línea de visión del hechicero hasta a 8". Sufren 1/2 de daño y luego puedes empujarlas 1"/2".
 
 # ---- Bone ----
 
 - school: BONE
+  school_es: HUESO
   name: Bone Armour
+  name_es: Armadura de Hueso
   ap: 1
   channel: 6+
   sigil: ""
   flavor: Pulling the very form of a somewhat willing minion apart, its bones are reshaped into armoured plates to protect the caster.
+  flavor_es: Deshaciendo la forma de un esbirro voluntario, sus huesos son remodelados en placas de armadura para proteger al hechicero.
   effect: |
     Choose any friendly model with the Bone keyword within 3" and line of sight; it suffers 4/6 damage. The caster is then armour +1/+2 for the rest of the game. This spell may only be cast once per game.
+  effect_es: |
+    Elige una miniatura aliada con la palabra clave Hueso a 3" y con línea de visión. Sufre 4/6 de daño. El hechicero obtiene entonces +1/+2 de armadura el resto de la partida. Este hechizo solo puede lanzarse una vez por partida.
 
 - school: BONE
+  school_es: HUESO
   name: Bone Spear
+  name_es: Lanza de hueso
   ap: 1
   channel: 6+
   sigil: ""
   flavor: Tearing and reshaping a single bone from its host, forming a javelin hurled with pure force of will.
+  flavor_es: Arrancando y dándole forma a un solo hueso del huésped, creando una jabalina lanzada con pura fuerza de voluntad.
   effect: |
     Choose any model with the Bone keyword within 5" and line of sight; it suffers 2 damage. The caster may then make a ranged attack with attacks 1, damage 3/6, range 6". *If the channelling roll is a success the attack gains +1/+1 damage.
+  effect_es: |
+    Elige una miniatura con la palabra clave Hueso a 5" y con línea de visión. Sufre 2 puntos de daño. El hechicero puede entonces hacer un ataque a distancia con Ataques 1, Daño 3/6, Alcance 6". *Si la tirada de canalización es un éxito, el ataque gana +1/+1 de daño.
 
 - school: BONE
+  school_es: HUESO
   name: Teeth
+  name_es: Dientes
   ap: 1
   channel: 6+
   sigil: ""
   flavor: Teeth and bones splinter from the target to pelt nearby enemies with a hail of razor-sharp shards.
+  flavor_es: Dientes y huesos se astillan del objetivo para acribillar a los enemigos cercanos con una lluvia de fragmentos cortantes como cuchillas.
   effect: |
     Choose any model with the Bone keyword within 3" and line of sight; it suffers 1 damage. Then choose up to 1/2 additional models within 3" of that model; the caster may make a ranged attack against each with attacks 1, damage 1/4, range 6".
+  effect_es: |
+    Elige una miniatura con la palabra clave Hueso a 3" y con línea de visión. Sufre 1 punto de daño. Después elige hasta 1/2 miniaturas adicionales que estén hasta a 3" de esa miniatura; el hechicero puede hacer un ataque a distancia contra cada una con Ataques 1, Daño 1/4, Alcance 6".
 
 - school: BONE
+  school_es: HUESO
   name: Tireless Command
+  name_es: Mandato Incansable
   ap: 1
   channel: 7+
   sigil: ""
   flavor: Skeletal forms blur as they are pushed into action by invisible hands.
+  flavor_es: Formas esqueléticas se difuminan mientras son impulsadas a la acción por manos invisibles.
   effect: |
     Choose a friendly model with the Bone keyword within 3"/5" and line of sight; they may make a free attack action with a melee weapon.
+  effect_es: |
+    Elige una miniatura aliada con la palabra clave Hueso a 3"/5" y con línea de visión. Puede realizar una acción de ataque gratuita con un arma cuerpo a cuerpo.
 
 # ---- Plasm ----
 
 - school: PLASM
+  school_es: PLASMA
   name: Blink
+  name_es: Translocar
   ap: 1
   channel: 7+
   sigil: ""
   flavor: The caster pushes their minion briefly out of the material plane, phasing them back in a new location.
+  flavor_es: El hechicero empuja a su esbirro fuera del plano material por un breve instante, transportándolo de vuelta a una nueva localización.
   effect: |
     Choose a friendly model within 3" and line of sight; push that model 3"/5" as if it had the Fly keyword.
+  effect_es: |
+    Elige una miniatura aliada a 3" y con línea de visión: empuja esa miniatura 3"/5" como si tuviera la palabra clave Volar.
 
 - school: PLASM
+  school_es: PLASMA
   name: Phantasm
+  name_es: Fantasmagoría
   ap: 2
   channel: 7+
   sigil: ""
   flavor: A small and lingering spirit is drawn forth to do the caster's bidding.
+  flavor_es: Un pequeño y persistente espíritu es llamado para servir a los designios del hechicero.
   effect: |
     Place a friendly Phantasm model within 2"/5" of the caster. The Phantasm disappears at the end of the battle. This spell can only be cast once per scenario.
+  effect_es: |
+    Coloca una miniatura de Fantasma aliada hasta a 2"/5" del hechicero. El Fantasma desaparece al final de la batalla. Este hechizo solo puede lanzarse una vez por partida.
 
 - school: PLASM
+  school_es: PLASMA
   name: Plasmic Emberburst
+  name_es: Explosión de Ascuas Plasmáticas
   ap: 1
   channel: 6+
   sigil: ""
   flavor: Azure balefire erupts from the caster, sending their attackers reeling.
+  flavor_es: Un fuego infernal de color azul erupciona dentro del hechicero haciendo que sus atacantes se tambaleen.
   effect: |
     Every model (besides the caster) within 3" suffers 1/3 damage and is pushed 3" directly away from the caster.
+  effect_es: |
+    Todas las miniaturas (a excepción del hechicero) hasta a 3" sufren 1/3 de daño y son empujadas 3" alejándose directamente del hechicero.
 
 - school: PLASM
+  school_es: PLASMA
   name: Plasmic Shield
+  name_es: Escudo Plasmático
   ap: 1
   channel: 5+
   sigil: ""
   flavor: A cracking corona of pale mana turns aside the strikes of enemies.
+  flavor_es: Una corona de maná pálido desvía los golpes de los enemigos.
   effect: |
     Select a model within 3"/6" and line of sight; that model has +1 armour (maximum 4) until the caster's next activation.
+  effect_es: |
+    Elige una miniatura a 3"/6" y con línea de visión: esa miniatura gana +1 de armadura (hasta un máximo de 4) hasta la siguiente activación del hechicero.
 
 - school: PLASM
+  school_es: PLASMA
   name: Spectral Pull
+  name_es: Atracción Espectral
   ap: 1
   channel: 6+
   sigil: ""
   flavor: Hands of pure energy reach out to draw treasures close.
+  flavor_es: Manos de pura energía se estiran para alcanzar tesoros cercanos.
   effect: |
     Push an objective or relic model within 4"/7" and line of sight 3".
+  effect_es: |
+    Empuja 3" un objetivo o reliquia con línea de visión del hechicero a 4"/7".
