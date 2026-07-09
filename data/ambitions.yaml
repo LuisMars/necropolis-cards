@@ -1,0 +1,199 @@
+# Minor Ambitions — WIP Necropolis Rules 0.9, p.67-68.
+# The leader's long-term campaign goals. Before each battle a player
+# picks 4 minor ambitions to pursue; each has a Condition, a goal number
+# (how many times the condition must be met) and a Reward (rendered via
+# rule.svg's EFFECT block).
+# Spanish (_es) fields are the official text transcribed from
+# "Necropolis español v1_1.pdf" p.67-68 (not machine-translated).
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Test the Limits of Undeath
+  name_es: Probar los Límites del Más Allá
+  restrictions: Curse Path
+  restrictions_es: Sendero de la Maldición
+  sigil: ""
+  effect: |
+    Condition: Cast the summon spell. (Goal: 4).
+
+    Reward: Gain +1 max HP for the whole gathering.
+  effect_es: |
+    Condición: Lanzar el hechizo Invocar (4 veces).
+
+    Recompensa: +1 HP máximo para todo el Séquito.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Commune with the Truth
+  name_es: Comulgar con la Verdad
+  restrictions: Curse Path
+  restrictions_es: Sendero de la Maldición
+  sigil: ""
+  effect: |
+    Condition: Run out of mana dice during a battle. (Goal: 2).
+
+    Reward: +1 mana point of any type.
+  effect_es: |
+    Condición: Quedarse sin dados de maná durante una partida (2 veces).
+
+    Recompensa: +1 punto de maná de cualquier tipo.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Master Abyssal Artillery
+  name_es: Dominar la Artillería Abisal
+  restrictions: Curse Path
+  restrictions_es: Sendero de la Maldición
+  sigil: ""
+  effect: |
+    Condition: Cause an enemy model to become Shattered with a spell. (Goal: 3).
+
+    Reward: +1 to the channelling roll for a spell of your choice.
+  effect_es: |
+    Condición: Causar que una miniatura enemiga sea Hecha añicos con un hechizo (3 veces).
+
+    Recompensa: +1 a la tirada de canalización para un hechizo de tu elección.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Settle Old Grudges
+  name_es: Saldar Viejas Deudas
+  restrictions: Shattered Path
+  restrictions_es: Sendero de la Destrucción
+  sigil: ""
+  effect: |
+    Condition: Cause an enemy model to become Shattered with melee attacks. (Goal: 5).
+
+    Reward: Improve violence by 1 for a model of your choice.
+  effect_es: |
+    Condición: Causar que una miniatura enemiga sea Hecha añicos con ataques cuerpo a cuerpo (5 veces).
+
+    Recompensa: Mejorar la Violencia en 1 para una miniatura de tu elección.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Rain Iron Sleet
+  name_es: Lluvia de Hierro
+  restrictions: Shattered Path
+  restrictions_es: Sendero de la Destrucción
+  sigil: ""
+  effect: |
+    Condition: Cause an enemy model to become Shattered with ranged attacks. (Goal: 2).
+
+    Reward: Improve ranged by 1 for a model of your choice.
+  effect_es: |
+    Condición: Causar que una miniatura enemiga sea Hecha añicos con ataques a distancia (2 veces).
+
+    Recompensa: Mejorar A Distancia en 1 para una miniatura de tu elección.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: A Favoured Familiar
+  name_es: Un Familiar Favorito
+  restrictions: Shattered Path
+  restrictions_es: Sendero de la Destrucción
+  sigil: ""
+  effect: |
+    Condition: A familiar causes an enemy model to become Shattered. (Goal: 1).
+
+    Reward: Improve violence by 1 and +1 max HP for that familiar.
+  effect_es: |
+    Condición: Un Familiar causa que una miniatura enemiga sea Hecha añicos (1 vez).
+
+    Recompensa: Ese Familiar mejora su Violencia en 1 y +1 HP máximos.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Strike Down the Horrors
+  name_es: Abatir a los Horrores
+  restrictions: Shattered Path
+  restrictions_es: Sendero de la Destrucción
+  sigil: ""
+  effect: |
+    Condition: Cause an enemy Gigantic Horror to become Shattered. (Goal: 1).
+
+    Reward: One model in your gathering may take a trait from your covenant or the wretched undead list.
+  effect_es: |
+    Condición: Causar que un Horror Gigantesco enemigo sea Hecho añicos (1 vez).
+
+    Recompensa: Una miniatura de tu Séquito puede tomar un rasgo de tu pacto o de la lista de los No Muertos Miserables.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Build a Sanctuary
+  name_es: Construir un Santuario
+  restrictions: Gilt Path
+  restrictions_es: Sendero del Oro
+  sigil: ""
+  effect: |
+    Condition: Purchase a lair upgrade. (Goal: 2).
+
+    Reward: Gain +50 deployment limit.
+  effect_es: |
+    Condición: Comprar una mejora de guarida (2 veces).
+
+    Recompensa: +50 al límite de despliegue.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Inspire Fear
+  name_es: Inspirar Miedo
+  restrictions: Gilt Path
+  restrictions_es: Sendero del Oro
+  sigil: ""
+  effect: |
+    Condition: Field a gigantic horror. (Goal: 1).
+
+    Reward: +50 deployment limit.
+  effect_es: |
+    Condición: Desplegar un Horror Colosal (1 vez).
+
+    Recompensa: +50 al límite de despliegue.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Scour the Lands
+  name_es: Hurgar en las Tierras
+  restrictions: Path of Eyes
+  restrictions_es: Sendero de los Ojos
+  sigil: ""
+  effect: |
+    Condition: Complete a scenario. (Goal: 2).
+
+    Reward: Roll on the treasure table.
+  effect_es: |
+    Condición: Completar un escenario (2 veces).
+
+    Recompensa: Tira en la tabla de tesoros menores.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Read the Omens
+  name_es: Leer los Augurios
+  restrictions: Path of Eyes
+  restrictions_es: Sendero de los Ojos
+  sigil: ""
+  effect: |
+    Condition: Complete a scenario that uses the dread omens table. (Goal: 3).
+
+    Reward: When playing a scenario using the dread omens table you may reroll the result once.
+  effect_es: |
+    Condición: Completar un escenario que use la tabla de Augurios Siniestros (3 veces).
+
+    Recompensa: Puedes repetir tu tirada en la tabla Augurios Siniestros una vez. Acepta el segundo resultado.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Search for Ancient Lore
+  name_es: Buscar Conocimiento Ancestral
+  restrictions: Path of Eyes
+  restrictions_es: Sendero de los Ojos
+  sigil: ""
+  effect: |
+    Condition: Leader ends their activation holding an objective or relic. (Goal: 3).
+
+    Reward: Gain a spell of any type.
+  effect_es: |
+    Condición: El líder termina su activación manteniendo un objetivo o una reliquia (3 veces).
+
+    Recompensa: Ganas un hechizo de cualquier tipo.

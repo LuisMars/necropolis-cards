@@ -34,6 +34,10 @@ groups:
       - { key: throwing-pots,      title: Throwing Pots,          template: weapon,           data: throwing-pots.yaml, header: Thrown Pot, header_es: Frasco }
       - { key: potions,            title: Potions,                template: equipment,        data: potions.yaml }
 
+  - title: Campaign
+    items:
+      - { key: ambitions,          title: Minor Ambitions,        template: rule,             data: ambitions.yaml }
+
   - title: Reference
     items:
       - { key: special-rules,      title: Special Rules,          template: rule,             data: special-rules.yaml }

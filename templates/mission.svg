@@ -22,7 +22,7 @@
   <text class="banner-title" x="31.5" y="9.2" data-edit-idx="5">{{NAME}}</text>
 
   <!-- Flavor — 1–2 lines under the banner. -->
-  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=16.5 lineheight=2.8 width=45chars maxlines=2 style=flavor anchor=middle -->
+  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=14.2 lineheight=2.4 width=45chars maxlines=3 style=flavor anchor=middle -->
 
   <!-- Objectives and Deployment are packed in a compact face so the more
        decisive Victory text below gets room to breathe. -->

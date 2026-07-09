@@ -59,11 +59,11 @@
   <text class="stat-val" x="44.639" y="47.464" data-edit-idx="22">{{RNGD}}</text>
   <text class="stat-val" x="55.358" y="47.464" data-edit-idx="23">{{HP}}</text>
 
-  <line class="divider" x1="4.565" y1="52.426" x2="58.435" y2="52.426" data-edit-idx="24"/>
+  <line class="divider" x1="4.565" y1="49.5" x2="58.435" y2="49.5" data-edit-idx="24"/>
 
-  <text class="heading" x="4.565" y="55.234" data-edit-idx="25">SPECIAL RULES</text>
-  <!-- BODY_BLOCK: SPECIAL_RULES @ x=4.565 y=58.043 lineheight=2.809 width=45chars maxlines=10 style=bodysm -->
+  <text class="heading" x="4.565" y="52.2" data-edit-idx="25">SPECIAL RULES</text>
+  <!-- BODY_BLOCK: SPECIAL_RULES @ x=4.565 y=54.5 lineheight=2.75 width=45chars maxlines=11 style=bodysm -->
 
   <!-- Flavor at the very bottom -->
-  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=87.064 lineheight=2.153 width=58chars maxlines=1 style=flavor anchor=middle -->
+  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=84.6 lineheight=2.153 width=50chars maxlines=2 style=flavor anchor=middle -->
 </svg>

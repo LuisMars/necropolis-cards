@@ -10,6 +10,7 @@
       .heading     { font-family: 'Alegreya SC', serif; font-size: 2.621px; fill: #000000; font-weight: bold; letter-spacing: 0.374px; }
       .flavor      { font-family: 'Alegreya', serif; font-size: 2.809px; font-style: italic; fill: #444444; text-anchor: middle; }
       .body        { font-family: 'Alegreya', serif; font-size: 2.809px; fill: #000000; }
+      .effect      { font-family: 'Alegreya', serif; font-size: 2.5px; fill: #000000; }
       .meta        { font-family: 'Alegreya SC', serif; font-size: 2.247px; fill: #000000; letter-spacing: 0.281px; }
       .footer      { font-family: 'Alegreya SC', serif; font-size: 2.434px; fill: #444444; text-anchor: middle; letter-spacing: 0.562px; }
       .divider     { fill: none; stroke: #000000; stroke-width: 0.187; }
@@ -50,6 +51,6 @@
   <!-- Special -->
   <line class="divider" x1="4.565" y1="70.213" x2="58.435" y2="70.213" data-edit-idx="18"/>
   <text class="heading" x="4.565" y="73.957" data-edit-idx="19">SPECIAL</text>
-  <!-- BODY_BLOCK: SPECIAL @ x=4.565 y=78.17 lineheight=3.745 width=45chars maxlines=3 -->
+  <!-- BODY_BLOCK: SPECIAL @ x=4.565 y=76.0 lineheight=3.0 width=46chars maxlines=4 style=effect -->
 
 </svg>

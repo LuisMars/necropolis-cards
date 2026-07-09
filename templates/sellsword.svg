@@ -34,9 +34,11 @@
 
   <!-- Meta row — columns at 10.5 / 31.5 / 52.5 mm; AFFINITY from
        Companion App's `profile.affinity`, empty for library cards. -->
-  <text text-anchor="middle" x="10.5" y="26.213" data-edit-idx="9"><tspan class="label">COST </tspan><tspan class="value">{{COST}}</tspan></text>
-  <text text-anchor="middle" x="31.5" y="26.213" data-edit-idx="11"><tspan class="label">BASE </tspan><tspan class="value">{{BASE}}</tspan></text>
-  <text text-anchor="middle" x="52.5" y="26.213" data-edit-idx="14"><tspan class="label">AFF </tspan><tspan class="value">{{AFFINITY}}</tspan></text>
+  <!-- COST uses the long "NN roster / NN deploy" format, so it is left-anchored
+       and BASE right-anchored (AFFINITY is always empty for sellswords and was
+       dropped) so neither runs off the trim. -->
+  <text text-anchor="start" x="4.565" y="26.213" data-edit-idx="9"><tspan class="label">COST </tspan><tspan class="value">{{COST}}</tspan></text>
+  <text text-anchor="end" x="58.435" y="26.213" data-edit-idx="11"><tspan class="label">BASE </tspan><tspan class="value">{{BASE}}</tspan></text>
 
   <!-- Stat labels + values shifted up 6 mm with the frame. -->
   <text class="stat-on-frame" x="8.126" y="40.63" style="font-size: 1.872pt;" data-edit-idx="13">AP</text>
@@ -51,12 +53,12 @@
   <text class="stat-val" x="44.639" y="45.591" data-edit-idx="21">{{RNGD}}</text>
   <text class="stat-val" x="55.358" y="45.591" data-edit-idx="22">{{HP}}</text>
 
-  <line class="divider" x1="4.565" y1="58.043" x2="58.435" y2="58.043" data-edit-idx="23"/>
+  <line class="divider" x1="4.565" y1="49.5" x2="58.435" y2="49.5" data-edit-idx="23"/>
 
-  <text class="heading" x="4.565" y="60.851" data-edit-idx="24">ARMAMENTS</text>
-  <!-- BODY_BLOCK: ARMAMENTS @ x=4.565 y=64.128 lineheight=2.621 width=45chars maxlines=2 -->
+  <text class="heading" x="4.565" y="52.3" data-edit-idx="24">ARMAMENTS</text>
+  <!-- BODY_BLOCK: ARMAMENTS @ x=4.565 y=55.0 lineheight=2.621 width=48chars maxlines=2 -->
 
-  <line class="divider" x1="4.565" y1="70.213" x2="58.435" y2="70.213" data-edit-idx="25"/>
-  <text class="heading" x="4.565" y="73.021" data-edit-idx="26">SPECIAL RULES</text>
-  <!-- BODY_BLOCK: SPECIAL_RULES @ x=4.565 y=76.298 lineheight=2.809 width=45chars maxlines=5 style=bodysm -->
+  <line class="divider" x1="4.565" y1="60.5" x2="58.435" y2="60.5" data-edit-idx="25"/>
+  <text class="heading" x="4.565" y="63.3" data-edit-idx="26">SPECIAL RULES</text>
+  <!-- BODY_BLOCK: SPECIAL_RULES @ x=4.565 y=66.0 lineheight=2.75 width=45chars maxlines=8 style=bodysm -->
 </svg>
