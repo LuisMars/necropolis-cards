@@ -25,8 +25,12 @@
   <text class="restrict" x="31.5" y="23.123" data-edit-idx="7">{{RESTRICTIONS}}</text>
 
   <line class="divider" x1="4.565" y1="29.021" x2="58.435" y2="29.021" data-edit-idx="8"/>
-  <text class="heading" x="4.565" y="32.766" data-edit-idx="9">EFFECT</text>
-  <!-- BODY_BLOCK: EFFECT @ x=4.565 y=37.447 lineheight=3.1 width=46chars maxlines=14 style=effect short_fill=true -->
+
+  <text class="heading" x="4.565" y="32.766" data-edit-idx="9">CONDITION</text>
+  <!-- BODY_BLOCK: CONDITION @ x=4.565 y=37.447 lineheight=3.1 width=46chars maxlines=3 style=effect -->
+
+  <text class="heading" x="4.565" y="48.000" data-edit-idx="10">REWARD</text>
+  <!-- BODY_BLOCK: REWARD @ x=4.565 y=52.681 lineheight=3.1 width=46chars maxlines=5 style=effect -->
 
   <!-- TRACKER: GOAL @ cx=31.5 y=78 r=1.5 gap=5 label_y=74 divider_y=70.6 -->
 

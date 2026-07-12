@@ -81,19 +81,23 @@ def render_body_block(match: re.Match, value: str) -> str:
         cy_centre = 55  # roughly centre of the card body region
         flat = " ".join(" ".join(p.split()) for p in paragraphs if p.strip())
         big_lines = textwrap.wrap(flat, width=22) or [flat]
-        big_lines = big_lines[:3]
-        big_font = 7.5 if len(big_lines) == 1 else 6 if len(big_lines) == 2 else 5
-        big_lh   = big_font * 1.3
-        first_y = cy_centre - big_lh * (len(big_lines) - 1) * 0.5
-        out = []
-        for i, line in enumerate(big_lines):
-            safe = html.escape(line)
-            out.append(
-                f'<text class="{style}" x="34.5" y="{first_y + i*big_lh:.2f}" '
-                f'text-anchor="middle" font-size="{big_font}px" '
-                f'font-style="italic" fill="#222">{safe}</text>'
-            )
-        return "\n  ".join(out)
+        # Only use the big centred layout when the content genuinely fits in
+        # 3 big lines — truncating here silently LOST text (e.g. rules whose
+        # 46-char wrap is 3 lines but whose 22-char wrap is 4+). Otherwise
+        # fall through to the normal top-aligned layout below.
+        if len(big_lines) <= 3:
+            big_font = 7.5 if len(big_lines) == 1 else 6 if len(big_lines) == 2 else 5
+            big_lh   = big_font * 1.3
+            first_y = cy_centre - big_lh * (len(big_lines) - 1) * 0.5
+            out = []
+            for i, line in enumerate(big_lines):
+                safe = html.escape(line)
+                out.append(
+                    f'<text class="{style}" x="34.5" y="{first_y + i*big_lh:.2f}" '
+                    f'text-anchor="middle" font-size="{big_font}px" '
+                    f'font-style="italic" fill="#222">{safe}</text>'
+                )
+            return "\n  ".join(out)
 
     if len(lines) > maxlines:
         lines = lines[:maxlines]
@@ -107,6 +111,52 @@ def render_body_block(match: re.Match, value: str) -> str:
         cy = y + i * lh
         safe = html.escape(line)
         out.append(f'<text class="{style}" x="{x}" y="{cy}"{anchor_attr}>{safe}</text>')
+    return "\n  ".join(out)
+
+# Check-off tracker row (Minor Ambition cards): a divider + small-caps label
+# + one hollow circle per goal point, centred horizontally. Declared in the
+# template as, e.g.:
+#   <!-- TRACKER: GOAL @ cx=31.5 y=83 r=1.5 gap=5 label_y=79 divider_y=75.6 -->
+# Renders NOTHING when the row has no such field (or it's 0), so shared
+# templates (rule.svg also serves traits / special rules) are unaffected.
+TRACKER_RE = re.compile(
+    r'<!--\s*TRACKER:\s*(?P<key>\w+)\s*@\s*'
+    r'cx=(?P<cx>[\d.]+)\s+y=(?P<y>[\d.]+)\s+'
+    r'r=(?P<r>[\d.]+)\s+gap=(?P<gap>[\d.]+)\s+'
+    r'label_y=(?P<label_y>[\d.]+)\s+'
+    r'divider_y=(?P<divider_y>[\d.]+)'
+    r'\s*-->'
+)
+
+TRACKER_LABEL = "Times Achieved"   # Title Case — never ALL CAPS
+# Divider endpoints match rule.svg's existing section divider.
+TRACKER_DIVIDER_X1, TRACKER_DIVIDER_X2 = 4.565, 58.435
+
+def render_tracker(match: re.Match, goal) -> str:
+    """Expand a TRACKER marker into the check-off row, or nothing if goal<=0."""
+    try:
+        n = int(goal)
+    except (TypeError, ValueError):
+        n = 0
+    if n <= 0:
+        return ""
+    cx        = float(match.group("cx"))
+    y         = float(match.group("y"))
+    r         = float(match.group("r"))
+    gap       = float(match.group("gap"))
+    label_y   = float(match.group("label_y"))
+    divider_y = float(match.group("divider_y"))
+    out = [
+        f'<line class="divider" x1="{TRACKER_DIVIDER_X1}" y1="{divider_y}" '
+        f'x2="{TRACKER_DIVIDER_X2}" y2="{divider_y}"/>',
+        f'<text class="footer" x="{cx}" y="{label_y}">{html.escape(TRACKER_LABEL)}</text>',
+    ]
+    first = cx - gap * (n - 1) / 2
+    for i in range(n):
+        out.append(
+            f'<circle cx="{first + i * gap:.3f}" cy="{y}" r="{r}" '
+            f'fill="none" stroke="#000000" stroke-width="0.3"/>'
+        )
     return "\n  ".join(out)
 
 # Pure ink-splotch images used to decorate card backgrounds. Each card
@@ -161,6 +211,13 @@ def fill_template(template: str, data: dict) -> str:
         key = m.group("key")
         return render_body_block(m, data.get(key.lower(), ""))
     result = BODY_BLOCK_RE.sub(body_repl, result)
+
+    # Tracker markers: check-off dots row, rendered only when the row has a
+    # positive goal (Minor Ambitions); empty for every other category.
+    def tracker_repl(m):
+        key = m.group("key")
+        return render_tracker(m, data.get(key.lower()))
+    result = TRACKER_RE.sub(tracker_repl, result)
 
     # Strip <image> tags whose PORTRAIT/SIGIL value is empty.
     for key in ("PORTRAIT", "SIGIL"):

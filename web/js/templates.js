@@ -11,10 +11,21 @@
  */
 
 import { state } from "./state.js";
-import { translateLabels, pickField } from "./i18n.js";
+import { translateLabels, pickField, LABELS } from "./i18n.js";
 
 const BODY_BLOCK_RE =
   /<!--\s*BODY_BLOCK:\s*(\w+)\s*@\s*x=([\d.]+)\s+y=([\d.]+)\s+lineheight=([\d.]+)\s+width=(\d+)chars\s+maxlines=(\d+)(?:\s+style=(\w+))?(?:\s+anchor=(\w+))?(?:\s+short_fill=(\w+))?\s*-->/g;
+
+// Check-off tracker row (Minor Ambition cards) — mirrors build.py's
+// TRACKER_RE / render_tracker. Renders NOTHING when the row has no positive
+// goal, so shared templates (rule.svg also serves traits / special rules)
+// are unaffected.
+const TRACKER_RE =
+  /<!--\s*TRACKER:\s*(\w+)\s*@\s*cx=([\d.]+)\s+y=([\d.]+)\s+r=([\d.]+)\s+gap=([\d.]+)\s+label_y=([\d.]+)\s+divider_y=([\d.]+)\s*-->/g;
+
+const TRACKER_LABEL = "Times Achieved"; // Title Case — never ALL CAPS
+// Divider endpoints match rule.svg's existing section divider.
+const TRACKER_DIVIDER_X1 = 4.565, TRACKER_DIVIDER_X2 = 58.435;
 
 /** Build the inline SVG for a queue item.
  *
@@ -213,6 +224,25 @@ function substituteTemplate(tpl, row, lang = "en") {
     return lines.map((line, i) =>
       `<text class="${cls}" x="${x}" y="${parseFloat(y) + i * parseFloat(lh)}"${anchorAttr}>${escapeXml(line)}</text>`
     ).join("\n");
+  });
+  // Tracker markers: check-off dots row, rendered only when the row has a
+  // positive goal (Minor Ambitions); empty for every other category.
+  tpl = tpl.replace(TRACKER_RE, (_, key, cx, y, r, gap, labelY, dividerY) => {
+    const n = parseInt(pickField(row, key.toLowerCase(), lang), 10) || 0;
+    if (n <= 0) return "";
+    const label = (lang === "es" && LABELS[TRACKER_LABEL]) || TRACKER_LABEL;
+    const cxF = parseFloat(cx), gapF = parseFloat(gap);
+    const first = cxF - gapF * (n - 1) / 2;
+    const parts = [
+      `<line class="divider" x1="${TRACKER_DIVIDER_X1}" y1="${dividerY}" x2="${TRACKER_DIVIDER_X2}" y2="${dividerY}"/>`,
+      `<text class="footer" x="${cx}" y="${labelY}">${escapeXml(label)}</text>`,
+    ];
+    for (let i = 0; i < n; i++) {
+      parts.push(
+        `<circle cx="${(first + i * gapF).toFixed(3)}" cy="${y}" r="${r}" fill="none" stroke="#000000" stroke-width="0.3"/>`
+      );
+    }
+    return parts.join("\n  ");
   });
   // Second: simple {{KEY}} substitution.
   tpl = tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => {

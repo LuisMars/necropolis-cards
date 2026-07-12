@@ -36,7 +36,7 @@ groups:
 
   - title: Campaign
     items:
-      - { key: ambitions,          title: Minor Ambitions,        template: rule,             data: ambitions.yaml }
+      - { key: ambitions,          title: Minor Ambitions,        template: ambition,         data: ambitions.yaml }
 
   - title: Reference
     items:

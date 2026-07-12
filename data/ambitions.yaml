@@ -1,8 +1,10 @@
 # Minor Ambitions — WIP Necropolis Rules 0.9, p.67-68.
 # The leader's long-term campaign goals. Before each battle a player
 # picks 4 minor ambitions to pursue; each has a Condition, a goal number
-# (how many times the condition must be met) and a Reward (rendered via
-# rule.svg's EFFECT block).
+# (how many times the condition must be met) and a Reward. Rendered via
+# the dedicated ambition.svg template: separate CONDITION and REWARD
+# body blocks, plus check-off tracker dots driven by the `goal:` field
+# (ambition.svg's TRACKER marker).
 # Spanish (_es) fields are the official text transcribed from
 # "Necropolis español v1_1.pdf" p.67-68 (not machine-translated).
 
@@ -13,14 +15,11 @@
   restrictions: Curse Path
   restrictions_es: Sendero de la Maldición
   sigil: ""
-  effect: |
-    Condition: Cast the summon spell. (Goal: 4).
-
-    Reward: Gain +1 max HP for the whole gathering.
-  effect_es: |
-    Condición: Lanzar el hechizo Invocar (4 veces).
-
-    Recompensa: +1 HP máximo para todo el Séquito.
+  goal: 4
+  condition: Cast the summon spell.
+  condition_es: Lanzar el hechizo Invocar.
+  reward: Gain +1 max HP for the whole gathering.
+  reward_es: +1 HP máximo para todo el Séquito.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -29,14 +28,11 @@
   restrictions: Curse Path
   restrictions_es: Sendero de la Maldición
   sigil: ""
-  effect: |
-    Condition: Run out of mana dice during a battle. (Goal: 2).
-
-    Reward: +1 mana point of any type.
-  effect_es: |
-    Condición: Quedarse sin dados de maná durante una partida (2 veces).
-
-    Recompensa: +1 punto de maná de cualquier tipo.
+  goal: 2
+  condition: Run out of mana dice during a battle.
+  condition_es: Quedarse sin dados de maná durante una partida.
+  reward: +1 mana point of any type.
+  reward_es: +1 punto de maná de cualquier tipo.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -45,14 +41,11 @@
   restrictions: Curse Path
   restrictions_es: Sendero de la Maldición
   sigil: ""
-  effect: |
-    Condition: Cause an enemy model to become Shattered with a spell. (Goal: 3).
-
-    Reward: +1 to the channelling roll for a spell of your choice.
-  effect_es: |
-    Condición: Causar que una miniatura enemiga sea Hecha añicos con un hechizo (3 veces).
-
-    Recompensa: +1 a la tirada de canalización para un hechizo de tu elección.
+  goal: 3
+  condition: Cause an enemy model to become Shattered with a spell.
+  condition_es: Causar que una miniatura enemiga sea Hecha añicos con un hechizo.
+  reward: +1 to the channelling roll for a spell of your choice.
+  reward_es: +1 a la tirada de canalización para un hechizo de tu elección.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -61,14 +54,11 @@
   restrictions: Shattered Path
   restrictions_es: Sendero de la Destrucción
   sigil: ""
-  effect: |
-    Condition: Cause an enemy model to become Shattered with melee attacks. (Goal: 5).
-
-    Reward: Improve violence by 1 for a model of your choice.
-  effect_es: |
-    Condición: Causar que una miniatura enemiga sea Hecha añicos con ataques cuerpo a cuerpo (5 veces).
-
-    Recompensa: Mejorar la Violencia en 1 para una miniatura de tu elección.
+  goal: 5
+  condition: Cause an enemy model to become Shattered with melee attacks.
+  condition_es: Causar que una miniatura enemiga sea Hecha añicos con ataques cuerpo a cuerpo.
+  reward: Improve violence by 1 for a model of your choice.
+  reward_es: Mejorar la Violencia en 1 para una miniatura de tu elección.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -77,14 +67,11 @@
   restrictions: Shattered Path
   restrictions_es: Sendero de la Destrucción
   sigil: ""
-  effect: |
-    Condition: Cause an enemy model to become Shattered with ranged attacks. (Goal: 2).
-
-    Reward: Improve ranged by 1 for a model of your choice.
-  effect_es: |
-    Condición: Causar que una miniatura enemiga sea Hecha añicos con ataques a distancia (2 veces).
-
-    Recompensa: Mejorar A Distancia en 1 para una miniatura de tu elección.
+  goal: 2
+  condition: Cause an enemy model to become Shattered with ranged attacks.
+  condition_es: Causar que una miniatura enemiga sea Hecha añicos con ataques a distancia.
+  reward: Improve ranged by 1 for a model of your choice.
+  reward_es: Mejorar A Distancia en 1 para una miniatura de tu elección.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -93,14 +80,11 @@
   restrictions: Shattered Path
   restrictions_es: Sendero de la Destrucción
   sigil: ""
-  effect: |
-    Condition: A familiar causes an enemy model to become Shattered. (Goal: 1).
-
-    Reward: Improve violence by 1 and +1 max HP for that familiar.
-  effect_es: |
-    Condición: Un Familiar causa que una miniatura enemiga sea Hecha añicos (1 vez).
-
-    Recompensa: Ese Familiar mejora su Violencia en 1 y +1 HP máximos.
+  goal: 1
+  condition: A familiar causes an enemy model to become Shattered.
+  condition_es: Un Familiar causa que una miniatura enemiga sea Hecha añicos.
+  reward: Improve violence by 1 and +1 max HP for that familiar.
+  reward_es: Ese Familiar mejora su Violencia en 1 y +1 HP máximos.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -109,14 +93,11 @@
   restrictions: Shattered Path
   restrictions_es: Sendero de la Destrucción
   sigil: ""
-  effect: |
-    Condition: Cause an enemy Gigantic Horror to become Shattered. (Goal: 1).
-
-    Reward: One model in your gathering may take a trait from your covenant or the wretched undead list.
-  effect_es: |
-    Condición: Causar que un Horror Gigantesco enemigo sea Hecho añicos (1 vez).
-
-    Recompensa: Una miniatura de tu Séquito puede tomar un rasgo de tu pacto o de la lista de los No Muertos Miserables.
+  goal: 1
+  condition: Cause an enemy Gigantic Horror to become Shattered.
+  condition_es: Causar que un Horror Gigantesco enemigo sea Hecho añicos.
+  reward: One model in your gathering may take a trait from your covenant or the wretched undead list.
+  reward_es: Una miniatura de tu Séquito puede tomar un rasgo de tu pacto o de la lista de los No Muertos Miserables.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -125,14 +106,11 @@
   restrictions: Gilt Path
   restrictions_es: Sendero del Oro
   sigil: ""
-  effect: |
-    Condition: Purchase a lair upgrade. (Goal: 2).
-
-    Reward: Gain +50 deployment limit.
-  effect_es: |
-    Condición: Comprar una mejora de guarida (2 veces).
-
-    Recompensa: +50 al límite de despliegue.
+  goal: 2
+  condition: Purchase a lair upgrade.
+  condition_es: Comprar una mejora de guarida.
+  reward: Gain +50 deployment limit.
+  reward_es: +50 al límite de despliegue.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -141,14 +119,11 @@
   restrictions: Gilt Path
   restrictions_es: Sendero del Oro
   sigil: ""
-  effect: |
-    Condition: Field a gigantic horror. (Goal: 1).
-
-    Reward: +50 deployment limit.
-  effect_es: |
-    Condición: Desplegar un Horror Colosal (1 vez).
-
-    Recompensa: +50 al límite de despliegue.
+  goal: 1
+  condition: Field a gigantic horror.
+  condition_es: Desplegar un Horror Colosal.
+  reward: +50 deployment limit.
+  reward_es: +50 al límite de despliegue.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -157,14 +132,11 @@
   restrictions: Path of Eyes
   restrictions_es: Sendero de los Ojos
   sigil: ""
-  effect: |
-    Condition: Complete a scenario. (Goal: 2).
-
-    Reward: Roll on the treasure table.
-  effect_es: |
-    Condición: Completar un escenario (2 veces).
-
-    Recompensa: Tira en la tabla de tesoros menores.
+  goal: 2
+  condition: Complete a scenario.
+  condition_es: Completar un escenario.
+  reward: Roll on the treasure table.
+  reward_es: Tira en la tabla de tesoros menores.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -173,14 +145,11 @@
   restrictions: Path of Eyes
   restrictions_es: Sendero de los Ojos
   sigil: ""
-  effect: |
-    Condition: Complete a scenario that uses the dread omens table. (Goal: 3).
-
-    Reward: When playing a scenario using the dread omens table you may reroll the result once.
-  effect_es: |
-    Condición: Completar un escenario que use la tabla de Augurios Siniestros (3 veces).
-
-    Recompensa: Puedes repetir tu tirada en la tabla Augurios Siniestros una vez. Acepta el segundo resultado.
+  goal: 3
+  condition: Complete a scenario that uses the dread omens table.
+  condition_es: Completar un escenario que use la tabla de Augurios Siniestros.
+  reward: When playing a scenario using the dread omens table you may reroll the result once.
+  reward_es: Puedes repetir tu tirada en la tabla Augurios Siniestros una vez. Acepta el segundo resultado.
 
 - category: MINOR AMBITION
   category_es: AMBICIÓN MENOR
@@ -189,11 +158,8 @@
   restrictions: Path of Eyes
   restrictions_es: Sendero de los Ojos
   sigil: ""
-  effect: |
-    Condition: Leader ends their activation holding an objective or relic. (Goal: 3).
-
-    Reward: Gain a spell of any type.
-  effect_es: |
-    Condición: El líder termina su activación manteniendo un objetivo o una reliquia (3 veces).
-
-    Recompensa: Ganas un hechizo de cualquier tipo.
+  goal: 3
+  condition: Leader ends their activation holding an objective or relic.
+  condition_es: El líder termina su activación manteniendo un objetivo o una reliquia.
+  reward: Gain a spell of any type.
+  reward_es: Ganas un hechizo de cualquier tipo.
