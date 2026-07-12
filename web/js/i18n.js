@@ -46,6 +46,10 @@ export const LABELS = {
   "ATTACKS":       "ATAQUES",
   "DAMAGE  G / H": "DAÑO  R / A",
 
+  // Minor Ambition tracker row (emitted by the TRACKER marker expansion in
+  // templates.js, which looks this label up directly).
+  "Times Achieved": "Veces Cumplida",
+
   // Section headings.
   "AP COST":       "COSTE PA",
   "CHANNEL":       "CANALIZACIÓN",

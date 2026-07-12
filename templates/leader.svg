@@ -61,5 +61,5 @@
   <!-- BODY_BLOCK: SPECIAL_RULES @ x=4.57 y=63.66 lineheight=2.81 width=45chars maxlines=9 style=bodysm -->
 
   <!-- Flavor at the very bottom (small, italic, muted) -->
-  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=87.06 lineheight=2.15 width=58chars maxlines=1 style=flavor anchor=middle -->
+  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=83.0 lineheight=2.2 width=52chars maxlines=3 style=flavor anchor=middle -->
 </svg>

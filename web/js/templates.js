@@ -11,10 +11,21 @@
  */
 
 import { state } from "./state.js";
-import { translateLabels, pickField } from "./i18n.js";
+import { translateLabels, pickField, LABELS } from "./i18n.js";
 
 const BODY_BLOCK_RE =
   /<!--\s*BODY_BLOCK:\s*(\w+)\s*@\s*x=([\d.]+)\s+y=([\d.]+)\s+lineheight=([\d.]+)\s+width=(\d+)chars\s+maxlines=(\d+)(?:\s+style=(\w+))?(?:\s+anchor=(\w+))?(?:\s+short_fill=(\w+))?\s*-->/g;
+
+// Check-off tracker row (Minor Ambition cards) — mirrors build.py's
+// TRACKER_RE / render_tracker. Renders NOTHING when the row has no positive
+// goal, so shared templates (rule.svg also serves traits / special rules)
+// are unaffected.
+const TRACKER_RE =
+  /<!--\s*TRACKER:\s*(\w+)\s*@\s*cx=([\d.]+)\s+y=([\d.]+)\s+r=([\d.]+)\s+gap=([\d.]+)\s+label_y=([\d.]+)\s+divider_y=([\d.]+)\s*-->/g;
+
+const TRACKER_LABEL = "Times Achieved"; // Title Case — never ALL CAPS
+// Divider endpoints match rule.svg's existing section divider.
+const TRACKER_DIVIDER_X1 = 4.565, TRACKER_DIVIDER_X2 = 58.435;
 
 /** Build the inline SVG for a queue item.
  *
@@ -74,6 +85,14 @@ export function renderCardSvg(q) {
 
   // Long card names overflow the banner — port build.py's _fit_long_names.
   tpl = fitLongNames(tpl);
+  tpl = fitTypeLine(tpl);
+  // A name that wrapped to two lines needs the subtitle nudged down so the
+  // lower line's descenders (blackletter tails) clear it. Mirrors build.py.
+  if (/<text\s+class="name"[^>]*>\s*<tspan/.test(tpl)) {
+    tpl = tpl.replace(
+      /(<text\s+class="(?:type-line|category|restrict)"[^>]*?)y="([\d.]+)"/,
+      (m, pre, yy) => `${pre}y="${(parseFloat(yy) + 1.5).toFixed(3)}"`);
+  }
 
   // Strip editor metadata that the bundler may have left in.
   tpl = tpl.replace(/\s+data-edit-idx="[^"]*"/g, "");
@@ -95,7 +114,7 @@ const NAME_FIT_WIDTH_MM   = 53;   // body names: ~84% of the 63 mm card width
 const BANNER_Y_THRESHOLD  = 17;   // y below this counts as "on the banner"
 const BANNER_BASE_SIZE    = 7.0;  // fallback banner font when none is set inline
 const BANNER_FIT_CHARS    = 16.5; // chars that fit at the base size before shrinking
-const BANNER_MIN_SIZE     = 4.4;  // never shrink a title below this
+const BANNER_MIN_SIZE     = 3.2;  // never shrink a title below this (fits ~36 chars)
 
 // Match either the body name (`.name`) or the banner title (`.banner-title`).
 // Both can hold a card name that needs fitting; the y-coordinate decides
@@ -129,6 +148,9 @@ function fitLongNames(svg) {
       // Banner title: shrink the font, keep natural proportions.
       const baseMatch = /font-size:\s*([\d.]+)px/.exec(attrs);
       const base = baseMatch ? parseFloat(baseMatch[1]) : BANNER_BASE_SIZE;
+      // Font-only shrink (mirrors build.py): Inkscape's PDF export ignores
+      // textLength after a raster <image>, so keep both renderers consistent
+      // by controlling title width purely via font-size + a low min size.
       const size = Math.max(BANNER_MIN_SIZE, base * BANNER_FIT_CHARS / n);
       return `<text class="${cls}"${withFontSize(attrs, size)}>${content}</text>`;
     }
@@ -142,15 +164,17 @@ function fitLongNames(svg) {
     if (lines.length < 2) {
       return `<text class="${cls}"${attrs} textLength="${NAME_FIT_WIDTH_MM}" lengthAdjust="spacingAndGlyphs">${content}</text>`;
     }
-    const lineH = 5.4;
+    // Tighter than a single line's slot so the second line clears the
+    // subtitle/category text that sits just below the name baseline.
+    const lineH = 4.6;
     const y1 = y - lineH * 0.5;
     const y2 = y + lineH * 0.5;
     // Two-line wrap shrinks the font; bake it into the inline style so it
     // wins over the class-level font-size in the SVG <style> block.
     const styleMatch = /style="([^"]*)"/.exec(attrs);
     const styleNew = styleMatch
-      ? attrs.replace(/style="[^"]*"/, `style="${styleMatch[1].replace(/font-size:\s*[^;]+;?\s*/, "")}font-size: 4.6px;"`)
-      : attrs + ' style="font-size: 4.6px;"';
+      ? attrs.replace(/style="[^"]*"/, `style="${styleMatch[1].replace(/font-size:\s*[^;]+;?\s*/, "")}font-size: 4.2px;"`)
+      : attrs + ' style="font-size: 4.2px;"';
     const newAttrs = styleNew.replace(/y="[\d.]+"/, `y="${y1}"`);
     return (
       `<text class="${cls}"${newAttrs}>` +
@@ -158,6 +182,20 @@ function fitLongNames(svg) {
         `<tspan x="${x}" y="${y2}">${escapeXml(lines[1])}</tspan>` +
       `</text>`
     );
+  });
+}
+
+// The type/keyword subtitle line can carry many tag segments plus all three
+// damage schools; with its letter-spacing a long line overruns the trim on
+// both sides. Compress the wide ones to fit. Mirrors build.py:_fit_type_line.
+const TYPE_LINE_FIT_CHARS    = 26;
+const TYPE_LINE_FIT_WIDTH_MM = 56;
+const TYPE_LINE_RE = /<text\s+class="type-line"([^>]*)>([^<]+)<\/text>/g;
+
+function fitTypeLine(svg) {
+  return svg.replace(TYPE_LINE_RE, (full, attrs, content) => {
+    if (attrs.includes("textLength") || content.trim().length <= TYPE_LINE_FIT_CHARS) return full;
+    return `<text class="type-line"${attrs} textLength="${TYPE_LINE_FIT_WIDTH_MM}" lengthAdjust="spacingAndGlyphs">${content}</text>`;
   });
 }
 
@@ -186,6 +224,25 @@ function substituteTemplate(tpl, row, lang = "en") {
     return lines.map((line, i) =>
       `<text class="${cls}" x="${x}" y="${parseFloat(y) + i * parseFloat(lh)}"${anchorAttr}>${escapeXml(line)}</text>`
     ).join("\n");
+  });
+  // Tracker markers: check-off dots row, rendered only when the row has a
+  // positive goal (Minor Ambitions); empty for every other category.
+  tpl = tpl.replace(TRACKER_RE, (_, key, cx, y, r, gap, labelY, dividerY) => {
+    const n = parseInt(pickField(row, key.toLowerCase(), lang), 10) || 0;
+    if (n <= 0) return "";
+    const label = (lang === "es" && LABELS[TRACKER_LABEL]) || TRACKER_LABEL;
+    const cxF = parseFloat(cx), gapF = parseFloat(gap);
+    const first = cxF - gapF * (n - 1) / 2;
+    const parts = [
+      `<line class="divider" x1="${TRACKER_DIVIDER_X1}" y1="${dividerY}" x2="${TRACKER_DIVIDER_X2}" y2="${dividerY}"/>`,
+      `<text class="footer" x="${cx}" y="${labelY}">${escapeXml(label)}</text>`,
+    ];
+    for (let i = 0; i < n; i++) {
+      parts.push(
+        `<circle cx="${(first + i * gapF).toFixed(3)}" cy="${y}" r="${r}" fill="none" stroke="#000000" stroke-width="0.3"/>`
+      );
+    }
+    return parts.join("\n  ");
   });
   // Second: simple {{KEY}} substitution.
   tpl = tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => {

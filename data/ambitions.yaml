@@ -1,0 +1,165 @@
+# Minor Ambitions — WIP Necropolis Rules 0.9, p.67-68.
+# The leader's long-term campaign goals. Before each battle a player
+# picks 4 minor ambitions to pursue; each has a Condition, a goal number
+# (how many times the condition must be met) and a Reward. Rendered via
+# the dedicated ambition.svg template: separate CONDITION and REWARD
+# body blocks, plus check-off tracker dots driven by the `goal:` field
+# (ambition.svg's TRACKER marker).
+# Spanish (_es) fields are the official text transcribed from
+# "Necropolis español v1_1.pdf" p.67-68 (not machine-translated).
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Test the Limits of Undeath
+  name_es: Probar los Límites del Más Allá
+  restrictions: Curse Path
+  restrictions_es: Sendero de la Maldición
+  sigil: ""
+  goal: 4
+  condition: Cast the summon spell.
+  condition_es: Lanzar el hechizo Invocar.
+  reward: Gain +1 max HP for the whole gathering.
+  reward_es: +1 HP máximo para todo el Séquito.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Commune with the Truth
+  name_es: Comulgar con la Verdad
+  restrictions: Curse Path
+  restrictions_es: Sendero de la Maldición
+  sigil: ""
+  goal: 2
+  condition: Run out of mana dice during a battle.
+  condition_es: Quedarse sin dados de maná durante una partida.
+  reward: +1 mana point of any type.
+  reward_es: +1 punto de maná de cualquier tipo.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Master Abyssal Artillery
+  name_es: Dominar la Artillería Abisal
+  restrictions: Curse Path
+  restrictions_es: Sendero de la Maldición
+  sigil: ""
+  goal: 3
+  condition: Cause an enemy model to become Shattered with a spell.
+  condition_es: Causar que una miniatura enemiga sea Hecha añicos con un hechizo.
+  reward: +1 to the channelling roll for a spell of your choice.
+  reward_es: +1 a la tirada de canalización para un hechizo de tu elección.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Settle Old Grudges
+  name_es: Saldar Viejas Deudas
+  restrictions: Shattered Path
+  restrictions_es: Sendero de la Destrucción
+  sigil: ""
+  goal: 5
+  condition: Cause an enemy model to become Shattered with melee attacks.
+  condition_es: Causar que una miniatura enemiga sea Hecha añicos con ataques cuerpo a cuerpo.
+  reward: Improve violence by 1 for a model of your choice.
+  reward_es: Mejorar la Violencia en 1 para una miniatura de tu elección.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Rain Iron Sleet
+  name_es: Lluvia de Hierro
+  restrictions: Shattered Path
+  restrictions_es: Sendero de la Destrucción
+  sigil: ""
+  goal: 2
+  condition: Cause an enemy model to become Shattered with ranged attacks.
+  condition_es: Causar que una miniatura enemiga sea Hecha añicos con ataques a distancia.
+  reward: Improve ranged by 1 for a model of your choice.
+  reward_es: Mejorar A Distancia en 1 para una miniatura de tu elección.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: A Favoured Familiar
+  name_es: Un Familiar Favorito
+  restrictions: Shattered Path
+  restrictions_es: Sendero de la Destrucción
+  sigil: ""
+  goal: 1
+  condition: A familiar causes an enemy model to become Shattered.
+  condition_es: Un Familiar causa que una miniatura enemiga sea Hecha añicos.
+  reward: Improve violence by 1 and +1 max HP for that familiar.
+  reward_es: Ese Familiar mejora su Violencia en 1 y +1 HP máximos.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Strike Down the Horrors
+  name_es: Abatir a los Horrores
+  restrictions: Shattered Path
+  restrictions_es: Sendero de la Destrucción
+  sigil: ""
+  goal: 1
+  condition: Cause an enemy Gigantic Horror to become Shattered.
+  condition_es: Causar que un Horror Gigantesco enemigo sea Hecho añicos.
+  reward: One model in your gathering may take a trait from your covenant or the wretched undead list.
+  reward_es: Una miniatura de tu Séquito puede tomar un rasgo de tu pacto o de la lista de los No Muertos Miserables.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Build a Sanctuary
+  name_es: Construir un Santuario
+  restrictions: Gilt Path
+  restrictions_es: Sendero del Oro
+  sigil: ""
+  goal: 2
+  condition: Purchase a lair upgrade.
+  condition_es: Comprar una mejora de guarida.
+  reward: Gain +50 deployment limit.
+  reward_es: +50 al límite de despliegue.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Inspire Fear
+  name_es: Inspirar Miedo
+  restrictions: Gilt Path
+  restrictions_es: Sendero del Oro
+  sigil: ""
+  goal: 1
+  condition: Field a gigantic horror.
+  condition_es: Desplegar un Horror Colosal.
+  reward: +50 deployment limit.
+  reward_es: +50 al límite de despliegue.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Scour the Lands
+  name_es: Hurgar en las Tierras
+  restrictions: Path of Eyes
+  restrictions_es: Sendero de los Ojos
+  sigil: ""
+  goal: 2
+  condition: Complete a scenario.
+  condition_es: Completar un escenario.
+  reward: Roll on the treasure table.
+  reward_es: Tira en la tabla de tesoros menores.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Read the Omens
+  name_es: Leer los Augurios
+  restrictions: Path of Eyes
+  restrictions_es: Sendero de los Ojos
+  sigil: ""
+  goal: 3
+  condition: Complete a scenario that uses the dread omens table.
+  condition_es: Completar un escenario que use la tabla de Augurios Siniestros.
+  reward: When playing a scenario using the dread omens table you may reroll the result once.
+  reward_es: Puedes repetir tu tirada en la tabla Augurios Siniestros una vez. Acepta el segundo resultado.
+
+- category: MINOR AMBITION
+  category_es: AMBICIÓN MENOR
+  name: Search for Ancient Lore
+  name_es: Buscar Conocimiento Ancestral
+  restrictions: Path of Eyes
+  restrictions_es: Sendero de los Ojos
+  sigil: ""
+  goal: 3
+  condition: Leader ends their activation holding an objective or relic.
+  condition_es: El líder termina su activación manteniendo un objetivo o una reliquia.
+  reward: Gain a spell of any type.
+  reward_es: Ganas un hechizo de cualquier tipo.

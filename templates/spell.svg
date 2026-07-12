@@ -32,10 +32,10 @@
   <line class="divider" x1="4.565" y1="29.021" x2="58.435" y2="29.021" data-edit-idx="11"/>
 
   <!-- Flavor (italic, centred) -->
-  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=32.766 lineheight=3.557 width=45chars maxlines=3 style=flavor anchor=middle -->
+  <!-- BODY_BLOCK: FLAVOR @ x=31.5 y=32.766 lineheight=3.4 width=45chars maxlines=4 style=flavor anchor=middle -->
 
   <line class="divider" x1="4.565" y1="44" x2="58.435" y2="44" data-edit-idx="12"/>
   <text class="heading" x="4.565" y="47.745" data-edit-idx="13">EFFECT</text>
-  <!-- BODY_BLOCK: EFFECT @ x=4.565 y=51.489 lineheight=3.557 width=45chars maxlines=8 -->
+  <!-- BODY_BLOCK: EFFECT @ x=4.565 y=51.489 lineheight=3.4 width=38chars maxlines=10 -->
 
 </svg>
