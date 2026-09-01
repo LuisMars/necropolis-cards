@@ -5,11 +5,12 @@
  * exposes an `init*` + `render*` function.
  */
 
-import { state, loadQueue, loadPrinted, loadLang, saveLang } from "./state.js";
+import { state, loadQueue, loadPrinted, loadLang, saveLang, loadWarband } from "./state.js";
 import { loadBundle }         from "./data.js";
 import { loadFonts }          from "./fonts.js";
 import { initImport }         from "./import.js";
 import { initLibrary, renderLibrary } from "./library.js";
+import { initWarband, renderWarband }  from "./warband.js";
 import { initPrint, renderPrint }     from "./print.js";
 import { $ }                  from "./util.js";
 
@@ -26,6 +27,7 @@ function switchTo(tab) {
   document.querySelectorAll("nav.tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
   document.querySelectorAll("section.tab").forEach(s => s.classList.toggle("active", s.dataset.tab === tab));
   if (tab === "library") renderLibrary();
+  if (tab === "warband") renderWarband();
   if (tab === "print")   renderPrint();
 }
 
@@ -46,14 +48,25 @@ document.getElementById("global-print-btn").addEventListener("click", () => {
 // `beforeprint` isn't reliable — better to keep the sheets ready and pay
 // a tiny re-render cost on every queue change.
 const onChange = () => { refreshHeader(); renderPrint(); };
-window.addEventListener("beforeprint", () => renderPrint());
+window.addEventListener("beforeprint", () => {
+  // Printing from the Warband tab yields roster sheets; from anywhere else,
+  // the card sheets. `printing-warband` is what the print CSS keys off.
+  document.body.classList.toggle("printing-warband", currentTab() === "warband");
+  renderPrint();
+});
 
-initImport({ onChange, switchToPrint: () => switchTo("print") });
+initImport({
+  onChange,
+  switchToPrint: () => switchTo("print"),
+  switchToWarband: () => switchTo("warband"),
+  onWarband: () => renderWarband(),
+});
 initLibrary({ onChange });
+initWarband({ onChange });
 initPrint({ onChange });
 
-// Card-language selector. Only the printed cards are localised, so changing
-// it just re-renders the library tiles and print sheets.
+// Card-language selector. Only the printed material is localised (cards and
+// the warband roster), so changing it just re-renders those views.
 loadLang();
 const $langSelect = document.getElementById("lang-select");
 $langSelect.value = state.lang;
@@ -61,11 +74,13 @@ $langSelect.addEventListener("change", () => {
   state.lang = $langSelect.value === "es" ? "es" : "en";
   saveLang();
   if (currentTab() === "library") renderLibrary();
+  renderWarband();
   renderPrint();
 });
 
 loadQueue();
 loadPrinted();
+loadWarband();
 refreshHeader();
 
 // Fonts load in parallel with the data bundle; whichever finishes second
@@ -73,6 +88,7 @@ refreshHeader();
 Promise.all([loadFonts(), loadBundle()]).then(() => {
   refreshHeader();
   if (currentTab() === "library") renderLibrary();
+  renderWarband();
   // Always render the print tab so the sheets DOM is ready when the user
   // hits ⎙ from any tab. Cost is negligible (<10ms for a typical queue).
   renderPrint();

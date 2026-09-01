@@ -18,6 +18,16 @@ const NAME_ALIASES = {
   "polearm":     "light polearm",
   "polearm 1h":  "light polearm",
   "polearm 2h":  "heavy polearm",
+  // The Companion App spells a few names differently from the rulebook this
+  // library is transcribed from (some are its typos, some just shorthand).
+  // Mapping them here turns what would be a fuzzy hit into an exact one.
+  "improvised":                "improvised weapon",
+  "regenating soul":           "regenerating soul",   // app typo
+  "spirit siphon":             "spirit syphon",
+  "recusant mafeficar":        "recusant maleficar",  // app typo
+  "chosen of the hand":        "chosen of the hands",
+  "swarms of the hintertombs": "crawling dark",       // app names the covenant
+                                                      // after its subtitle
 };
 export function normName(s) {
   // 1) Lowercase + strip punctuation + collapse whitespace + drop joiners.

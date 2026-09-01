@@ -179,7 +179,16 @@ def main():
         "groups": [],          # nested category tree
         "categories": {},      # {key: {title, template, header, group, rows: [...]}}
         "templates": {},       # {template_stem: "templates/<stem>.svg"} (path on web)
+        "glossary": {},        # Companion-App text with no card of its own
     }
+
+    # The glossary is not a category on purpose: it never reaches the Library,
+    # the print queue or build.py — only the Warband tab's text lookup.
+    glossary_path = DATA_DIR / "app-glossary.yaml"
+    if glossary_path.exists():
+        bundle["glossary"] = yaml.safe_load(glossary_path.read_text(encoding="utf-8")) or {}
+        n = sum(len(v) for v in bundle["glossary"].values() if isinstance(v, list))
+        print(f"  glossary: {n} entries")
 
     # Re-assemble groups for the tree view
     raw = yaml.safe_load((DATA_DIR / "_categories.yaml").read_text(encoding="utf-8"))

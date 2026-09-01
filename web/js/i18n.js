@@ -91,3 +91,48 @@ export function pickField(row, key, lang) {
   }
   return row[key];
 }
+
+/* ---- roster (Warband tab) ------------------------------------------------
+ *
+ * The roster sheet is a printed artifact like the cards, so it follows the
+ * card-language selector rather than staying English with the app chrome.
+ * Keys are looked up with `t()`; anything missing falls back to English. */
+export const ROSTER = {
+  warband:       { en: "Warband",        es: "Banda" },
+  covenant:      { en: "COVENANT",       es: "PACTO" },
+  models:        { en: "MODELS",         es: "MINIATURAS" },
+  manaPool:      { en: "MANA POOL",      es: "RESERVA DE MANÁ" },
+  budget:        { en: "BUDGET",         es: "PRESUPUESTO" },
+  remaining:     { en: "REMAINING",      es: "RESTANTE" },
+  over:          { en: "OVER BUDGET",    es: "EXCEDIDO" },
+  total:         { en: "WARBAND TOTAL",  es: "TOTAL DE LA BANDA" },
+  cost:          { en: "COST",           es: "COSTE" },
+  modelCost:     { en: "MODEL COST",     es: "COSTE DE LA MINIATURA" },
+  obols:         { en: "obols",          es: "óbolos" },
+  traits:        { en: "TRAITS",         es: "RASGOS" },
+  spells:        { en: "SPELLS",         es: "HECHIZOS" },
+  weapons:       { en: "WEAPONS",        es: "ARMAS" },
+  armour:        { en: "ARMOUR",         es: "ARMADURA" },
+  equipment:     { en: "EQUIPMENT",      es: "EQUIPO" },
+  specialRules:  { en: "SPECIAL RULES",  es: "REGLAS ESPECIALES" },
+  applied:       { en: "applied",        es: "aplicado" },
+  spellSlots:    { en: "SPELLS",         es: "HECHIZOS" },
+  free:          { en: "—",              es: "—" },
+  bone:          { en: "Bone",           es: "Hueso" },
+  blood:         { en: "Blood",          es: "Sangre" },
+  plasm:         { en: "Plasm",          es: "Plasma" },
+  rangeAbbr:     { en: "R",              es: "Alc" },
+  attacksAbbr:   { en: "A",              es: "Atq" },
+  damageAbbr:    { en: "D",              es: "Dñ" },
+  apAbbr:        { en: "AP",             es: "PA" },
+  channelAbbr:   { en: "CH",             es: "Can" },
+  page:          { en: "Page",           es: "Página" },
+  of:            { en: "of",             es: "de" },
+};
+
+/** Look up a roster label in the given language (English fallback). */
+export function t(key, lang) {
+  const e = ROSTER[key];
+  if (!e) return key;
+  return (lang === "es" && e.es) || e.en;
+}
