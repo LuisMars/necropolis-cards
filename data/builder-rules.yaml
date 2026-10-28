@@ -165,3 +165,58 @@ minions:
       plasm: { hp: -2, keywords: [Fly], forbid: [armours/heavy-armour] }
     weapons_only: [colossal-weapons/*]
     unique: true
+
+# p.42 Lairs: roll a D5 for the tens and a D10 for the ones (11-60), or
+# choose. Spanish from the official translation (Necropolis español v1.1,
+# p.42). English typos fixed: "fo", "Sancutom", "Oprhaned".
+lair_names:
+  - { roll: 11, name: "The Undying Keep of Sacrifices", name_es: "El Torreón Inmortal de los Sacrificios" }
+  - { roll: 12, name: "The Tainted Church of the Void", name_es: "La Iglesia Contaminada del Vacío" }
+  - { roll: 13, name: "The Rotten Anchorhold of the Gloom", name_es: "La Ermita Podrida de la Penumbra" }
+  - { roll: 14, name: "The Charnel Gatehouse of the Forgotten", name_es: "La Casa-Puerta Osaria de los Olvidados" }
+  - { roll: 15, name: "The Hungering Fort of the Lost", name_es: "El Fuerte Hambriento de los Perdidos" }
+  - { roll: 16, name: "The Gloaming Tower of the Doomed", name_es: "La Torre del Crepúsculo de los Condenados" }
+  - { roll: 17, name: "The Dusk Temple of Entropy", name_es: "El Templo del Ocaso de la Entropía" }
+  - { roll: 18, name: "The Profane Chapel of Compunction", name_es: "La Capilla Profana del Remordimiento" }
+  - { roll: 19, name: "The Hallowed Maze of Grief", name_es: "El Laberinto Sagrado del Dolor" }
+  - { roll: 20, name: "The Crumbling Barbican of Contrition", name_es: "La Barbacana Desmoronada de la Contrición" }
+  - { roll: 21, name: "The Severed Manse of Wakes", name_es: "La Mansión Cortada de las Vigilias" }
+  - { roll: 22, name: "The Withering Sanctuary of Tides", name_es: "El Santuario Marchito de las Mareas" }
+  - { roll: 23, name: "The Sealed Haven of the Mother", name_es: "El Refugio Sellado de la Madre" }
+  - { roll: 24, name: "The Cursed Basilica of Wounds", name_es: "La Basílica Maldita de las Heridas" }
+  - { roll: 25, name: "The Dark Gaol of Embers", name_es: "La Prisión Oscura de las Ascuas" }
+  - { roll: 26, name: "The Abyssal Hovels of the Firmament", name_es: "Las Chozas Abisales del Firmamento" }
+  - { roll: 27, name: "The Smouldering Labyrinth of the Old-Deep", name_es: "El Laberinto Humeante de las Profundidades Antiguas" }
+  - { roll: 28, name: "The Ashen Lock of Worms", name_es: "La Cerradura de Ceniza de los Gusanos" }
+  - { roll: 29, name: "The Azure Library of Coin", name_es: "La Biblioteca Azur de la Moneda" }
+  - { roll: 30, name: "The Crimson Rookery of Blood-Dark", name_es: "La Colonia de Grajos Carmesí de la Sangre-Oscura" }
+  - { roll: 31, name: "The Argent Ruin of Whisping-Pitch", name_es: "La Ruina Argéntea de la Brea Susurrante" }
+  - { roll: 32, name: "The Impaler's Folly of Fog", name_es: "La Locura del Empalador de la Niebla" }
+  - { roll: 33, name: "The Ailing Cloister of Recalcitrants", name_es: "El Claustro Enfermizo de los Recalcitrantes" }
+  - { roll: 34, name: "The Lazulite Priory of Autumn", name_es: "El Priorato de Lazulita del Otoño" }
+  - { roll: 35, name: "The Sunwade Sanctum of Roots", name_es: "El Santuario de Vadeasol de las Raíces" }
+  - { roll: 36, name: "The Grave Ward of Torn Eyes", name_es: "El Patíbulo de la Tumba de los Ojos Desgarrados" }
+  - { roll: 37, name: "The Shattered Catacomb of Culvers", name_es: "La Catacumba destrozada de las Palomas" }
+  - { roll: 38, name: "The Hallowed Forge of Fractures", name_es: "La Forja Sagrada de las Fracturas" }
+  - { roll: 39, name: "The Hex-Sealed Pit of Blooms", name_es: "El Pozo Sellado con Flores" }
+  - { roll: 40, name: "The Soot Blackened Balenary of Verses", name_es: "La Balnearia Ennegrecida por el Hollín de los Versos" }
+  - { roll: 41, name: "The Windswept Spire of Regret", name_es: "La Aguja Barrida por el Viento del Arrepentimiento" }
+  - { roll: 42, name: "The Unquiet Crypt of the Stars", name_es: "La Cripta Inquieta de las Estrellas" }
+  - { roll: 43, name: "The Tarnished Hall of Patience", name_es: "La Sala Deslucida de la Paciencia" }
+  - { roll: 44, name: "The Shadowed Oubliette of Tomes", name_es: "El Calabozo en las Sombras de los Tomos" }
+  - { roll: 45, name: "The Blighted Cortile of Tears", name_es: "El Patio Contaminado de las Lágrimas" }
+  - { roll: 46, name: "The Accursed Cave of Leaves", name_es: "La Cueva Maldecida de las Hojas" }
+  - { roll: 47, name: "The Fleeting Barrow of the Unspoken", name_es: "El Túmulo Fugaz de lo no dicho" }
+  - { roll: 48, name: "The Incarnadine Hollow of the Abandoned", name_es: "La Hondonada encarnada de los Abandonados" }
+  - { roll: 49, name: "The Orphaned Cist of Nails", name_es: "La Cista Huérfana de los Clavos" }
+  - { roll: 50, name: "The Immolated Belfry of the Thorns", name_es: "El Campanario Inmolado de las Espinas" }
+  - { roll: 51, name: "The Hanging Atrium of the Tolls", name_es: "El Atrio Colgante de los Toques" }
+  - { roll: 52, name: "The Unburnt Rook of the Arch", name_es: "La Roca no Quemada del Arco" }
+  - { roll: 53, name: "The Drowned Lychgate of Starlight", name_es: "La Portilla del Cementerio Ahogada de la Luz de las Estrellas" }
+  - { roll: 54, name: "The Submerged Hermitage of the Crescent", name_es: "La Ermita Sumergida de la Media Luna" }
+  - { roll: 55, name: "The Hidden Citadel of Shattering", name_es: "La Ciudadela Oculta de la Destrucción" }
+  - { roll: 56, name: "The Obfuscated Keep of the Briar", name_es: "El Torreón Ofuscado de la Zarza" }
+  - { roll: 57, name: "The Vanguard Tomb of Rancour", name_es: "La Tumba de Vanguardia del Rencor" }
+  - { roll: 58, name: "The Hierophant's Crawlway of Drycraft", name_es: "La Galería de Arrastre del Hierofante de la Magia Seca" }
+  - { roll: 59, name: "The Conqueror's Grave of Pyres", name_es: "La Tumba del Conquistador de los Pitas" }
+  - { roll: 60, name: "The Mendicant's Dolmen of Thresholds", name_es: "El Dolmen del Mendigo de los Umbrales" }
