@@ -10,7 +10,7 @@ test("every warning rules.js can report has a message in both languages", () => 
   assert.ok(codes.length > 20, `found ${codes.length} codes`);
   for (const code of codes) {
     const w = { code, item: "spells/summon", params: { count: 2, max: 1, allowed: 1, total: 400,
-      budget: 300, limit: 350, hands: 3, stat: "hp", affinity: "plasm", needs: ["Blood"], types: ["leaders/lich"] } };
+      budget: 300, limit: 350, hands: 3, stat: "hp", affinity: "plasm", needs: ["Blood"], types: ["leaders/lich"], kind: "minor", treasury: -10 } };
     for (const lang of ["en", "es"]) {
       const text = describe(w, catalog, lang);
       assert.notEqual(text, code, `${code} has no ${lang} message`);

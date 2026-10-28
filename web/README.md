@@ -24,6 +24,11 @@ Five tabs:
    there a gathering opens in the Warband tab, queues its cards, copies its
    Companion App link, or downloads as the app's JSON or as a Builder
    backup. Saved gatherings live in the browser (localStorage).
+   Its **Campaign** view tracks the gathering between games: treasury and
+   deployment limit (who is fielded, sellswords hired and the free ones the
+   rules allow), lair upgrades, the 4 active ambitions with their rewards
+   applied, treasures (rolled or picked, carried within the limits, moved
+   between models), model improvements, and a battle log.
 3. **Warband** — the gathering as a roster: one block per model
    with its profile stats, special rules, traits, spells, weapons, armour
    and equipment — each with the rules text and stat line off its card, and
@@ -121,6 +126,7 @@ web/
     ├── matching.js         # normName + findCard + keyHintFromSource
     ├── import.js           # import tab (app JSON, share link, backup) + match list
     ├── builder-tab.js      # builder tab: gathering list + editor
+    ├── builder-campaign.js # builder tab, campaign view
     ├── gatherings.js       # the page's saved gatherings (localStorage store)
     ├── warband.js          # warband tab: roster model + A4 roster sheets
     ├── icons.js            # roster glyphs (obol, AP, attacks, HP, …)
@@ -134,6 +140,7 @@ web/
         ├── catalog.js      # rows by stable key ("melee-weapons/blade") and app ID
         ├── gathering.js    # the builder's save format
         ├── rules.js        # costs, effective stats, rule warnings
+        ├── campaign.js     # campaign actions: treasury, upgrades, ambitions, treasures, log
         ├── codec.js        # Companion App share links
         ├── appjson.js      # Companion App JSON export ↔ gathering
         ├── messages.js     # warnings and builder labels, English / Spanish

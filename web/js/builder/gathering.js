@@ -7,7 +7,9 @@
  * split, campaign state) is part of the format itself.
  *
  *   { format, version, id, name, covenant, lair, treasury, deploymentLimit,
- *     bonusTraits, models: [Model], ambitions, history }
+ *     bonusTraits, models: [Model], stash, ambitions, campaign, history }
+ *   `treasury` is null until the campaign starts; from then on it replaces
+ *   the 300-obol build budget.
  *   Model = { uid, name, profile, affinity, mana, traits, spells, weapons,
  *             armour, equipment, treasures, maladies, improvements, status }
  */
@@ -27,7 +29,9 @@ export function newGathering(fields = {}) {
     deploymentLimit: null,   // null = the rulebook default (350)
     bonusTraits: 0,
     models: [],
-    ambitions: { active: [], progress: {}, completed: 0 },
+    stash: [],               // treasures no model is carrying
+    ambitions: { active: [], progress: {}, completed: 0, greaterClaimed: 0, log: [] },
+    campaign: { opponentLimit: null, freeRabbleUsed: false },
     history: [],
     ...fields,
   };

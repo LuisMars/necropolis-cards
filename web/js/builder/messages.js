@@ -70,6 +70,67 @@ const UI = {
   blood:          ["Blood", "Sangre"],
   bone:           ["Bone", "Hueso"],
   plasm:          ["Plasm", "Plasma"],
+  // Campaign view
+  viewGathering:  ["Gathering", "Séquito"],
+  viewCampaign:   ["Campaign", "Campaña"],
+  notStarted:     ["The campaign hasn't started. Starting it turns the obols left from the 300 into your treasury:",
+                   "La campaña no ha empezado. Al empezarla, los óbolos que sobran de los 300 pasan a tu tesoro:"],
+  startCampaign:  ["Start campaign", "Empezar campaña"],
+  treasury:       ["Treasury", "Tesoro"],
+  deployBase:     ["Base deployment limit", "Límite de despliegue base"],
+  lairBonus:      ["from the lair", "por la guarida"],
+  fielded:        ["fielded", "desplegados"],
+  nextBattle:     ["Next battle", "Próxima batalla"],
+  oppLimit:       ["Opponent's deployment limit", "Límite de despliegue del rival"],
+  freeSellsword:  ["Your opponent's limit is 100+ higher: you may deploy a sellsword for free.",
+                   "El límite del rival es 100+ mayor: puedes desplegar un mercenario gratis."],
+  freeRabble:     ["Add the Desperate Rabble for free (first game against such an opponent)",
+                   "Añadir la Chusma Desesperada gratis (primera partida contra un rival así)"],
+  field:          ["Field", "Desplegar"],
+  hire:           ["Hire a sellsword…", "Contratar un mercenario…"],
+  sellsword:      ["Sellsword", "Mercenario"],
+  rosterCost:     ["roster", "lista"],
+  deployCost:     ["deploy", "despliegue"],
+  armaments:      ["Armaments", "Armamento"],
+  lairUpgrades:   ["Lair upgrades", "Mejoras de la guarida"],
+  buy:            ["Buy", "Comprar"],
+  owned:          ["Owned", "Comprada"],
+  refund:         ["Undo", "Deshacer"],
+  ambitions:      ["Ambitions", "Ambiciones"],
+  active:         ["active", "activas"],
+  addAmbition:    ["Add an ambition…", "Añadir una ambición…"],
+  complete:       ["Complete", "Cumplir"],
+  chooseModel_:   ["Choose a model…", "Elige una miniatura…"],
+  completed:      ["completed", "cumplidas"],
+  greaterOwed:    ["greater treasure earned (1 per 5 ambitions)", "tesoro mayor ganado (1 por cada 5 ambiciones)"],
+  treasureToTake: ["Treasure to take", "Tesoro por recibir"],
+  rollMinor:      ["Roll a minor treasure", "Tirar un tesoro menor"],
+  rollGreater:    ["Roll 2d10, keep one", "Tirar 2D10 y quedarse uno"],
+  pickTreasure:   ["…or pick one", "…o elige uno"],
+  giveTo:         ["Give to", "Dar a"],
+  stash:          ["Unassigned", "Sin asignar"],
+  treasures:      ["Treasures", "Tesoros"],
+  minorT:         ["minor", "menor"],
+  greaterT:       ["greater", "mayor"],
+  moveTo:         ["Move to…", "Mover a…"],
+  addTreasure:    ["Add a treasure…", "Añadir un tesoro…"],
+  improvements:   ["Model improvements", "Mejoras de las miniaturas"],
+  improvementsHint: ["Changes from ambitions, maladies and other campaign events. Limits: AP +1, Move/Violence/Ranged +2, HP +5.",
+                   "Cambios por ambiciones, dolencias y otros sucesos de campaña. Límites: PA +1, Mov/Violencia/A Dist. +2, HP +5."],
+  battleLog:      ["Battle log", "Registro de batallas"],
+  date:           ["Date", "Fecha"],
+  environment:    ["Environment", "Entorno"],
+  mission:        ["Mission", "Misión"],
+  omen:           ["Omen", "Augurio"],
+  result:         ["Result", "Resultado"],
+  win:            ["Win", "Victoria"],
+  loss:           ["Loss", "Derrota"],
+  draw:           ["Draw", "Empate"],
+  obolsGained:    ["Obols gained", "Óbolos ganados"],
+  notes:          ["Notes", "Notas"],
+  logBattle:      ["Log battle", "Registrar batalla"],
+  none:           ["—", "—"],
+  noBattles:      ["No battles yet.", "Aún no hay batallas."],
   ap:             ["AP", "PA"],
   move:           ["Move", "Mov"],
   violence:       ["Violence", "Violencia"],
@@ -138,6 +199,14 @@ export function describe(w, catalog, lang = "en") {
                                           : `${p.count} covenant or Wretched Undead traits; ${p.allowed} allowed.`;
     case "over-budget":         return es ? `${p.total} óbolos gastados de ${p.budget}.` : `${p.total} obols spent of ${p.budget}.`;
     case "over-deployment":     return es ? `${p.total} óbolos desplegados; el límite es ${p.limit}.` : `${p.total} obols fielded; the deployment limit is ${p.limit}.`;
+    case "too-many-treasures":  return es ? `${p.count} tesoros ${p.kind === "greater" ? "mayores" : "menores"}; puede llevar ${p.max}.`
+                                          : `${p.count} ${p.kind} treasures; it can carry ${p.max}.`;
+    case "duplicate-greater":   return es ? "Los tesoros mayores que lleve un líder deben ser distintos." : "A leader's greater treasures must be different.";
+    case "deployment-cap":      return es ? `Límite de despliegue ${p.limit}; el máximo es ${p.max}.` : `Deployment limit ${p.limit}; the most it can reach is ${p.max}.`;
+    case "too-many-sellswords": return es ? `${p.count} mercenarios desplegados; solo se permite 1 por escenario.` : `${p.count} sellswords fielded; only 1 per scenario.`;
+    case "treasury-negative":   return es ? `El tesoro está en ${p.treasury} óbolos.` : `The treasury is at ${p.treasury} obols.`;
+    case "duplicate-upgrade":   return es ? `${item} solo puede comprarse una vez.` : `${item} can only be bought once.`;
+    case "too-many-ambitions":  return es ? `${p.count} ambiciones activas; el máximo es 4.` : `${p.count} active ambitions; the most is 4.`;
     default:                    return w.code;
   }
 }

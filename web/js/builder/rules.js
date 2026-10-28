@@ -38,6 +38,23 @@ function addMods(...mods) {
 /** Every gear key a model carries, weapons first. */
 const gearOf = (m) => [...(m.weapons || []), ...(m.armour || []), ...(m.equipment || [])];
 
+/** Has the campaign begun? Then the treasury replaces the 300-obol budget. */
+export const campaignStarted = (g) => g.treasury != null || (g.history || []).length > 0;
+
+/** What the gathering's lair upgrades add (spells, mana, deployment, …). */
+export function lairMods(gathering, catalog) {
+  return addMods(...(gathering.lair?.upgrades || []).map(k => catalog.row(k)?.modifiers));
+}
+
+/** "minor" or "greater" for a treasure key, null for anything else. */
+export function treasureKind(catalog, key) {
+  const t = catalog.rules.treasures || {};
+  const cat = categoryOf(key);
+  if ((t.greater || []).includes(cat)) return "greater";
+  if ((t.minor || []).includes(cat)) return "minor";
+  return null;
+}
+
 /**
  * Evaluate one model.
  * @returns {{uid, key, isLeader, affinity, keywords, stats, mana, spellsAllowed,
@@ -50,11 +67,12 @@ export function evaluateModel(model, catalog, gathering = {}) {
   const key = model.profile;
   const row = catalog.row(key);
   const isLeader = categoryOf(key) === "leaders";
+  const isSellsword = categoryOf(key) === "sellswords";
   const pr = catalog.profileRules(key);
 
   if (!row) {
     warn("unknown-item", { item: key });
-    return { uid: model.uid, key, isLeader, affinity: null, keywords: [], stats: {},
+    return { uid: model.uid, key, isLeader, isSellsword, affinity: null, keywords: [], stats: {},
              mana: 0, spellsAllowed: 0, cost: 0, warnings };
   }
 
@@ -151,18 +169,33 @@ export function evaluateModel(model, catalog, gathering = {}) {
     if (basic !== 1) warn("basic-trait-count", { params: { count: basic } });
   }
 
+  // Treasures (p.66-68): leaders carry 3 minor and 2 different greater,
+  // minions 2 and 1, Beast minions none.
+  const limits = rules.carry_limits || {};
+  const carry = isLeader ? limits.leader : (keywords.includes("Beast") ? limits.beast : limits.minion);
+  for (const kind of ["minor", "greater"]) {
+    const held = (model.treasures || []).filter(t => treasureKind(catalog, t) === kind);
+    if (carry && held.length > (carry[kind] ?? Infinity)) {
+      warn("too-many-treasures", { params: { kind, count: held.length, max: carry[kind] } });
+    }
+    if (kind === "greater" && new Set(held).size < held.length) warn("duplicate-greater");
+  }
+  for (const t of model.treasures || []) if (!catalog.row(t)) warn("unknown-item", { item: t });
+
   // Spells and mana (leaders): Summon + the type's picks + Studious; mana
-  // points split between Blood/Bone/Plasm, + Sorcerous Talent.
+  // points split between Blood/Bone/Plasm, + Sorcerous Talent. A campaign
+  // adds more through ambitions (improvements) and lair upgrades.
   let spellsAllowed = 0, mana = 0;
   const spells = model.spells || [];
+  const lm = lairMods(gathering, catalog);
   if (isLeader) {
-    spellsAllowed = 1 + (pr.spells || 0) + (traitMods.spells || 0);
+    spellsAllowed = 1 + (pr.spells || 0) + (traitMods.spells || 0) + (imp.spells || 0) + (lm.spells || 0);
     if (pr.max_spells) spellsAllowed = Math.min(spellsAllowed, pr.max_spells);
     if (spells.length !== spellsAllowed) {
       warn("spell-count", { params: { count: spells.length, allowed: spellsAllowed } });
     }
     if (!spells.includes("spells/summon")) warn("summon-missing");
-    let manaAllowed = (pr.mana_points || 0) + (traitMods.mana || 0);
+    let manaAllowed = (pr.mana_points || 0) + (traitMods.mana || 0) + (imp.mana || 0) + (lm.mana || 0);
     if (pr.max_mana) manaAllowed = Math.min(manaAllowed, pr.max_mana);
     mana = manaAllowed;
     const split = AFFINITIES.reduce((n, a) => n + (Number(model.mana?.[a]) || 0), 0);
@@ -181,8 +214,7 @@ export function evaluateModel(model, catalog, gathering = {}) {
     if (isLeader && cov.leader_types && !cov.leader_types.includes(key)) {
       warn("covenant-leader-type", { params: { types: cov.leader_types } });
     }
-    const started = (gathering.history || []).length > 0;
-    if (isLeader && cov.spell_schools && !started) {
+    if (isLeader && cov.spell_schools && !campaignStarted(gathering)) {
       for (const sp of spells) {
         const school = catalog.row(sp)?.school;
         if (school && !cov.spell_schools.includes(school)) warn("covenant-spell-school", { item: sp });
@@ -196,7 +228,7 @@ export function evaluateModel(model, catalog, gathering = {}) {
   const cost = (num(row.obols) || 0) +
     gearOf(model).reduce((n, g) => n + (num(catalog.row(g)?.obols) || 0), 0);
 
-  return { uid: model.uid, key, isLeader, affinity, keywords, stats, mana, spellsAllowed, cost, warnings };
+  return { uid: model.uid, key, isLeader, isSellsword, affinity, keywords, stats, mana, spellsAllowed, cost, warnings };
 }
 
 /**
@@ -233,15 +265,16 @@ export function evaluate(gathering, catalog) {
   if (cov) {
     const extra = allTraits.filter(k =>
       ["covenant-wretched-traits", "wretched-undead-traits"].includes(categoryOf(k))).length;
-    const allowedExtra = (cov.traits ?? 1) + (gathering.bonusTraits || 0);
+    const allowedExtra = (cov.traits ?? 1) + (gathering.bonusTraits || 0) + (lairMods(gathering, catalog).bonus_traits || 0);
     if (extra > allowedExtra) warn("covenant-traits", { params: { count: extra, allowed: allowedExtra } });
   }
 
-  // Budget: 300 obols to build (+50 for Miserly) until the first battle;
-  // after that the treasury is tracked by the campaign. Deployment limit
-  // applies to the models fielded.
+  // Budget: 300 obols to build (+50 for Miserly) until the campaign starts;
+  // after that the treasury is tracked instead. Deployment limit applies to
+  // the models fielded, sellswords excepted (p.74), and grows with lair
+  // upgrades up to 500 (p.65).
   const total = models.reduce((n, m) => n + m.cost, 0);
-  const started = (gathering.history || []).length > 0;
+  const started = campaignStarted(gathering);
   const bonus = models.filter(m => m.isLeader).reduce((n, m) => {
     const traits = (gathering.models.find(x => x.uid === m.uid)?.traits) || [];
     return n + traits.reduce((t, k) => t + (catalog.row(k)?.modifiers?.obols || 0), 0);
@@ -249,13 +282,27 @@ export function evaluate(gathering, catalog) {
   const budget = started ? null : (rules.gathering?.starting_obols ?? 300) + bonus;
   if (budget != null && total > budget) warn("over-budget", { params: { total, budget } });
 
-  const deploymentLimit = gathering.deploymentLimit ?? rules.gathering?.deployment_limit ?? 350;
-  const fielded = models.filter((m, i) => (gathering.models[i].status || "active") === "active")
-                        .reduce((n, m) => n + m.cost, 0);
+  const maxLimit = rules.gathering?.max_deployment_limit ?? 500;
+  const rawLimit = (gathering.deploymentLimit ?? rules.gathering?.deployment_limit ?? 350) +
+                   (lairMods(gathering, catalog).deployment || 0);
+  if (rawLimit > maxLimit) warn("deployment-cap", { params: { limit: rawLimit, max: maxLimit } });
+  const deploymentLimit = Math.min(rawLimit, maxLimit);
+  const active = (m, i) => (gathering.models[i].status || "active") === "active";
+  const fielded = models.filter((m, i) => active(m, i) && !m.isSellsword).reduce((n, m) => n + m.cost, 0);
   if (fielded > deploymentLimit) warn("over-deployment", { params: { total: fielded, limit: deploymentLimit } });
+  const sellswords = models.filter((m, i) => active(m, i) && m.isSellsword).length;
+  if (sellswords > 1) warn("too-many-sellswords", { params: { count: sellswords } });
+
+  // Campaign: treasury, lair upgrades (once each), up to 4 active ambitions.
+  if (started && Number(gathering.treasury) < 0) warn("treasury-negative", { params: { treasury: gathering.treasury } });
+  for (const [k, n] of count(gathering.lair?.upgrades || [])) {
+    if (n > 1) warn("duplicate-upgrade", { item: k });
+  }
+  const activeAmbitions = (gathering.ambitions?.active || []).length;
+  if (activeAmbitions > 4) warn("too-many-ambitions", { params: { count: activeAmbitions } });
 
   return {
-    models, total, budget, deploymentLimit,
+    models, total, budget, deploymentLimit, fielded,
     warnings: [...warnings, ...models.flatMap(m => m.warnings)],
   };
 }

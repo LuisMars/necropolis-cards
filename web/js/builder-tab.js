@@ -22,6 +22,7 @@ import { toAppJson } from "./builder/appjson.js";
 import { linkUrl, defaultWeapon } from "./builder/codec.js";
 import { categoryOf, slug, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./builder/catalog.js";
 import { describe, label, itemName } from "./builder/messages.js";
+import { campaignHtml, campaignChange, campaignClick } from "./builder-campaign.js";
 
 const $pick   = $("bd-pick");
 const $body   = $("bd-body");
@@ -32,6 +33,7 @@ const $delBtn = $("bd-del");
 let hooks = {};
 let status = "";          // one line of feedback from the last action (HTML)
 let summaryOpen = false;  // the warning summary, opened from the count chip
+let view = "gathering";   // "gathering" (build) or "campaign"
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
@@ -152,6 +154,7 @@ function onChange_(e) {
   const { act, uid, list, aff } = el.dataset;
   const v = el.value;
   edit(g => {
+    if (campaignChange(act, el, g)) return;
     const m = uid ? findModel(g, uid) : null;
     switch (act) {
       case "name":       g.name = v.trim(); break;
@@ -173,6 +176,14 @@ function onClick(e) {
   if (!el) return;
   const { act, uid, list, i } = el.dataset;
   const g = store.current();
+  if (act === "view") { view = el.dataset.view; renderBuilder(); return; }
+  // Campaign actions change a clone; only a handled one is saved.
+  const clone = g ? structuredClone(g) : null;
+  if (clone && campaignClick(act, el, clone)) {
+    store.save(clone);
+    setTimeout(renderBuilder, 0);
+    return;
+  }
   switch (act) {
     case "m-del-item": edit(g => findModel(g, uid)[list].splice(Number(i), 1)); break;
     case "m-remove":   edit(g => { g.models = g.models.filter(m => m.uid !== uid); }); break;
@@ -276,10 +287,18 @@ export function renderBuilder() {
     (summaryOpen && ev.warnings.length
       ? warningSummaryHtml(g, ev)
       : warningsHtml(ev.warnings.filter(w => !w.model))) +
-    g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") +
-    addModelHtml(g);
+    viewSwitchHtml() +
+    (view === "campaign"
+      ? campaignHtml(g, ev)
+      : g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") + addModelHtml(g));
 
   if (focused) $body.querySelector(`[data-fid="${CSS.escape(focused)}"]`)?.focus();
+}
+
+function viewSwitchHtml() {
+  const b = (v) => `<button type="button" class="${view === v ? "primary" : "secondary"}" data-act="view" data-view="${v}">` +
+    `${esc(L(v === "campaign" ? "viewCampaign" : "viewGathering"))}</button>`;
+  return `<div class="bd-views">${b("gathering")}${b("campaign")}</div>`;
 }
 
 function headHtml(g) {
@@ -386,7 +405,11 @@ function modelHtml(g, m, e, idx) {
     ...(leader ? [[L("mana"), e.mana], [L("spells"), e.spellsAllowed]] : []),
   ].map(([k, v]) => `<span><i>${esc(k)}</i> <b>${esc(String(v ?? "—"))}</b></span>`).join("");
 
-  const sections = [
+  // Sellswords come with fixed armaments (p.74-76): show them, nothing to pick.
+  const sw = e.isSellsword;
+  const swRow = sw ? catalog().row(m.profile) || {} : null;
+  const sections = sw ? `<div class="bd-list"><h4>${esc(L("armaments"))}</h4>` +
+      `<div class="bd-amb-text">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</div></div>` : [
     listHtml(m, "traits", leader ? TRAIT_CATEGORIES : ["covenant-wretched-traits", "wretched-undead-traits"]),
     leader ? listHtml(m, "spells", ["spells"]) : "",
     listHtml(m, "weapons", WEAPON_CATEGORIES),
@@ -399,14 +422,16 @@ function modelHtml(g, m, e, idx) {
     <section class="bd-model${leader ? " leader" : ""}" id="bd-model-${uid}">
       <div class="bd-model-head">
         <input type="text" data-act="m-name" data-uid="${uid}" data-fid="${uid}-name" value="${esc(m.name || "")}" placeholder="${esc(L("modelName"))}">
-        <select data-act="m-profile" data-uid="${uid}" data-fid="${uid}-profile">
+        ${sw ? `<span class="bd-type">${esc(itemName(catalog(), m.profile, lang()))} <span class="bd-tag">${esc(L("sellsword"))}</span></span>`
+             : `<select data-act="m-profile" data-uid="${uid}" data-fid="${uid}-profile">
           <optgroup label="${esc(L("leaders"))}">${profiles("leaders")}</optgroup>
           <optgroup label="${esc(L("minions"))}">${profiles("minions")}</optgroup>
-        </select>
+        </select>`}
         <select data-act="m-aff" data-uid="${uid}" data-fid="${uid}-aff" title="${esc(L("affinity"))}">
           <option value="">${esc(L("chooseAffinity"))}</option>${affs}
         </select>
-        <span class="wb-chip accent"><b>${e.cost}</b> ${esc(L("obols"))}</span>
+        <span class="wb-chip accent"><b>${e.cost}</b> ${esc(L("obols"))}${sw
+          ? ` · ${Number(swRow.deploy_obols) || 0} ${esc(L("deployCost"))}` : ""}</span>
         <span class="spacer"></span>
         <button type="button" class="secondary" data-act="m-up" data-uid="${uid}" title="↑"${idx === 0 ? " disabled" : ""}>↑</button>
         <button type="button" class="secondary" data-act="m-down" data-uid="${uid}" title="↓"${idx === g.models.length - 1 ? " disabled" : ""}>↓</button>

@@ -67,7 +67,7 @@ export function buildCatalog(bundle) {
     covenant: (key) => (rules.covenants || []).find(c => c.key === key) || null,
     /** Leader or minion type rules for a profile key ({} when none). */
     profileRules: (key) =>
-      (rules.leaders || {})[key] || (rules.minions || {})[key] || {},
+      (rules.leaders || {})[key] || (rules.minions || {})[key] || (rules.sellswords || {})[key] || {},
   };
 }
 
