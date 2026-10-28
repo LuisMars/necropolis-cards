@@ -4,17 +4,25 @@ Static page that imports a warband JSON from the
 [Necropolis Companion App](https://necropolis28.vercel.app/) and lays out
 printable A4 sheets of the matching cards from this repo's library.
 
-Four tabs:
+Five tabs:
 
-1. **Import** — paste the Companion App's JSON or a share link (each import is
-   also saved as a builder gathering). **Load warband** only reads
+1. **Import** — paste the Companion App's JSON, a share link or a Builder
+   backup (each import is also saved as a builder gathering). **Load warband** only reads
    the roster into the Warband tab; **Load & add cards to queue** also matches
    each trait / spell / weapon / armour / model profile against our card
    data and appends the hits to the print queue. Per-model `modelName` and
    the effective (post-modifier) stats from the JSON override the generic
    card data, so the printed copy reflects the actual model. Either button
    stores the raw payload, which is what the Warband tab renders from.
-2. **Warband** — the imported gathering as a roster: one block per model
+2. **Builder** — create and edit gatherings: covenant, lair name (typed,
+   picked or rolled on the p.42 table), leader (type, keyword, traits,
+   spells, mana split) and minions (type, keyword, trait, weapons, armour,
+   equipment). Costs and stats update as you go, and every rule a choice
+   breaks shows as a warning on its model rather than being blocked. From
+   there a gathering opens in the Warband tab, queues its cards, copies its
+   Companion App link, or downloads as the app's JSON or as a Builder
+   backup. Saved gatherings live in the browser (localStorage).
+3. **Warband** — the gathering as a roster: one block per model
    with its profile stats, special rules, traits, spells, weapons, armour
    and equipment — each with the rules text and stat line off its card, and
    priced from the library — plus a per-model subtotal and the warband
@@ -45,13 +53,14 @@ Four tabs:
    choses the &lt;Affinity&gt; keyword…" effect text. A model that hasn't
    picked a keyword yet (affinity exported as `Blood/Bone/Plasm`) shows
    all of them, unflagged — same as the app.
-3. **Library** — filterable list of every card the bundle ships;
+4. **Library** — filterable list of every card the bundle ships;
    click to add one to the queue.
-4. **Print** — A4 sheets (3 × 3) with a bleed / no-bleed toggle, rendered
+5. **Print** — A4 sheets (3 × 3) with a bleed / no-bleed toggle, rendered
    as inline SVG and styled for `window.print()`.
 
-Both the cards and the roster follow the header's card-language selector
-(English / Spanish); the surrounding app chrome stays English.
+The cards, the roster and the Builder tab follow the header's
+card-language selector (English / Spanish); the rest of the app chrome
+stays English.
 
 ## Building the static bundle
 
@@ -108,7 +117,9 @@ web/
     ├── state.js            # global state + localStorage queue
     ├── data.js             # fetches data.json + templates, builds the name index
     ├── matching.js         # normName + findCard + keyHintFromSource
-    ├── import.js           # import tab (app JSON or share link) + match list
+    ├── import.js           # import tab (app JSON, share link, backup) + match list
+    ├── builder-tab.js      # builder tab: gathering list + editor
+    ├── gatherings.js       # the page's saved gatherings (localStorage store)
     ├── warband.js          # warband tab: roster model + A4 roster sheets
     ├── icons.js            # roster glyphs (obol, AP, attacks, HP, …)
     ├── i18n.js             # card/roster language: label maps + field picker
@@ -123,7 +134,8 @@ web/
         ├── rules.js        # costs, effective stats, rule warnings
         ├── codec.js        # Companion App share links
         ├── appjson.js      # Companion App JSON export ↔ gathering
-        └── store.js        # saved gatherings in localStorage
+        ├── messages.js     # warnings and builder labels, English / Spanish
+        └── store.js        # saved-gatherings store over any Storage
 ```
 
 The builder modules take the bundle as an argument and never touch the

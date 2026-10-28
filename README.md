@@ -6,6 +6,8 @@ The site at **<https://necropolis.luismars.com>** imports a warband JSON
 from the [Companion App](https://necropolis28.vercel.app/) and lays out
 A4 print sheets of the matching cards, plus a printable roster sheet of
 the warband itself (per-model gear and costs, and the gathering's total).
+Its Builder tab creates and edits gatherings directly, with the rulebook's
+costs, stats and rule warnings.
 
 > Fan-made. Not affiliated with or endorsed by Owl Shield Games. The
 > rulebook PDF is the author's IP and is **not** distributed in this

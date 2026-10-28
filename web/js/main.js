@@ -11,6 +11,7 @@ import { loadFonts }          from "./fonts.js";
 import { initImport }         from "./import.js";
 import { initLibrary, renderLibrary } from "./library.js";
 import { initWarband, renderWarband }  from "./warband.js";
+import { initBuilder, renderBuilder }  from "./builder-tab.js";
 import { initPrint, renderPrint }     from "./print.js";
 import { $ }                  from "./util.js";
 
@@ -28,6 +29,7 @@ function switchTo(tab) {
   document.querySelectorAll("section.tab").forEach(s => s.classList.toggle("active", s.dataset.tab === tab));
   if (tab === "library") renderLibrary();
   if (tab === "warband") renderWarband();
+  if (tab === "builder") renderBuilder();
   if (tab === "print")   renderPrint();
 }
 
@@ -63,10 +65,11 @@ initImport({
 });
 initLibrary({ onChange });
 initWarband({ onChange });
+initBuilder({ onChange, switchToWarband: () => switchTo("warband") });
 initPrint({ onChange });
 
-// Card-language selector. Only the printed material is localised (cards and
-// the warband roster), so changing it just re-renders those views.
+// Card-language selector. The printed material (cards, warband roster) and
+// the Builder tab are localised, so changing it re-renders those views.
 loadLang();
 const $langSelect = document.getElementById("lang-select");
 $langSelect.value = state.lang;
@@ -75,6 +78,7 @@ $langSelect.addEventListener("change", () => {
   saveLang();
   if (currentTab() === "library") renderLibrary();
   renderWarband();
+  renderBuilder();
   renderPrint();
 });
 
@@ -89,6 +93,7 @@ Promise.all([loadFonts(), loadBundle()]).then(() => {
   refreshHeader();
   if (currentTab() === "library") renderLibrary();
   renderWarband();
+  renderBuilder();
   // Always render the print tab so the sheets DOM is ready when the user
   // hits ⎙ from any tab. Cost is negligible (<10ms for a typical queue).
   renderPrint();

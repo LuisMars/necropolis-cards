@@ -15,6 +15,7 @@
   <h1>Necropolis <span>Card Printer</span></h1>
   <nav class="tabs">
     <button data-tab="import">Import</button>
+    <button data-tab="builder">Builder</button>
     <button data-tab="warband">Warband</button>
     <button data-tab="library" class="active">Library</button>
     <button data-tab="print">Print</button>
@@ -50,6 +51,16 @@
       </div>
     </div>
     <div id="match-list" class="match-list"></div>
+  </section>
+
+  <section class="tab" data-tab="builder">
+    <div class="bd-toolbar">
+      <select id="bd-pick" hidden></select>
+      <button class="primary" id="bd-new">+ New gathering</button>
+      <button class="secondary" id="bd-dup">Duplicate</button>
+      <button class="secondary" id="bd-del">Delete</button>
+    </div>
+    <div id="bd-body"></div>
   </section>
 
   <section class="tab" data-tab="warband">

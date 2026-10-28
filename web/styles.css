@@ -374,6 +374,65 @@ textarea.json-in {
 .wb-chip.good b { color: var(--good); }
 .wb-chip.over { border-color: var(--bad); color: var(--bad); }
 .wb-chip.over b { color: var(--bad); }
+
+/* === Builder tab === */
+.bd-toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+.bd-toolbar button:disabled { opacity: 0.45; cursor: default; }
+#bd-body input[type=text], #bd-body input[type=number], #bd-body select, .bd-toolbar select {
+  background: var(--panel); color: var(--text); border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 4px; font: inherit; font-size: 14px;
+}
+#bd-body input:focus, #bd-body select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.bd-head { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+.bd-head label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.bd-head input[type=text] { min-width: 240px; }
+.bd-head .bd-lair { flex: 1; min-width: 320px; }
+.bd-inline { display: flex; gap: 6px; flex-wrap: wrap; }
+.bd-inline input[type=text] { flex: 1; }
+.bd-inline select { max-width: 220px; }
+.bd-summary { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.bd-summary .spacer { flex: 1; }
+.bd-status { color: var(--muted); font-size: 13px; margin: -2px 0 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.bd-status .bd-link { flex: 1; min-width: 260px; font-size: 12px !important; }
+.bd-warn { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.bd-warn li {
+  background: var(--panel2); border-left: 3px solid var(--warn); border-radius: 3px;
+  padding: 4px 10px; font-size: 13px; color: var(--text);
+}
+.bd-model {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px; margin-bottom: 10px;
+}
+.bd-model.leader { border-color: var(--accent); }
+.bd-model-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.bd-model-head input[type=text] { min-width: 200px; flex: 0 1 260px; }
+.bd-model-head .spacer { flex: 1; }
+.bd-model-head button { padding: 4px 9px; }
+.bd-model-head button:disabled { opacity: 0.35; cursor: default; }
+.bd-stats { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 0; font-size: 13px; }
+.bd-stats i { color: var(--muted); font-style: normal; }
+.bd-stats b { color: #fff; }
+.bd-lists { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px 16px; }
+.bd-list h4 {
+  margin: 4px 0; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.bd-items { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.bd-items select { font-size: 13px !important; padding: 3px 6px !important; max-width: 100%; }
+.bd-item {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 2px 4px 2px 10px; font-size: 13px;
+}
+.bd-item small { color: var(--accent); }
+.bd-item button {
+  background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 12px; padding: 0 4px;
+}
+.bd-item button:hover { color: var(--bad); }
+.bd-mana { display: flex; gap: 10px; }
+.bd-mana label { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); }
+.bd-mana input { width: 4.2em; }
+.bd-add-model { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+.bd-hint { color: var(--muted); font-size: 14px; }
 #wb-print-btn:disabled, #wb-clear-btn:disabled { opacity: 0.45; cursor: default; }
 
 /* --- roster pages --- */

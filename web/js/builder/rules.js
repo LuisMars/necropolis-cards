@@ -179,7 +179,7 @@ export function evaluateModel(model, catalog, gathering = {}) {
       warn("covenant-keyword", { params: { needs: cov.keywords_any } });
     }
     if (isLeader && cov.leader_types && !cov.leader_types.includes(key)) {
-      warn("covenant-leader-type", { params: { allowed: cov.leader_types } });
+      warn("covenant-leader-type", { params: { types: cov.leader_types } });
     }
     const started = (gathering.history || []).length > 0;
     if (isLeader && cov.spell_schools && !started) {

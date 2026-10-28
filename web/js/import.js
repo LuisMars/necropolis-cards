@@ -24,14 +24,8 @@ const $sampleBtn = document.getElementById("sample-btn");
 import { SAMPLE_JSON } from "./sample.js";
 import { isLink, decodeLink } from "./builder/codec.js";
 import { fromAppJson, toAppJson } from "./builder/appjson.js";
-import { createStore, memoryStorage } from "./builder/store.js";
-
-// Every import is also kept as a builder gathering (web/js/builder/), the
-// format the Builder tab will edit. localStorage can throw (private mode,
-// blocked site data); fall back to memory so importing still works.
-let storage;
-try { storage = window.localStorage; storage.getItem("x"); } catch { storage = memoryStorage(); }
-const store = createStore(storage);
+import { FORMAT } from "./builder/gathering.js";
+import { store } from "./gatherings.js";
 
 export function initImport({ onChange, switchToPrint, switchToWarband, onWarband }) {
   // Load the roster only: the Warband tab is the whole point of the import,
@@ -60,10 +54,10 @@ export function initImport({ onChange, switchToPrint, switchToWarband, onWarband
   $sampleBtn.addEventListener("click", () => { $jsonIn.value = SAMPLE_JSON; });
 }
 
-/** Parse a payload — the Companion App's JSON export or one of its share
- *  links — always refreshing the warband; `queue` decides whether the matched
- *  cards also land in the print queue. Returns the card matches plus `notes`
- *  on how the import went into the builder. */
+/** Parse a payload — the Companion App's JSON export, one of its share
+ *  links, or a Builder backup — and keep it as a builder gathering, then
+ *  hand it to `applyPayload`. Returns the card matches plus `notes` on how
+ *  the import went into the builder. */
 function importJson(text, { queue = true } = {}) {
   let data;
   const notes = [];
@@ -78,11 +72,23 @@ function importJson(text, { queue = true } = {}) {
   } else {
     try { data = JSON.parse(text); }
     catch (e) { alert("Invalid JSON: " + e.message); return { matches: [], notes }; }
-    const { gathering, unmatched } = fromAppJson(data, state.catalog);
-    for (const u of unmatched) notes.push(`No builder match for ${u.where}: ${u.name}`);
-    if (gathering.models.length) keepGathering(gathering, notes);
+    if (data?.format === FORMAT) {
+      // A Builder backup: restore it as it was, and show its roster.
+      keepGathering(data, notes);
+      data = toAppJson(data, state.catalog);
+    } else {
+      const { gathering, unmatched } = fromAppJson(data, state.catalog);
+      for (const u of unmatched) notes.push(`No builder match for ${u.where}: ${u.name}`);
+      if (gathering.models.length) keepGathering(gathering, notes);
+    }
   }
+  return { matches: applyPayload(data, { queue }), notes };
+}
 
+/** Show a Companion App payload as the warband and match its cards; with
+ *  `queue`, the matched cards also land in the print queue. The Builder tab
+ *  calls this with the JSON it exports for a gathering. */
+export function applyPayload(data, { queue = true } = {}) {
   const matches = [];
 
   // Keep the payload verbatim: the Warband tab re-derives its roster from it
@@ -154,7 +160,7 @@ function importJson(text, { queue = true } = {}) {
     }
     saveQueue();
   }
-  return { matches, notes };
+  return matches;
 }
 
 function keepGathering(gathering, notes) {
