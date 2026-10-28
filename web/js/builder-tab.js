@@ -23,6 +23,7 @@ import { linkUrl, defaultWeapon } from "./builder/codec.js";
 import { categoryOf, slug, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./builder/catalog.js";
 import { describe, label, itemName } from "./builder/messages.js";
 import { campaignHtml, campaignChange, campaignClick } from "./builder-campaign.js";
+import { afterBattleHtml, afterBattleChange, afterBattleClick } from "./builder-afterbattle.js";
 
 const $pick   = $("bd-pick");
 const $body   = $("bd-body");
@@ -154,7 +155,7 @@ function onChange_(e) {
   const { act, uid, list, aff } = el.dataset;
   const v = el.value;
   edit(g => {
-    if (campaignChange(act, el, g)) return;
+    if (afterBattleChange(act, el, g) || campaignChange(act, el, g)) return;
     const m = uid ? findModel(g, uid) : null;
     switch (act) {
       case "name":       g.name = v.trim(); break;
@@ -179,7 +180,7 @@ function onClick(e) {
   if (act === "view") { view = el.dataset.view; renderBuilder(); return; }
   // Campaign actions change a clone; only a handled one is saved.
   const clone = g ? structuredClone(g) : null;
-  if (clone && campaignClick(act, el, clone)) {
+  if (clone && (afterBattleClick(act, el, clone) || campaignClick(act, el, clone))) {
     store.save(clone);
     setTimeout(renderBuilder, 0);
     return;
@@ -289,7 +290,7 @@ export function renderBuilder() {
       : warningsHtml(ev.warnings.filter(w => !w.model))) +
     viewSwitchHtml() +
     (view === "campaign"
-      ? campaignHtml(g, ev)
+      ? (g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev))
       : g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") + addModelHtml(g));
 
   if (focused) $body.querySelector(`[data-fid="${CSS.escape(focused)}"]`)?.focus();

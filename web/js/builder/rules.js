@@ -97,6 +97,17 @@ export function evaluateModel(model, catalog, gathering = {}) {
   const traitMods = addMods(...traitRows.map(t => t.row.modifiers));
   const imp = model.improvements || {};
 
+  // Reconstitution maladies (p.66): a stat worse by 1, or -1 max HP that
+  // stops at 10. Soul Binder removes them (and so their effect).
+  const malMods = {};
+  let frail = 0;
+  for (const mal of model.maladies || []) {
+    const def = (rules.maladies || []).find(x => x.key === mal.key);
+    if (!def) { warn("unknown-item", { item: mal.key }); continue; }
+    if (def.modifiers?.hp) frail -= def.modifiers.hp;
+    if (mal.stat) malMods[mal.stat] = (malMods[mal.stat] || 0) - 1;
+  }
+
   // Keywords: the type's own, its affinity, and any a modifier grants (Fly).
   const keywords = [...new Set([
     ...(pr.keywords || (isLeader ? ["Leader"] : [])),
@@ -115,7 +126,7 @@ export function evaluateModel(model, catalog, gathering = {}) {
   // Stats: card base + affinity + traits + campaign improvements (capped).
   const s = row.stats || {};
   const base = { ap: num(s.AP), move: num(s.M), violence: num(s.VIOL), ranged: num(s.RNGD), hp: num(s.HP) };
-  const mod = addMods(affMods, traitMods, imp);
+  const mod = addMods(affMods, traitMods, imp, malMods);
   const caps = rules.improvement_caps || {};
   for (const k of STATS) {
     if (caps[k] != null && (imp[k] || 0) > caps[k]) warn("improvement-cap", { params: { stat: k, max: caps[k] } });
@@ -128,6 +139,7 @@ export function evaluateModel(model, catalog, gathering = {}) {
     ranged: base.ranged == null ? null : base.ranged - (mod.ranged || 0),
     hp: base.hp + (mod.hp || 0),
   };
+  if (frail) stats.hp = Math.max(Math.min(stats.hp, 10), stats.hp - frail);
 
   // Gear: forbidden items, whitelists, hands, one body armour / shield / misc item.
   const forbid = [...(pr.forbid || []), ...(affMods.forbid || [])];

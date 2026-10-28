@@ -28,7 +28,12 @@ Five tabs:
    deployment limit (who is fielded, sellswords hired and the free ones the
    rules allow), lair upgrades, the 4 active ambitions with their rewards
    applied, treasures (rolled or picked, carried within the limits, moved
-   between models), model improvements, and a battle log.
+   between models), model improvements, and a battle log. **After the
+   battle…** runs the rulebook's 7-step after-battle sequence as a wizard
+   (maladies, victory rewards with lair income and Purloiner, ambitions,
+   the greater treasure every 5, the Bazaar with the Alchemy Workshop, and
+   the next scenario), every roll with a Roll button or a typed die; it can
+   be left and resumed, and finishing it writes the battle-log entry.
 3. **Warband** — the gathering as a roster: one block per model
    with its profile stats, special rules, traits, spells, weapons, armour
    and equipment — each with the rules text and stat line off its card, and
@@ -127,6 +132,7 @@ web/
     ├── import.js           # import tab (app JSON, share link, backup) + match list
     ├── builder-tab.js      # builder tab: gathering list + editor
     ├── builder-campaign.js # builder tab, campaign view
+    ├── builder-afterbattle.js # builder tab, after-battle wizard
     ├── gatherings.js       # the page's saved gatherings (localStorage store)
     ├── warband.js          # warband tab: roster model + A4 roster sheets
     ├── icons.js            # roster glyphs (obol, AP, attacks, HP, …)

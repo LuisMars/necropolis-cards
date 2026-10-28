@@ -10,6 +10,7 @@
 import { categoryOf, slug } from "./catalog.js";
 import { evaluate, treasureKind } from "./rules.js";
 import { newModel } from "./gathering.js";
+import { defaultWeapon } from "./codec.js";
 
 export const d = (sides, rng = Math.random) => 1 + Math.floor(rng() * sides);
 
@@ -203,4 +204,225 @@ export function removeBattle(g, index) {
   ensureCampaign(g);
   const [e] = g.history.splice(index, 1);
   if (e) g.treasury = (Number(g.treasury) || 0) - (Number(e.obols) || 0);
+}
+
+/* ---- after-battle sequence (p.65) ------------------------------------------
+ *
+ * `g.campaign.afterBattle` holds a sequence in progress, so it can be left
+ * and resumed: the battle being closed, the current step, what each step
+ * has already applied (`done`), and the obols the battle brought in. The
+ * treasury moves as each step applies; finishing writes the battle log.
+ */
+
+const num = (v) => { const m = /-?\d+/.exec(String(v ?? "")); return m ? parseInt(m[0], 10) : 0; };
+/** Price of a row: `obols`, else the number in its `cost` ("10 obols"). */
+export const price = (row) => (row?.obols != null ? Number(row.obols) : num(row?.cost));
+
+export function startAfterBattle(g, battle) {
+  ensureCampaign(g);
+  const next = g.campaign.nextScenario || {};
+  g.campaign.afterBattle = {
+    step: 0,
+    battle: {
+      date: battle.date || new Date().toISOString().slice(0, 10),
+      environment: battle.environment ?? next.environment ?? null,
+      mission: battle.mission ?? next.mission ?? null,
+      omen: battle.omen ?? next.omen ?? null,
+      result: battle.result || "win",
+      leaderShattered: !!battle.leaderShattered,
+      notes: battle.notes || "",
+    },
+    done: {},
+    obols: 0,
+    treasuresLeft: 0,
+    alchemyBought: false,
+  };
+  return g.campaign.afterBattle;
+}
+
+const ab = (g) => {
+  const a = g.campaign?.afterBattle;
+  if (!a) throw new Error("No after-battle sequence in progress");
+  return a;
+};
+const gain = (g, n) => { g.treasury = (Number(g.treasury) || 0) + n; ab(g).obols += n; };
+const leaderOf = (g) => g.models.find(isLeader);
+
+/** The malady a D10 roll gives (p.66). */
+export const maladyFor = (catalog, roll) => (catalog.rules.maladies || []).find(m => m.rolls.includes(Number(roll)));
+
+/**
+ * Step 1: apply the malady for `roll` to the leader. `stat` is the stat
+ * Cursed/Incomplete Form worsens; `treasure` the index of the minor
+ * treasure Pilfered takes.
+ */
+export function applyMalady(g, catalog, roll, { stat = null, treasure = null } = {}) {
+  const a = ab(g);
+  if (a.done.maladies) return null;
+  const def = maladyFor(catalog, roll);
+  const leader = leaderOf(g);
+  if (!def || !leader) return null;
+  if (def.stat_by) {
+    if (!["move", "violence", "ranged"].includes(stat)) throw new Error("Choose Move, Violence or Ranged");
+    (leader.maladies ||= []).push({ key: def.key, stat });
+  } else if (def.modifiers) {
+    (leader.maladies ||= []).push({ key: def.key });
+  } else if (def.improvements) {
+    addTo(leader, def.improvements);
+  } else if (def.lose_minor_treasure && treasure != null) {
+    leader.treasures.splice(Number(treasure), 1);
+  }
+  a.done.maladies = { roll: Number(roll), key: def.key, stat };
+  return def;
+}
+
+/** Step 2: victory rewards (30/20 + 2d10, and 2/1 minor treasure rolls). */
+export function applyVictoryRewards(g, catalog, dice) {
+  const a = ab(g);
+  if (a.done.rewards) return 0;
+  const r = catalog.rules.victory_rewards?.[a.battle.result === "loss" ? "loss" : "win"] || { obols: 0, treasures: 0 };
+  const n = r.obols + dice.reduce((s, x) => s + Number(x || 0), 0);
+  gain(g, n);
+  a.treasuresLeft += r.treasures;
+  a.done.rewards = { dice: dice.map(Number), obols: n };
+  return n;
+}
+
+/** Lair upgrades that bring +d10 obols after each scenario (p.71). */
+export const incomeUpgrades = (g, catalog) =>
+  (g.lair?.upgrades || []).filter(k => catalog.row(k)?.modifiers?.income);
+
+export function applyLairIncome(g, catalog, key, roll) {
+  const a = ab(g);
+  a.done.income ||= {};
+  if (a.done.income[key] != null || !incomeUpgrades(g, catalog).includes(key)) return 0;
+  gain(g, Number(roll) || 0);
+  a.done.income[key] = Number(roll) || 0;
+  return a.done.income[key];
+}
+
+/** Purloiner (p.25): roll a d10; if ≤ the model's Move, gain d10 obols. */
+export function applyPurloiner(g, uid, move, roll, obols) {
+  const a = ab(g);
+  a.done.purloiner ||= {};
+  if (a.done.purloiner[uid] != null) return 0;
+  const n = Number(roll) <= Number(move) ? Number(obols) || 0 : 0;
+  gain(g, n);
+  a.done.purloiner[uid] = n;
+  return n;
+}
+
+/* Step 6: the Bazaar (p.72) and the Alchemy Workshop (p.73). */
+
+const GEAR_LISTS = { weapons: true, armour: true, equipment: true };
+const discounted = (g, catalog, key) => {
+  const cat = categoryOf(key);
+  const off = (g.lair?.upgrades || []).reduce((n, k) => n + (catalog.row(k)?.modifiers?.gear_discount || 0), 0);
+  const base = price(catalog.row(key));
+  // Forgotten Forge: weapons and armour cost 20% less, rounding down.
+  if (off && (cat.endsWith("-weapons") || cat === "armours")) return Math.floor(base * (100 - off) / 100);
+  return base;
+};
+export const buyPrice = discounted;
+
+/** Buy gear for a model in the Markets. */
+export function buyGear(g, catalog, uid, list, key) {
+  if (!GEAR_LISTS[list]) throw new Error("Not a gear list");
+  const m = g.models.find(x => x.uid === uid);
+  const cost = discounted(g, catalog, key);
+  // A real weapon replaces the free Improvised one.
+  if (list === "weapons" && m.weapons.length === 1 && /improvised-weapon$/.test(m.weapons[0]) &&
+      categoryOf(key) !== "thrown-weapons") m.weapons = [];
+  m[list].push(key);
+  g.treasury = (Number(g.treasury) || 0) - cost;
+  return cost;
+}
+
+/** Recruit a new minion in the Markets. */
+export function recruit(g, catalog, key, defaultWeapon) {
+  const rules = catalog.profileRules(key);
+  const m = newModel(g, { profile: key, weapons: [defaultWeapon],
+    affinity: (rules.affinity || []).length === 1 ? rules.affinity[0] : null });
+  g.models.push(m);
+  g.treasury = (Number(g.treasury) || 0) - price(catalog.row(key));
+  return m;
+}
+
+/** Sell a weapon or armour for half its value, rounding down. */
+export const sellValue = (catalog, key) => Math.floor(price(catalog.row(key)) / 2);
+export function sellGear(g, catalog, uid, list, index) {
+  if (list !== "weapons" && list !== "armour") throw new Error("Only weapons and armour sell");
+  const m = g.models.find(x => x.uid === uid);
+  const [key] = m[list].splice(Number(index), 1);
+  if (!key) return 0;
+  // A model always has at least its free Improvised Weapon.
+  if (list === "weapons" && !m.weapons.length) m.weapons.push(defaultWeapon(catalog, m.profile));
+  const v = sellValue(catalog, key);
+  g.treasury = (Number(g.treasury) || 0) + v;
+  return v;
+}
+
+/** Sell a treasure: minor 10 obols, greater 50. `from` = uid, or null for the stash. */
+export function sellTreasure(g, catalog, from, index) {
+  const list = from ? g.models.find(x => x.uid === from).treasures : g.stash;
+  const [key] = list.splice(Number(index), 1);
+  if (!key) return 0;
+  const b = catalog.rules.bazaar || {};
+  const v = treasureKind(catalog, key) === "greater" ? b.sell_greater_treasure ?? 50 : b.sell_minor_treasure ?? 10;
+  g.treasury = (Number(g.treasury) || 0) + v;
+  return v;
+}
+
+/** Soul Binder: 50 obols removes a malady, and with it its effect. */
+export function soulBinder(g, catalog, uid, index) {
+  const m = g.models.find(x => x.uid === uid);
+  const [mal] = (m.maladies || []).splice(Number(index), 1);
+  if (!mal) return false;
+  g.treasury = (Number(g.treasury) || 0) - (catalog.rules.bazaar?.soul_binder ?? 50);
+  return true;
+}
+
+/** Tomb Robber: once per gathering, pay 30 for the minor treasure rolled. */
+export function tombRobber(g, catalog, key, { pay = true, to = null } = {}) {
+  ensureCampaign(g);
+  if (g.campaign.tombRobberUsed) return false;
+  g.campaign.tombRobberUsed = true;
+  if (!pay) return false;
+  g.treasury = (Number(g.treasury) || 0) - (catalog.rules.bazaar?.tomb_robber ?? 30);
+  giveTreasure(g, key, to);
+  return true;
+}
+
+/** Alchemy Workshop: 1 potion or throwing pot per after-battle sequence. */
+export const hasAlchemy = (g, catalog) =>
+  (g.lair?.upgrades || []).some(k => catalog.row(k)?.modifiers?.shop === "alchemy");
+export function buyAlchemy(g, catalog, key, to = null) {
+  const a = ab(g);
+  if (a.alchemyBought || !hasAlchemy(g, catalog)) return false;
+  a.alchemyBought = true;
+  g.treasury = (Number(g.treasury) || 0) - price(catalog.row(key));
+  giveTreasure(g, key, to);
+  return true;
+}
+
+/* Step 7: the next scenario. */
+
+/** Has "Read the Omens" been completed (one omen reroll per scenario)? */
+export const canRerollOmen = (g) => (g.ambitions?.log || []).some(e => e.ambition === "ambitions/read-the-omens");
+
+export function rollScenarioPart(catalog, part, rng = Math.random) {
+  const rows = (catalog.bundle.categories[part]?.rows || []);
+  const n = catalog.rules.scenario_dice?.[part] || rows.length;
+  return `${part}/${slug(rows.at(d(n, rng) - 1)?.name)}`;
+}
+
+/** Finish: log the battle (its obols are already in the treasury). */
+export function finishAfterBattle(g, nextScenario = null) {
+  const a = ab(g);
+  g.history.push({
+    date: a.battle.date, environment: a.battle.environment, mission: a.battle.mission,
+    omen: a.battle.omen, result: a.battle.result, obols: a.obols, notes: a.battle.notes,
+  });
+  g.campaign.nextScenario = nextScenario;
+  delete g.campaign.afterBattle;
 }

@@ -29,8 +29,12 @@ const name = (key) => itemName(catalog(), key, lang());
 const rows = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r => [`${cat}/${slug(r.name)}`, r]);
 const modelTitle = (m) => (m.name ? `${m.name} (${name(m.profile)})` : name(m.profile));
 
-/** A treasure waiting to be given out: {kind, choices?, greater?}. */
+/** A treasure waiting to be given out: {kind, choices?, greater?, source?}. */
 let pending = null;
+
+/** Queue a treasure to roll or pick (the after-battle rewards step uses it). */
+export function setPending(p) { pending = p; }
+export const pendingTreasure = () => pending;
 /** Model chosen for each completed ambition's reward, by ambition key. */
 const rewardPick = {};
 
@@ -84,6 +88,7 @@ export function campaignClick(act, el, g) {
     case "t-take": {
       const to = document.getElementById(`t-to-${el.dataset.take}`)?.value || null;
       giveTreasure(g, key, to, { greaterClaim: !!pending?.greater });
+      if (pending?.source === "rewards" && g.campaign.afterBattle) g.campaign.afterBattle.treasuresLeft -= 1;
       pending = null;
       return true;
     }
@@ -118,7 +123,8 @@ export function campaignHtml(g, ev) {
         <button type="button" class="primary" data-act="start">${esc(L("startCampaign"))}</button>
       </div>`;
   }
-  return [deploymentHtml(g, ev), pendingHtml(g), ambitionsHtml(g), treasuresHtml(g),
+  const open = `<div class="bd-inline bd-ab-open"><button type="button" class="primary" data-act="ab-open">${esc(L("afterBattle"))}</button></div>`;
+  return [open, deploymentHtml(g, ev), pendingHtml(g), ambitionsHtml(g), treasuresHtml(g),
           upgradesHtml(g), improvementsHtml(g, ev), battleLogHtml(g)].join("");
 }
 
@@ -161,7 +167,7 @@ function deploymentHtml(g, ev) {
 }
 
 /** Modal-ish strip for a treasure waiting to be handed out. */
-function pendingHtml(g) {
+export function pendingHtml(g) {
   const owed = greaterOwed(g);
   const owedHtml = owed > 0 && !pending
     ? `<div class="bd-panel bd-callout"><b>${owed}</b> ${esc(L("greaterOwed"))}
@@ -189,7 +195,7 @@ function pendingHtml(g) {
     </div>`;
 }
 
-function ambitionsHtml(g) {
+export function ambitionsHtml(g) {
   const a = g.ambitions;
   const active = a.active.map(key => {
     const r = catalog().row(key) || {};
@@ -263,7 +269,7 @@ function treasuresHtml(g) {
     </div>`;
 }
 
-function upgradesHtml(g) {
+export function upgradesHtml(g) {
   const owned = new Set(g.lair.upgrades);
   const items = rows("lair-upgrades").map(([k, r]) => `
     <div class="bd-upgrade${owned.has(k) ? " owned" : ""}">

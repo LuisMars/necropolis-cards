@@ -378,7 +378,7 @@ textarea.json-in {
 /* === Builder tab === */
 .bd-toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
 .bd-toolbar button:disabled { opacity: 0.45; cursor: default; }
-#bd-body input[type=text], #bd-body input[type=number], #bd-body select, .bd-toolbar select {
+#bd-body input[type=text], #bd-body input[type=number], #bd-body input[type=date], #bd-body select, .bd-toolbar select {
   background: var(--panel); color: var(--text); border: 1px solid var(--border);
   padding: 6px 10px; border-radius: 4px; font: inherit; font-size: 14px;
 }
@@ -494,6 +494,28 @@ textarea.json-in {
 .bd-table input[type=number] { width: 4.2em; padding: 3px 6px !important; }
 .bd-log input, .bd-log select { font-size: 12px !important; padding: 3px 6px !important; max-width: 160px; }
 .bd-log button { padding: 3px 9px; }
+/* After-battle wizard */
+.bd-ab-open { margin-bottom: 10px; }
+.bd-wizard { border-color: var(--accent); }
+.bd-crumbs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.bd-crumbs button { padding: 4px 9px; font-size: 12px; }
+.bd-step { border-top: 1px solid var(--border); padding-top: 8px; }
+.bd-step h4 { margin: 10px 0 4px; font-size: 13px; color: #fff; }
+.bd-step .bd-inline { align-items: center; margin: 4px 0; }
+.bd-wizard-nav { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 8px; }
+.bd-wizard-nav .spacer { flex: 1; }
+.bd-wizard-nav button:disabled { opacity: 0.4; cursor: default; }
+.bd-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 14px; }
+.bd-form label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); }
+.bd-check { flex-direction: row !important; align-items: center; gap: 6px !important; font-size: 13px !important; color: var(--text) !important; }
+.bd-die { width: 4em; }
+.bd-sell {
+  background: var(--panel3); border: 1px solid var(--border); border-radius: 10px; color: var(--accent);
+  cursor: pointer; font: inherit; font-size: 11px; padding: 0 7px;
+}
+.bd-sell:hover { border-color: var(--accent); }
+.bd-step .bd-items { margin: 4px 0 8px; }
+
 
 @keyframes bd-flash {
   0%, 30% { box-shadow: 0 0 0 2px var(--warn); }
