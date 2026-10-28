@@ -244,3 +244,86 @@ lair_names:
   - { roll: 58, name: "The Hierophant's Crawlway of Drycraft", name_es: "La Galería de Arrastre del Hierofante de la Magia Seca" }
   - { roll: 59, name: "The Conqueror's Grave of Pyres", name_es: "La Tumba del Conquistador de los Pitas" }
   - { roll: 60, name: "The Mendicant's Dolmen of Thresholds", name_es: "El Dolmen del Mendigo de los Umbrales" }
+
+# p.65: the after-battle sequence, in order.
+after_battle:
+  - { key: maladies,      name: Reconstitution Maladies, name_es: Dolencias de la Reconstitución }
+  - { key: rewards,       name: Victory Rewards,         name_es: Recompensas por la Victoria }
+  - { key: minor,         name: Minor Ambitions,         name_es: Ambiciones Menores }
+  - { key: ambitions,     name: Ambitions,               name_es: Ambiciones }
+  - { key: total,         name: Total Ambitions,         name_es: Total de Ambiciones }
+  - { key: bazaar,        name: The Bazaar,              name_es: El Bazar }
+  - { key: scenario,      name: Roll New Scenario,       name_es: Tirar un Nuevo Escenario }
+
+# p.66: when the leader was Shattered, roll a D10. `stat_by`: who picks the
+# stat (Move, Violence or Ranged) that gets worse. Spanish from Necropolis
+# español v1.1, p.66. All models are restored to full HP afterwards.
+maladies:
+  - key: frail
+    rolls: [1]
+    name: Frail Reformation
+    name_es: Reconstitución Débil
+    effect: "-1 max HP (to a minimum of 10)."
+    effect_es: "-1 HP máximos (con un mínimo de 10)."
+    modifiers: { hp: -1 }
+    min_hp: 10
+  - key: cursed-form
+    rolls: [2]
+    name: Cursed Form
+    name_es: Forma Maldita
+    effect: "Your opponent chooses either your Move, Violence or Ranged and reduces it by 1 (e.g. 6+ becomes 7+ for Violence and Ranged, but Move goes from 3 to 2)."
+    effect_es: "Tu oponente elige entre tu Movimiento, Violencia o A Distancia y lo reduce en 1 (ej.: 6+ pasa a 7+ para Violencia y A Distancia, pero Movimiento pasa de 3 a 2)."
+    stat_by: opponent
+  - key: incomplete-form
+    rolls: [3, 4, 5]
+    name: Incomplete Form
+    name_es: Forma Incompleta
+    effect: "Choose Move, Violence or Ranged and reduce it by 1 (e.g. 6+ would become 7+ for Violence and Ranged, but Move would worsen from 3 to 2)."
+    effect_es: "Elige Movimiento, Violencia o A Distancia y redúcelo en 1 (ej.: 6+ pasa a 7+ para Violencia y A Distancia, pero Movimiento pasa de 3 a 2)."
+    stat_by: you
+  - key: pilfered
+    rolls: [6, 7, 8, 9]
+    name: Pilfered
+    name_es: Saqueado
+    effect: "Your opponent chooses one minor treasure your leader is carrying that you lose and they gain."
+    effect_es: "Tu oponente elige un tesoro menor que lleve tu líder y se lo queda."
+    lose_minor_treasure: true
+  - key: perfect
+    rolls: [10]
+    name: Perfect Reconstitution
+    name_es: Reconstitución Perfecta
+    effect: "+1 max HP."
+    effect_es: "+1 HP máximos."
+    improvements: { hp: 1 }
+
+# p.66 (draws count as wins for both players, p.55)
+victory_rewards:
+  win:  { obols: 30, dice: 2, treasures: 2 }
+  loss: { obols: 20, dice: 2, treasures: 1 }
+
+# p.72 The Bazaar. Spanish from Necropolis español v1.1, p.72.
+bazaar:
+  sell_minor_treasure: 10
+  sell_greater_treasure: 50
+  soul_binder: 50
+  tomb_robber: 30
+  locations:
+    - key: markets
+      name: Markets
+      name_es: Mercados
+      effect: "You may purchase any number of new minions, weapons, armour and equipment. Any weapon or armour can be sold for half its value, rounding down. Any minor treasure can be sold for 10 obols, any major treasure for 50 obols."
+      effect_es: "Puedes comprar tantos esbirros, armas, armaduras y equipamiento nuevos como desees en el bazar. Cualquier arma o armadura puede venderse por la mitad de su valor redondeando hacia abajo. Cualquier tesoro menor puede venderse por 10 óbolos. Cualquier tesoro mayor puede venderse por 50 óbolos."
+    - key: soul-binder
+      name: Soul Binder
+      name_es: Remienda Almas
+      effect: "50 obols: remove any reconstitution malady, reverse its effects and remove it from your sheet."
+      effect_es: "Por 50 óbolos, elimina cualquier dolencia de reconstitución, revierte sus efectos y elimínala de tu hoja de Séquito."
+    - key: tomb-robber
+      name: Tomb Robber
+      name_es: Saqueador de Tumbas
+      effect: "Roll on the treasure table and then you may pay 30 obols to receive that item, once only per gathering."
+      effect_es: "Pagando 30 óbolos, puedes tirar en la tabla de Tesoros Menores, para conseguir un objeto. Solo una vez por Séquito."
+
+# p.53-55, p.61: step 7 rolls the next scenario: an environment (I-VI), the
+# victory conditions (I-X) and, if both players agree, a dread omen (I-X).
+scenario_dice: { environments: 6, missions: 10, dread-omens: 10 }
