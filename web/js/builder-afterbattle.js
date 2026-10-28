@@ -122,19 +122,23 @@ const rollBtn = (act, attrs = "") =>
 export function afterBattleHtml(g, ev) {
   const a = g.campaign.afterBattle;
   const steps = catalog().rules.after_battle || [];
-  const crumbs = [`<button type="button" class="${a.step === 0 ? "primary" : "secondary"}" data-act="ab-goto" data-step="0">${esc(L("battle"))}</button>`,
-    ...steps.map((s, n) => `<button type="button" class="${a.step === n + 1 ? "primary" : "secondary"}" data-act="ab-goto" data-step="${n + 1}">${n + 1}. ${esc(pickField(s, "name", lang()))}</button>`)].join("");
+  // The steps are a sequence, so they're numbered; the ones behind the
+  // current step are marked done.
+  const crumb = (n, text) => `<li class="${a.step === n ? "now" : a.step > n ? "done" : ""}">
+      <button type="button" data-act="ab-goto" data-step="${n}"${a.step === n ? ' aria-current="step"' : ""}>${esc(text)}</button></li>`;
+  const crumbs = `<ol class="bd-crumbs">${crumb(0, L("battle"))}${steps.map((s, n) => crumb(n + 1, pickField(s, "name", lang()))).join("")}</ol>`;
   const body = [battleStep, maladiesStep, rewardsStep, minorStep, ambitionsStep, totalStep, bazaarStep, scenarioStep][a.step](g, a, ev);
   return `
     <div class="bd-panel bd-wizard">
-      <h3>${esc(L("afterBattleT"))} <small>${esc(L("treasury"))} ${Number(g.treasury) || 0} · +${a.obols} ${esc(L("obolsAdded"))}</small></h3>
-      <div class="bd-crumbs">${crumbs}</div>
+      <h3>${esc(L("afterBattleT"))}</h3>
+      <p class="bd-hint">${esc(L("treasury"))} ${Number(g.treasury) || 0} ${esc(L("obols"))}, +${a.obols} ${esc(L("obolsAdded"))}.</p>
+      ${crumbs}
       <div class="bd-step">${body}</div>
       <div class="bd-inline bd-wizard-nav">
-        <button type="button" class="secondary" data-act="ab-step" data-by="-1"${a.step === 0 ? " disabled" : ""}>← ${esc(L("back"))}</button>
-        ${a.step < 7 ? `<button type="button" class="primary" data-act="ab-step" data-by="1">${esc(L(a.step === 0 ? "begin" : "next"))} →</button>` : ""}
+        <button type="button" class="secondary" data-act="ab-step" data-by="-1"${a.step === 0 ? " disabled" : ""}>${esc(L("back"))}</button>
+        ${a.step < 7 ? `<button type="button" class="primary" data-act="ab-step" data-by="1">${esc(L(a.step === 0 ? "begin" : "next"))}</button>` : ""}
         <span class="spacer"></span>
-        <button type="button" class="secondary" data-act="ab-discard">${esc(L("discard"))}</button>
+        <button type="button" class="link danger" data-act="ab-discard">${esc(L("discardSequence"))}</button>
       </div>
     </div>`;
 }
@@ -192,7 +196,7 @@ function maladiesStep(g, a) {
     <div class="bd-inline">${rollBtn("ab-roll-malady")} ${esc(L("orType"))}
       <input type="number" min="1" max="10" class="bd-die" data-act="ab-malady-roll" value="${a.maladyRoll ?? ""}"></div>
     ${def ? `<p><b>${a.maladyRoll} · ${esc(pickField(def, "name", lang()))}</b> — ${esc(pickField(def, "effect", lang()))}</p>
-      <div class="bd-inline">${choice}<button type="button" class="primary" data-act="ab-apply-malady">${esc(L("apply"))}</button></div>` : ""}
+      <div class="bd-inline">${choice}<button type="button" class="secondary" data-act="ab-apply-malady">${esc(L("apply"))}</button></div>` : ""}
     ${hp}`;
 }
 
@@ -204,7 +208,7 @@ function rewardsStep(g, a) {
     ? `<p class="bd-good">✓ +${done.obols} ${esc(L("obolsAdded"))} (${r.obols} + ${done.dice.join(" + ")})</p>`
     : `<p>${esc(L(a.battle.result === "loss" ? "loss" : "win"))}: ${r.obols} + 2d10</p>
        <div class="bd-inline">${rollBtn("ab-roll-rewards")} ${esc(L("orType"))} ${dieInput("ab-d1", dice[0])} ${dieInput("ab-d2", dice[1])}
-         <button type="button" class="primary" data-act="ab-apply-rewards">${esc(L("apply"))}</button></div>`;
+         <button type="button" class="secondary" data-act="ab-apply-rewards">${esc(L("apply"))}</button></div>`;
   // While a rolled treasure waits to be handed out, its own panel holds the
   // roll; a second Roll button here would quietly re-roll it.
   const treasures = done && a.treasuresLeft > 0 && !pendingTreasure()
@@ -216,7 +220,7 @@ function rewardsStep(g, a) {
     return `<div class="bd-inline">${esc(name(k))}: ${got != null
       ? `<span class="bd-good">✓ +${got}</span>`
       : `${rollBtn("ab-income-roll", ` data-key="${esc(k)}"`)} ${dieInput(`ab-inc-${k}`, a.incomeRolls?.[k])}
-         <button type="button" class="primary" data-act="ab-income" data-key="${esc(k)}">${esc(L("apply"))}</button>`}</div>`;
+         <button type="button" class="secondary" data-act="ab-income" data-key="${esc(k)}">${esc(L("apply"))}</button>`}</div>`;
   }).join("");
   const purl = g.models.filter(m => (m.traits || []).includes("wretched-undead-traits/purloiner")).map(m => {
     const got = a.done.purloiner?.[m.uid];
@@ -225,7 +229,7 @@ function rewardsStep(g, a) {
       ? `<span class="bd-good">✓ +${got}</span>`
       : `${rollBtn("ab-purl-roll", ` data-uid="${esc(m.uid)}"`)} ${dieInput(`ab-pr1-${m.uid}`, r2[0])} ${dieInput(`ab-pr2-${m.uid}`, r2[1])}
          <small>${esc(L("ifUnderMove"))}</small>
-         <button type="button" class="primary" data-act="ab-purl" data-uid="${esc(m.uid)}">${esc(L("apply"))}</button>`}</div>`;
+         <button type="button" class="secondary" data-act="ab-purl" data-uid="${esc(m.uid)}">${esc(L("apply"))}</button>`}</div>`;
   }).join("");
   return `${stepText("rewards")}${main}${treasures}${pendingHtml(g)}
     ${income ? `<h4>${esc(L("lairIncome"))}</h4>${income}` : ""}
@@ -274,7 +278,7 @@ function bazaarStep(g, a) {
     <div class="bd-inline">${rollBtn("ab-tomb-roll")}
       ${select("ab-tomb-pick", treasureTable(catalog(), "minor").map(k => [k, name(k)]), a.tombRoll, { act: "ab-tomb-pick", empty: L("pickTreasure") })}
       ${a.tombRoll ? `${esc(L("giveTo"))} ${select("ab-tomb-to", models, null, { empty: L("stash") })}
-        <button type="button" class="primary" data-act="ab-tomb-take">${esc(L("payTake"))} · ${b.tomb_robber}</button>
+        <button type="button" class="secondary" data-act="ab-tomb-take">${esc(L("payTake"))} · ${b.tomb_robber}</button>
         <button type="button" class="secondary" data-act="ab-tomb-decline">${esc(L("decline"))}</button>` : ""}
     </div>`;
 
@@ -283,14 +287,14 @@ function bazaarStep(g, a) {
     ${a.alchemyBought ? `<p>${esc(L("alchemyDone"))}</p>` : `<div class="bd-inline">
       ${select("ab-alc-key", [...rows("potions"), ...rows("throwing-pots")].map(([k, r]) => [k, `${pickField(r, "name", lang())} · ${price(r)}`]), null)}
       ${esc(L("giveTo"))} ${select("ab-alc-to", models, null, { empty: L("stash") })}
-      <button type="button" class="primary" data-act="ab-alchemy">${esc(L("buyGear"))}</button></div>`}`;
+      <button type="button" class="secondary" data-act="ab-alchemy">${esc(L("buyGear"))}</button></div>`}`;
 
   return `${stepText("bazaar")}
     <h4>${esc(L("markets"))}</h4>${text("markets")}
     <div class="bd-inline">${select("ab-buy-item", gear, null)} ${esc(L("forModel"))} ${select("ab-buy-model", models, null)}
-      <button type="button" class="primary" data-act="ab-buy">${esc(L("buyGear"))}</button></div>
+      <button type="button" class="secondary" data-act="ab-buy">${esc(L("buyGear"))}</button></div>
     <div class="bd-inline">${select("ab-recruit-key", recruits, null)}
-      <button type="button" class="primary" data-act="ab-recruit">${esc(L("recruit"))}</button></div>
+      <button type="button" class="secondary" data-act="ab-recruit">${esc(L("recruit"))}</button></div>
     <div class="bd-items">${sells.join("")}${tsells.join("")}</div>
     <h4>${esc(L("soulBinder"))}</h4>${text("soul-binder")}
     <div class="bd-items">${souls.join("") || `<small>${esc(L("noMaladies"))}</small>`}</div>

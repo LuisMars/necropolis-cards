@@ -23,7 +23,10 @@ Five tabs:
    jumping to its model. From
    there a gathering opens in the Warband tab, queues its cards, copies its
    Companion App link, or downloads as the app's JSON or as a Builder
-   backup. Saved gatherings live in the browser (localStorage).
+   backup. Saved gatherings live in the browser (localStorage). Edits go
+   into a draft first, so options and gear can be tried freely: **Save
+   changes** commits the draft, **Discard changes** puts everything back
+   (treasury included); drafts survive a reload.
    Its **Campaign** view tracks the gathering between games: treasury and
    deployment limit (who is fielded, sellswords hired and the free ones the
    rules allow), lair upgrades, the 4 active ambitions with their rewards
@@ -163,8 +166,10 @@ web/
 ```
 
 The builder modules take the bundle as an argument and never touch the
-page, so `tests/` runs them under Node (`python3 web/bundle.py && node
---test tests/*.test.js`; CI runs the same before each deploy).
+page, so `tests/` runs them under Node (`python3 web/bundle.py && npm
+test`). `tests/ui/` drives the Builder in headless Chromium against the
+served site (`npm install && npx playwright install chromium && npm run
+test:ui`). CI runs both before each deploy.
 
 No build step, no framework — every file is loaded as an ES module by
 the browser at runtime.

@@ -39,6 +39,18 @@ jobs:
       - name: Run tests
         run: node --test tests/*.test.js
 
+      # Browser tests (tests/ui/): the Builder driven in headless Chromium
+      # against the site just bundled.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Run browser tests
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npm run test:ui
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

@@ -205,21 +205,21 @@
   .lib-tile .preview {font-size:14px}
   .lib-tile .printed-lbl,.lib-tile .need {font-size:13px}
   /* Stat block uses actual semantic dl/dt/dd markup from builder-tab.js. */
-  #bd-body .bd-stats {
+  .bd-stats {
     display:grid;grid-template-columns:repeat(auto-fit,minmax(79px,1fr));gap:8px;
     margin:14px 0;padding:0;
   }
-  #bd-body .bd-stats .bd-stat {
+  .bd-stats .bd-stat {
     margin:0;padding:9px 10px;background:var(--nc-raised);
     border:1px solid var(--nc-line-soft);border-radius:3px;
     min-width:0;
   }
-  #bd-body .bd-stats dt {
+  .bd-stats dt {
     color:var(--nc-secondary);
     font:700 14px/1.1 'Alegreya SC',Georgia,serif;
     letter-spacing:.035em;
   }
-  #bd-body .bd-stats dd {
+  .bd-stats dd {
     margin:4px 0 0;color:var(--nc-bone);
     font:700 23px/1.1 'Alegreya',Georgia,serif;
     font-variant-numeric:tabular-nums;
@@ -273,6 +273,8 @@
     .lib-toolbar input[type=text]{min-width:0;width:100%}
     .bd-grid2,.bd-form{grid-template-columns:1fr}
     .bd-affinity-control{gap:3px 0}
+    /* The label above the options keeps the segmented choice on one line. */
+    .bd-affinity-control legend{float:none;width:100%;margin:0 0 4px}
     .bd-affinity-option span{min-width:53px;padding:6px 8px}
   }
 }

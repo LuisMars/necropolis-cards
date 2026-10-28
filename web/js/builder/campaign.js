@@ -165,13 +165,13 @@ export function completeAmbition(g, key, catalog, uid = null) {
   g.ambitions.progress[key] = 0;
   g.ambitions.completed += 1;
   g.ambitions.log.push({ id, ambition: key, to, ...when(g), applied });
-  return eff.target === "treasure" ? { treasure: eff.treasure || "minor" } : {};
+  return eff.target === "treasure" ? { treasure: eff.treasure || "minor", ambition: id } : {};
 }
 
 /**
  * Undo a completed ambition (a mis-click): its entries come off, its
- * deployment and bonus trait go back, and its progress returns to the goal.
- * A treasure it gave stays where it is.
+ * deployment and bonus trait go back, its progress returns to the goal, and
+ * a treasure it gave is taken back from whoever holds it (if it still does).
  */
 export function undoAmbition(g, logId, catalog) {
   ensureCampaign(g, catalog);
@@ -181,6 +181,13 @@ export function undoAmbition(g, logId, catalog) {
   for (const m of g.models) removeRef(m, logId);
   if (e.applied?.deployment) g.deploymentLimit = (g.deploymentLimit ?? 350) - e.applied.deployment;
   if (e.applied?.bonus_traits) g.bonusTraits = Math.max(0, (g.bonusTraits || 0) - e.applied.bonus_traits);
+  if (e.applied?.treasure) {
+    const { key, to } = e.applied.treasure;
+    // Where it was given first, else wherever it has been moved since.
+    const lists = [to ? g.models.find(m => m.uid === to)?.treasures : g.stash, g.stash, ...g.models.map(m => m.treasures)];
+    const list = lists.find(l => l?.includes(key));
+    if (list) list.splice(list.indexOf(key), 1);
+  }
   g.ambitions.completed = Math.max(0, g.ambitions.completed - 1);
   g.ambitions.progress[e.ambition] = Number(catalog.row(e.ambition)?.goal) || 1;
   return true;
@@ -205,12 +212,18 @@ export function rollTreasure(catalog, kind, rng = Math.random) {
   return kind === "greater" ? [pick(), pick()] : [pick()];
 }
 
-/** Add a treasure to a model, or to the gathering's stash (`to` = null). */
-export function giveTreasure(g, key, to = null, { greaterClaim = false } = {}) {
+/**
+ * Add a treasure to a model, or to the gathering's stash (`to` = null).
+ * `ambition`: the completed ambition (log id) whose reward this is, so
+ * undoing the ambition can take it back.
+ */
+export function giveTreasure(g, key, to = null, { greaterClaim = false, ambition = null } = {}) {
   ensureCampaign(g);
   const m = to ? g.models.find(x => x.uid === to) : null;
   (m ? (m.treasures ||= []) : g.stash).push(key);
   if (greaterClaim) g.ambitions.greaterClaimed += 1;
+  const log = ambition && g.ambitions.log.find(e => e.id === ambition);
+  if (log) log.applied = { ...log.applied, treasure: { key, to: m ? to : null } };
 }
 
 /** Move a treasure: `from`/`to` are model uids, or null for the stash. */

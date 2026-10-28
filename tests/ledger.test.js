@@ -95,3 +95,17 @@ test("pre-ledger saves convert: improvements → manual, maladies → malady ent
   ensureCampaign(g, catalog);
   assert.equal(g.models[0].ledger[0].source.type, "manual");
 });
+
+test("undoing an ambition takes back the treasure it gave, wherever it went", async () => {
+  const { giveTreasure, moveTreasure } = await import("../web/js/builder/campaign.js");
+  const g = campaign();
+  const r = completeAmbition(g, "ambitions/scour-the-lands", catalog);
+  assert.equal(r.treasure, "minor");
+  giveTreasure(g, "minor-treasures/mana-bottle", "m3", { ambition: r.ambition });
+  giveTreasure(g, "minor-treasures/soul-tether", "m3");                 // an unrelated one
+  moveTreasure(g, "m3", 0, null);                                       // the reward moved to the stash
+  undoAmbition(g, r.ambition, catalog);
+  assert.deepEqual(g.stash, []);
+  assert.deepEqual(g.models[2].treasures, ["minor-treasures/soul-tether"]);
+  assert.equal(g.ambitions.completed, 0);
+});
