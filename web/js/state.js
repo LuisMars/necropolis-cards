@@ -24,7 +24,7 @@ export const state = {
   index: null,         // name-keyed lookup (built after bundle loads)
   queue: [],           // see header
   expanded: null,      // queue index whose edit panel is open, or null
-  printed: {},         // inventory: { "<key> <name>": count } — how many
+  printed: {},         // inventory: { "<key>\0<name>": count } — how many
                        // copies of a card the user has already printed.
   lang: "en",          // card language for rendering ("en" | "es"); English
                        // is the default and only affects the printed cards.
@@ -51,7 +51,7 @@ export function loadQueue() {
  * of the transient queue and survives reloads. "Need" = queued − printed. */
 
 export function cardId(key, name) {
-  return `${key} ${name || ""}`;
+  return `${key}\u0000${name || ""}`;
 }
 
 export function savePrinted() {
