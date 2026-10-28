@@ -1,0 +1,89 @@
+/* Necropolis v5.6 — four grayscale directions.
+ * Palette study source: design study v5.6 (Ink & Bone, Obsidian, Soft Ash, Slate).
+ * These are SCREEN-ONLY design tokens and component finishes.
+ * Do not alter the game-card SVG, PDF artwork, roster sheets, or print CSS.
+ * The standalone HTML reference shares these exact tokens and classes.
+ */
+@media screen {
+  :root, html[data-nc-palette="ink-bone"] {--bg:#171615;--panel:#272625;--panel2:#363431;--panel3:#43403c;--border:#8e877d;--text:#eeeae2;--muted:#b7b1a7;--accent:#e7e0d3;--good:#94d2af;--warn:#efc17f;--bad:#e9968c;
+--nc-bg:#171615;--nc-chrome:#141313;--nc-surface:#272625;--nc-raised:#363431;--nc-hover:#43403c;--nc-line:#8e877d;--nc-line-soft:#46423d;--nc-bone:#eeeae2;--nc-secondary:#d3cec4;--nc-muted:#b7b1a7;--nc-primary:#e7e0d3;--nc-on-primary:#1d1b18;--nc-control-bg:#312f2c;--nc-control-line:#8e877d;--nc-success:#94d2af;--nc-success-bg:#22372d;--nc-warning:#efc17f;--nc-warning-bg:#392d21;--nc-error:#e9968c;--nc-error-bg:#392523;}
+  html[data-nc-palette="obsidian"] {--bg:#101011;--panel:#232326;--panel2:#343438;--panel3:#45454b;--border:#a5a2a8;--text:#f4f1e9;--muted:#c4c0b9;--accent:#f0ebe1;--good:#94d2af;--warn:#efc181;--bad:#ec9d95;
+--nc-bg:#101011;--nc-chrome:#0c0c0d;--nc-surface:#232326;--nc-raised:#343438;--nc-hover:#45454b;--nc-line:#a5a2a8;--nc-line-soft:#515157;--nc-bone:#f4f1e9;--nc-secondary:#e2dcd3;--nc-muted:#c4c0b9;--nc-primary:#f0ebe1;--nc-on-primary:#18181b;--nc-control-bg:#303034;--nc-control-line:#a5a2a8;--nc-success:#94d2af;--nc-success-bg:#22372d;--nc-warning:#efc181;--nc-warning-bg:#392d21;--nc-error:#ec9d95;--nc-error-bg:#392523;}
+  html[data-nc-palette="soft-ash"] {--bg:#24221f;--panel:#35322e;--panel2:#46423d;--panel3:#555049;--border:#b5aa99;--text:#f7f2e9;--muted:#d1c6b8;--accent:#eee7d9;--good:#a4ddbb;--warn:#f3c988;--bad:#f0a9a1;
+--nc-bg:#24221f;--nc-chrome:#1d1c19;--nc-surface:#35322e;--nc-raised:#46423d;--nc-hover:#555049;--nc-line:#b5aa99;--nc-line-soft:#676057;--nc-bone:#f7f2e9;--nc-secondary:#e5dbcf;--nc-muted:#d1c6b8;--nc-primary:#eee7d9;--nc-on-primary:#24201c;--nc-control-bg:#3f3b36;--nc-control-line:#b5aa99;--nc-success:#a4ddbb;--nc-success-bg:#284234;--nc-warning:#f3c988;--nc-warning-bg:#483523;--nc-error:#f0a9a1;--nc-error-bg:#482d29;}
+  html[data-nc-palette="slate"] {--bg:#1b1f22;--panel:#2c3236;--panel2:#3e4549;--panel3:#50575b;--border:#a8b0b3;--text:#f1f0eb;--muted:#c5cac9;--accent:#e7e9e6;--good:#a1dfba;--warn:#f3cd90;--bad:#f0ada5;
+--nc-bg:#1b1f22;--nc-chrome:#15191c;--nc-surface:#2c3236;--nc-raised:#3e4549;--nc-hover:#50575b;--nc-line:#a8b0b3;--nc-line-soft:#60686b;--nc-bone:#f1f0eb;--nc-secondary:#dfe1dd;--nc-muted:#c5cac9;--nc-primary:#e7e9e6;--nc-on-primary:#1a2023;--nc-control-bg:#363d41;--nc-control-line:#a8b0b3;--nc-success:#a1dfba;--nc-success-bg:#254034;--nc-warning:#f3cd90;--nc-warning-bg:#473829;--nc-error:#f0ada5;--nc-error-bg:#482e2d;}
+
+  html,body {background:var(--nc-bg);color:var(--nc-bone)}
+  header.app{background:var(--nc-chrome);border-bottom-color:var(--nc-line-soft)}
+  nav.tabs button.active{background:var(--nc-raised);border-color:var(--nc-line);color:var(--nc-bone);box-shadow:inset 0 -2px var(--nc-bone)}
+  nav.tabs button:hover:not(.active){background:var(--nc-hover);border-color:var(--nc-line-soft)}
+  header.app .badge{background:var(--nc-raised);color:var(--nc-bone);border-color:var(--nc-line)}
+  button.primary,header.app button.print-btn{background:var(--nc-primary);color:var(--nc-on-primary);border-color:var(--nc-primary)}
+  button.primary:hover,header.app button.print-btn:hover{background:var(--nc-bone)}
+  button.secondary{color:var(--nc-bone);background:var(--nc-raised);border-color:var(--nc-line-soft)}
+  button.secondary:hover{background:var(--nc-hover);border-color:var(--nc-line)}
+  #bd-body select,.bd-toolbar select,.lib-toolbar select,header.app .lang-picker select,.print-toolbar select,
+  #bd-body input[type="text"],#bd-body input[type="number"],#bd-body input[type="date"],
+  #bd-body input[type="search"],.bd-toolbar input,.lib-toolbar input[type="text"],
+  textarea.json-in,.lib-inv-paste textarea{
+    background-color:var(--nc-control-bg);
+    border-color:var(--nc-control-line);
+    color:var(--nc-bone);
+  }
+  #bd-body select,.bd-toolbar select,.lib-toolbar select,header.app .lang-picker select,.print-toolbar select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23eeeae2' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 6 8 10.5 12.5 6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-size:15px 15px;background-position:right 15px center;
+    padding-right:49px;
+  }
+  #bd-body .bd-model,#bd-body .bd-panel,.bd-model,.bd-panel{
+    background:var(--nc-surface);border-color:var(--nc-line-soft);
+    box-shadow:none;
+  }
+  #bd-body .bd-model.leader{border-color:var(--nc-line)}
+  #bd-body .bd-stats .bd-stat{background:var(--nc-raised);border-color:var(--nc-line-soft)}
+  #bd-body .bd-stats dt{color:var(--nc-secondary)}
+  #bd-body .bd-stats dd{color:var(--nc-bone)}
+  #bd-body .bd-list,#bd-body .bd-step{border-color:var(--nc-line-soft)}
+  #bd-body .bd-affinity-option span{background:var(--nc-raised);border-color:var(--nc-line-soft);color:var(--nc-secondary)}
+  #bd-body .bd-affinity-option input:checked+span{background:var(--nc-primary);color:var(--nc-on-primary);border-color:var(--nc-bone)}
+  #bd-body .bd-summary .wb-chip.good{background:var(--nc-success-bg);color:var(--nc-success);border-color:var(--nc-success)}
+  #bd-body .bd-summary .wb-chip.over{background:var(--nc-error-bg);color:var(--nc-error);border-color:var(--nc-error)}
+  #bd-body .bd-warn li{background:var(--nc-warning-bg);color:var(--nc-warning);border-color:var(--nc-warning);border-left:3px solid var(--nc-warning)}
+  #bd-body .bd-upgrade.owned{border-color:var(--nc-success)}
+  #bd-body .bd-amb.done .bd-prog,.bd-good{color:var(--nc-success)}
+  #bd-body .bd-choice,.bd-item,.bd-tag{background:var(--nc-raised);border-color:var(--nc-line-soft);color:var(--nc-bone)}
+  .lib-tile{background:var(--nc-surface);border-color:var(--nc-line-soft)}
+  .lib-tile:hover{background:var(--nc-raised);border-color:var(--nc-line)}
+  .lib-tile.has-printed{border-color:var(--nc-success)}
+  .lib-tile .cat,.lib-tile .printed-ctl button{background:var(--nc-raised);color:var(--nc-secondary);border-color:var(--nc-line-soft)}
+  .lib-tile .add,.bd-status{color:var(--nc-success)}
+  .lib-tile .need{background:var(--nc-warning);color:var(--nc-on-primary)}
+  .lib-tile .need.done{background:var(--nc-success);color:var(--nc-on-primary)}
+  .match-row.matched{border-left-color:var(--nc-success)}
+  .match-row.fuzzy{border-left-color:var(--nc-warning)}
+  .match-row.unmatched{border-left-color:var(--nc-error)}
+  .queue-list{background:var(--nc-surface);border-color:var(--nc-line-soft)}
+  :is(button,input,select,textarea):focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+  /* Inline, user-selectable palette switcher; never shown in print. */
+  .nc-theme-picker{display:inline-flex;align-items:center;gap:7px;min-width:0;
+     color:var(--nc-secondary);font:700 14px 'Alegreya SC',Georgia,serif}
+  .nc-theme-picker select{
+    appearance:none;-webkit-appearance:none;min-height:40px;max-width:195px;
+    background-color:var(--nc-control-bg);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23eeeae2' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 6 8 10.5 12.5 6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-size:15px 15px;background-position:right 14px center;
+    border:1px solid var(--nc-control-line);border-radius:3px;
+    padding:7px 42px 7px 11px;color:var(--nc-bone);
+    font:16px 'Alegreya',Georgia,serif;cursor:pointer;
+  }
+  @media(max-width:800px){
+    .nc-theme-picker{order:2}
+    .nc-theme-picker select{max-width:170px}
+  }
+  @media(max-width:500px){
+    .nc-theme-picker{font-size:12px;gap:5px}
+    .nc-theme-picker select{max-width:137px;font-size:14px;padding-left:8px;padding-right:36px}
+  }
+}
+/* Do not add @media print rules here. Printed SVG cards always retain source colors. */
