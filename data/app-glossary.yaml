@@ -1,0 +1,80 @@
+# Companion-App glossary — Spanish for the rules text the app exports that has
+# no card of its own in this library.
+#
+# NOT a card category: this file is deliberately absent from _categories.yaml,
+# so it produces no Library tile, no print-queue entry and no PDF. bundle.py
+# copies it into data.json under its own `glossary` key, and the Warband tab
+# uses it as the fallback after a card lookup fails (web/js/warband.js).
+#
+# Everything here is already printed, in Spanish, on the card of the model it
+# belongs to — see `special_rules_es` in leaders.yaml / minions.yaml. What was
+# missing is a key the roster can look these up by, which is all this file is.
+#
+# Matching is by exact text (case, whitespace and a trailing full stop are
+# ignored). If the app rewords a string, its line simply falls back to the
+# app's English instead of breaking anything.
+
+# Traits whose modifier the app folds into the profile before exporting, so
+# the stats on the roster already include them and the roster marks them
+# "applied". The export drops the `modifier` field itself, which is why the
+# list has to live here; these are every trait in the app that carries one.
+applied_traits:
+  - Unyielding Will      # +2 HP
+  - Combatant            # Violence +1
+  - Perceptive           # Ranged +1
+  - Celerity             # Move +1
+  - Sorcerous Talent     # +1 mana
+  - Studious             # +1 spell
+
+# Rules the app gives a name to. Keyed by that name.
+rules:
+  - en: Caster
+    es: Hechicero
+    effect: A Lich cannot wear heavy armour or carry a shield.
+    effect_es: Un Liche no puede llevar armadura pesada ni escudo.
+
+  - en: Insubstantial
+    es: Insustancial
+    effect: A Ghast Husk cannot wear heavy armour.
+    effect_es: La Cáscara Espectral no puede llevar armadura pesada.
+
+  - en: Unique
+    es: Único
+    effect: Each gathering may take only 1 Familiar.
+    effect_es: Cada Séquito solo puede llevar 1 Familiar.
+
+  - en: Brutal
+    es: Brutal
+    effect: When this model performs an attack action, add +1 to the damage total.
+    effect_es: Cuando esta miniatura realiza una acción de ataque, suma +1 al daño total.
+
+# Restrictions the app exports with no name at all — only this text. Keyed by
+# the app's own wording, typos included ("Familliar"), since that is what
+# arrives in the JSON.
+phrases:
+  - en: Familiar can only take claws & fangs as a weapon
+    es: El Familiar solo puede llevar Garras y Colmillos.
+
+  - en: Familliar cannot wear armour or carry a shield
+    es: El Familiar no puede llevar armadura ni escudo.
+
+  - en: Necrotic Remnant cannot take 2h weapons apart from claws and fangs
+    es: El Remanente Nigromántico no puede llevar armas a 2 manos salvo Garras y Colmillos.
+
+  - en: Small Beast can only take claws & fangs as a weapon
+    es: La Bestia Pequeña solo puede llevar Garras y Colmillos.
+
+  - en: Small Beast cannot wear heavy armour or carry a shield
+    es: La Bestia Pequeña no puede llevar armadura pesada ni escudo.
+
+  - en: Flying Beast can only take claws & fangs as a weapon
+    es: La Bestia Voladora solo puede llevar Garras y Colmillos.
+
+  - en: Flying Beast cannot wear armour or carry a shield
+    es: La Bestia Voladora no puede llevar armadura ni escudo.
+
+  - en: Large Beast can only take claws & fangs or large claws as a weapon
+    es: La Bestia Grande solo puede llevar Garras y Colmillos o Grandes Garras.
+
+  - en: Large Beast cannot carry a shield
+    es: La Bestia Grande no puede llevar escudo.

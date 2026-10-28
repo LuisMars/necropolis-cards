@@ -4,7 +4,8 @@ Printable reference cards for **Necropolis: A Diorama Skirmish Game**
 (by Peter Vigors, [Owl Shield Games](https://linktr.ee/owlshield)).
 The site at **<https://necropolis.luismars.com>** imports a warband JSON
 from the [Companion App](https://necropolis28.vercel.app/) and lays out
-A4 print sheets of the matching cards.
+A4 print sheets of the matching cards, plus a printable roster sheet of
+the warband itself (per-model gear and costs, and the gathering's total).
 
 > Fan-made. Not affiliated with or endorsed by Owl Shield Games. The
 > rulebook PDF is the author's IP and is **not** distributed in this
@@ -16,7 +17,9 @@ A4 print sheets of the matching cards.
 ```
 .
 ├── data/             YAML rows for every card category
-│   └── _categories.yaml   Index — single source of truth
+│   ├── _categories.yaml   Index — single source of truth
+│   └── app-glossary.yaml  Not a category: Spanish for Companion-App
+│                          text that has no card (see web/README.md)
 ├── templates/        SVG templates (63×88 mm) with {{KEY}} substitutions
 ├── assets/
 │   ├── images/alpha/      Card art (vendored from the rulebook)

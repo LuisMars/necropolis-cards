@@ -15,6 +15,7 @@
   <h1>Necropolis <span>Card Printer</span></h1>
   <nav class="tabs">
     <button data-tab="import">Import</button>
+    <button data-tab="warband">Warband</button>
     <button data-tab="library" class="active">Library</button>
     <button data-tab="print">Print</button>
   </nav>
@@ -37,16 +38,28 @@
       <p style="color:var(--muted); margin:0 0 6px;">
         Paste a JSON export from the
         <a href="https://necropolis28.vercel.app/" target="_blank" style="color:var(--accent)">Necropolis Companion App</a>.
-        Each entry is matched against the printable card library; matches are added to the print queue.
+        <strong>Load warband</strong> just reads the roster into the Warband tab;
+        <strong>Load &amp; add cards to queue</strong> also queues every card it matched.
       </p>
       <textarea id="json-in" class="json-in" placeholder='{"covenant": "…", "gathering": [...]}'></textarea>
       <div style="display:flex; gap:8px;">
-        <button class="primary" id="parse-btn">Parse &amp; add to queue</button>
+        <button class="primary" id="load-warband-btn">⚑ Load warband</button>
+        <button class="secondary" id="parse-btn">Load &amp; add cards to queue</button>
         <button class="secondary" id="sample-btn">Load sample</button>
         <button class="secondary" id="clear-queue-btn">Clear queue</button>
       </div>
     </div>
     <div id="match-list" class="match-list"></div>
+  </section>
+
+  <section class="tab" data-tab="warband">
+    <div class="wb-toolbar">
+      <div class="wb-summary" id="wb-summary"></div>
+      <span class="spacer"></span>
+      <button class="secondary" id="wb-clear-btn">✕ Clear warband</button>
+      <button class="primary" id="wb-print-btn">⎙ Print roster</button>
+    </div>
+    <div class="wb-pages" id="wb-pages"></div>
   </section>
 
   <section class="tab active" data-tab="library">

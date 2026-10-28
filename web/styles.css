@@ -7,15 +7,20 @@
   src: url('fonts/JBLACK.TTF') format('truetype');
   font-display: swap;
 }
+/* The weight range matters: without it the browser assumes this variable
+ * font only has 400 and fakes every bold by smearing the glyphs, which is
+ * why bold text looked inconsistent next to the small-caps face. */
 @font-face {
   font-family: 'Alegreya';
   src: url('fonts/Alegreya-VF.ttf') format('truetype-variations');
+  font-weight: 400 900;
   font-display: swap;
 }
 @font-face {
   font-family: 'Alegreya';
   font-style: italic;
   src: url('fonts/Alegreya-Italic-VF.ttf') format('truetype-variations');
+  font-weight: 400 900;
   font-display: swap;
 }
 @font-face {
@@ -337,6 +342,230 @@ textarea.json-in {
   color: #aaa; font-family: ui-monospace, Menlo, monospace;
 }
 
+
+/* === Warband tab =========================================================
+ *
+ * Screen chrome (the dark toolbar) plus the roster sheets themselves. The
+ * sheets are A4 pages drawn in the printed cards' aesthetic — parchment,
+ * blackletter names, small-caps headings, hairline dividers — but roughly
+ * three card-areas per model so a roster stays readable at arm's length.
+ * All roster measurements are in mm so screen and paper agree 1:1.
+ */
+.wb-toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.wb-toolbar .spacer { flex: 1; }
+.wb-summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wb-summary .wb-cov {
+  font-size: 15px; font-weight: 600; color: #fff;
+  max-width: 42ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wb-summary .wb-empty { color: var(--muted); font-size: 14px; }
+.wb-summary .wb-empty strong { color: var(--text); }
+.wb-chip {
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 3px 10px; font-size: 12px; color: var(--muted);
+}
+.wb-chip b { color: var(--text); font-size: 13px; }
+.wb-chip.accent { background: var(--accent); border-color: var(--accent); color: #1a1a1f; }
+.wb-chip.accent b { color: #1a1a1f; }
+.wb-chip.good { border-color: var(--good); color: var(--good); }
+.wb-chip.good b { color: var(--good); }
+.wb-chip.over { border-color: var(--bad); color: var(--bad); }
+.wb-chip.over b { color: var(--bad); }
+#wb-print-btn:disabled, #wb-clear-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* --- roster pages --- */
+.wb-pages { background: #1a1a1f; padding: 16px 0; }
+.wb-page {
+  width: 210mm; height: 297mm; background: #fff; color: #000;
+  margin: 0 auto 12mm; padding: 12mm;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  position: relative; overflow: hidden;
+  page-break-after: always; break-after: page;
+}
+.wb-page-body { height: 268mm; overflow: hidden; }
+.wb-page-num {
+  position: absolute; left: 0; right: 0; bottom: 5mm; text-align: center;
+  font-family: 'Alegreya SC', serif; font-size: 2.6mm; letter-spacing: 0.3mm;
+  color: #777;
+}
+
+/* --- one block: the warband header, or one model --- */
+.wb-block {
+  position: relative; overflow: hidden; background: #fff;
+  border: 0.25mm solid #000; margin-bottom: 4mm;
+  break-inside: avoid; page-break-inside: avoid;
+}
+.wb-block:last-child { margin-bottom: 0; }
+.wb-block .wb-tex {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0.07; pointer-events: none;
+}
+.wb-banner {
+  position: relative; height: 10mm;
+  display: flex; align-items: center; justify-content: center;
+}
+.wb-banner img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: fill; pointer-events: none;
+}
+.wb-banner span {
+  position: relative; z-index: 1;
+  font-family: 'JSL Blackletter', serif; font-size: 5.2mm; color: #fff;
+  line-height: 1; padding: 0 6mm; text-align: center;
+}
+.wb-head-body, .wb-member-body { position: relative; z-index: 1; padding: 2.5mm 5mm 3mm; }
+
+/* warband header block */
+.wb-title {
+  margin: 0; text-align: center; font-family: 'JSL Blackletter', serif;
+  font-size: 8mm; font-weight: normal; line-height: 1.1; color: #000;
+}
+.wb-subtitle {
+  margin: 1mm 0 0; text-align: center; color: #333;
+  font-family: 'Alegreya SC', serif; font-style: italic;
+  font-size: 3.4mm; letter-spacing: 0.35mm;
+}
+.wb-head-meta {
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 2mm 8mm;
+  margin-top: 3mm; font-family: 'Alegreya', serif; font-size: 3.2mm;
+}
+.wb-head-meta i {
+  font-family: 'Alegreya SC', serif; font-style: normal; font-weight: bold;
+  font-size: 2.6mm; letter-spacing: 0.35mm; color: #222;
+}
+.wb-total {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-top: 3mm; padding-top: 2mm; border-top: 0.2mm solid #000;
+}
+.wb-total .lbl {
+  font-family: 'Alegreya SC', serif; font-weight: bold;
+  font-size: 3.4mm; letter-spacing: 0.5mm;
+}
+.wb-total .val { font-family: 'Alegreya', serif; font-weight: bold; font-size: 5mm; }
+
+/* model identity */
+.wb-idline { text-align: center; }
+.wb-name {
+  margin: 0; font-family: 'JSL Blackletter', serif; font-weight: normal;
+  font-size: 5.8mm; line-height: 1.1; color: #000;
+}
+.wb-type {
+  margin: 0.6mm 0 0; font-family: 'Alegreya SC', serif; font-style: italic;
+  font-size: 3mm; letter-spacing: 0.4mm; color: #222;
+}
+
+/* stat strip */
+.wb-stats {
+  display: flex; justify-content: space-between; gap: 2mm;
+  margin: 2mm 0 2.5mm; padding: 1.2mm 0;
+  border-top: 0.2mm solid #000; border-bottom: 0.2mm solid #000;
+}
+.wb-stat {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  line-height: 1.1;
+}
+.wb-stat + .wb-stat { border-left: 0.15mm solid #999; }
+.wb-stat b { font-family: 'Alegreya', serif; font-size: 4.6mm; font-weight: bold; }
+.wb-stat i {
+  font-family: 'Alegreya SC', serif; font-style: normal; font-weight: bold;
+  font-size: 2.4mm; letter-spacing: 0.25mm; color: #1a1a1a; margin-top: 0.4mm;
+}
+
+/* Roster glyphs (web/js/icons.js). Alegreya sets old-style figures, so a
+ * digit like 2 or 4 is only x-height tall — sizing the glyphs to the cap
+ * height (as one would with lining figures) left them towering over the
+ * numbers. 0.62em sits them level with the digits, on the same baseline. */
+.wb-i {
+  width: 0.62em; height: 0.62em; fill: currentColor;
+  vertical-align: -0.05em; margin-right: 0.18em;
+}
+.wb-i.big { width: 0.68em; height: 0.68em; margin: 0 0 0 0.22em; }
+/* Beside a small-caps label the reference is cap height again. */
+.wb-stat i .wb-i {
+  width: 0.8em; height: 0.8em; vertical-align: -0.06em; margin-right: 0.22em;
+}
+.wb-sec .c .wb-i { margin: 0 0 0 0.22em; }
+/* Separator between stat chips — quieter than the text it divides. */
+.wb-sec .sep { color: #999; margin: 0 1mm; font-style: normal; font-size: 3mm; }
+/* Every number on the sheet reads the same, whether it sits on a weapon row
+ * or inside a spell's descriptive line: upright, black, and a size up from
+ * the grey text around it. */
+.wb-sec .s {
+  white-space: nowrap; font-style: normal; font-weight: 600;
+  font-size: 3.4mm; color: #000;
+}
+
+/* gear / trait / spell sections */
+.wb-cols { display: flex; flex-direction: column; gap: 2.5mm; }
+/* Rules text reads badly across a full 186 mm line — flow it in two columns. */
+.wb-sec.text ul { columns: 2; column-gap: 6mm; }
+.wb-sec li { break-inside: avoid; page-break-inside: avoid; }
+.wb-sec h4 {
+  margin: 0 0 1mm; padding-bottom: 0.6mm; border-bottom: 0.2mm solid #000;
+  font-family: 'Alegreya SC', serif; font-size: 2.9mm; font-weight: bold;
+  letter-spacing: 0.5mm; color: #000;
+}
+.wb-sec ul { margin: 0; padding: 0; list-style: none; }
+.wb-sec li {
+  display: grid; grid-template-columns: 1fr auto; column-gap: 2mm;
+  margin-bottom: 1.2mm; line-height: 1.25;
+}
+.wb-sec li:last-child { margin-bottom: 0; }
+.wb-sec .n { font-family: 'Alegreya', serif; font-size: 3.3mm; }
+
+/* A gear line is read across, not down: name · class ……… numbers · price.
+ * The right-hand columns are fixed so they stack down the block. */
+.wb-sec.gear li {
+  grid-template-columns: auto 1fr auto 9mm;
+  column-gap: 2.5mm; align-items: baseline;
+  margin-bottom: 0.8mm;
+}
+.wb-sec.gear .n { font-size: 3.4mm; }
+.wb-sec.gear .m {
+  grid-column: auto; font-size: 2.7mm; font-style: italic; color: #555;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.wb-sec.gear .g {
+  font-family: 'Alegreya', serif; white-space: nowrap; text-align: right;
+}
+.wb-sec.gear .c { font-size: 3.2mm; }
+.wb-sec.gear .e { padding-left: 0; }
+/* "✓ applied": this rule's modifier is already baked into the stats above. */
+.wb-sec .b {
+  margin-left: 1.5mm; padding: 0 1mm;
+  font-family: 'Alegreya SC', serif; font-size: 2.4mm; letter-spacing: 0.25mm;
+  color: #555; border: 0.15mm solid #999; border-radius: 0.6mm;
+  white-space: nowrap;
+}
+.wb-sec .c {
+  font-family: 'Alegreya', serif; font-size: 3mm; font-weight: 600;
+  white-space: nowrap; text-align: right;
+}
+.wb-sec .m {
+  grid-column: 1 / -1;
+  font-family: 'Alegreya', serif; font-style: italic; font-size: 2.7mm; color: #444;
+}
+/* The rules text itself. */
+.wb-sec .e {
+  grid-column: 1 / -1;
+  font-family: 'Alegreya', serif; font-size: 2.9mm; color: #222;
+}
+
+/* model subtotal */
+.wb-cost {
+  display: flex; align-items: baseline; gap: 2mm;
+  margin-top: 2.5mm; padding-top: 1.2mm; border-top: 0.2mm solid #000;
+}
+.wb-cost .lbl {
+  font-family: 'Alegreya SC', serif; font-weight: bold;
+  font-size: 2.9mm; letter-spacing: 0.5mm;
+}
+.wb-cost .dots { flex: 1; border-bottom: 0.15mm dotted #999; transform: translateY(-1mm); }
+.wb-cost .val { font-family: 'Alegreya', serif; font-weight: bold; font-size: 4mm; }
+
 /* === Footer ===
  * Credit / disclaimer block. Centred, muted, hidden in print so it
  * doesn't leak onto sheets. */
@@ -364,7 +593,8 @@ footer.app-foot .muted { font-size: 12px; opacity: 0.7; }
   }
   /* Hide everything except the print tab and the sheets inside. */
   header.app, .queue-list, .print-toolbar, .sheet-num, footer.app-foot,
-  section.tab[data-tab="import"], section.tab[data-tab="library"] {
+  section.tab[data-tab="import"], section.tab[data-tab="library"],
+  section.tab[data-tab="warband"] {
     display: none !important;
   }
   main { padding: 0 !important; max-width: none !important; margin: 0 !important; }
@@ -383,4 +613,26 @@ footer.app-foot .muted { font-size: 12px; opacity: 0.7; }
     page-break-after: always; break-after: page;
   }
   .sheet:last-child { page-break-after: auto; break-after: auto; }
+
+  /* Printing from the Warband tab (its own button, or Ctrl+P while it is
+   * open) swaps the card sheets for the roster sheets. `printing-warband`
+   * is set on <body> by main.js / warband.js just before the dialog opens. */
+  body.printing-warband section.tab[data-tab="print"] { display: none !important; }
+  body.printing-warband section.tab[data-tab="warband"] {
+    position: static !important; left: auto !important; top: auto !important;
+    visibility: visible !important; pointer-events: auto !important;
+    width: auto !important; display: block !important; padding: 0 !important;
+  }
+  body.printing-warband .wb-toolbar { display: none !important; }
+  .wb-pages { padding: 0; background: white; }
+  .wb-page {
+    margin: 0 !important; box-shadow: none;
+    page-break-after: always; break-after: page;
+  }
+  .wb-page:last-child { page-break-after: auto; break-after: auto; }
+  /* Keep the parchment texture and banner ink in the printed output even
+   * when the browser is set to skip background graphics. */
+  .wb-block, .wb-banner, .wb-tex {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
 }

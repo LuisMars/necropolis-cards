@@ -10,23 +10,33 @@
  * instead of the generic data-file values.
  */
 
-import { state, saveQueue } from "./state.js";
+import { state, saveQueue, saveWarband } from "./state.js";
 import { findCard, keyHintFromSource } from "./matching.js";
 import { escapeHtml } from "./util.js";
 
 const $jsonIn    = document.getElementById("json-in");
 const $matchList = document.getElementById("match-list");
 const $parseBtn  = document.getElementById("parse-btn");
+const $loadBtn   = document.getElementById("load-warband-btn");
 const $clearBtn  = document.getElementById("clear-queue-btn");
 const $sampleBtn = document.getElementById("sample-btn");
 
 import { SAMPLE_JSON } from "./sample.js";
 
-export function initImport({ onChange, switchToPrint }) {
+export function initImport({ onChange, switchToPrint, switchToWarband, onWarband }) {
+  // Load the roster only: the Warband tab is the whole point of the import,
+  // and queueing 20-odd cards is a separate decision.
+  $loadBtn.addEventListener("click", () => {
+    const matches = importJson($jsonIn.value, { queue: false });
+    renderMatches(matches);
+    onWarband?.();
+    if (matches.length) setTimeout(switchToWarband, 200);
+  });
   $parseBtn.addEventListener("click", () => {
     const matches = importJson($jsonIn.value);
     renderMatches(matches);
     onChange();
+    onWarband?.();
     if (matches.some(m => m.target.kind !== "unmatched")) {
       setTimeout(switchToPrint, 200);
     }
@@ -40,12 +50,20 @@ export function initImport({ onChange, switchToPrint }) {
   $sampleBtn.addEventListener("click", () => { $jsonIn.value = SAMPLE_JSON; });
 }
 
-function importJson(text) {
+/** Parse a payload, always refreshing the warband; `queue` decides whether
+ *  the matched cards also land in the print queue. */
+function importJson(text, { queue = true } = {}) {
   let data;
   try { data = JSON.parse(text); }
   catch (e) { alert("Invalid JSON: " + e.message); return []; }
 
   const matches = [];
+
+  // Keep the payload verbatim: the Warband tab re-derives its roster from it
+  // on every render, so it stays in sync with the language selector and any
+  // rebuilt data bundle.
+  state.warband = data;
+  saveWarband();
 
   // Covenant identity — best-effort match on the first comma-separated segment.
   if (data.covenant) {
@@ -102,13 +120,14 @@ function importJson(text) {
     }
   }
 
-  // Push hits to the queue.
-  for (const m of matches) {
-    if (m.target.kind !== "unmatched") {
-      state.queue.push({ key: m.target.key, row: m.target.row, override: m.target.override || null });
+  if (queue) {
+    for (const m of matches) {
+      if (m.target.kind !== "unmatched") {
+        state.queue.push({ key: m.target.key, row: m.target.row, override: m.target.override || null });
+      }
     }
+    saveQueue();
   }
-  saveQueue();
   return matches;
 }
 
