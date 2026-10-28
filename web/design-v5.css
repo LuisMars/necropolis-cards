@@ -1,4 +1,4 @@
-/* Necropolis / Bone Coal v5.3
+/* Necropolis / Bone Coal v5.4
  * Application controls only. Deliberately excluded from print media:
  * the original PDF-derived SVG cards and A4 roster renderer are immutable.
  *
@@ -10,16 +10,16 @@
 @media screen {
   :root {
     color-scheme:dark;
-    --bg:#12110f; --panel:#211f1b; --panel2:#2b2823; --panel3:#38342f;
-    --border:#897f72; --text:#eae4d8; --muted:#c0b5a6;
+    --bg:#171512; --panel:#302d28; --panel2:#3a3630; --panel3:#49443d;
+    --border:#958777; --text:#f2ecdf; --muted:#cfc2b1;
     --accent:#ddd3c1; --good:#94d2af; --bad:#e9968c; --warn:#efc17f;
-    --nc-bg:#12110f; --nc-chrome:#191714; --nc-surface:#211f1b;
-    --nc-raised:#2b2823; --nc-hover:#38342f; --nc-line:#897f72;
-    --nc-line-soft:#4c463d; --nc-bone:#eae4d8; --nc-secondary:#d0c6b7;
-    --nc-muted:#c0b5a6; --nc-primary:#ddd3c1; --nc-on-primary:#1b1915;
-    --nc-success:#94d2af; --nc-success-bg:#25372d;
-    --nc-warning:#efc17f; --nc-warning-bg:#3c3022;
-    --nc-error:#e9968c; --nc-error-bg:#3c2725;
+    --nc-bg:#171512; --nc-chrome:#1e1c19; --nc-surface:#302d28;
+    --nc-raised:#3a3630; --nc-hover:#49443d; --nc-line:#958777;
+    --nc-line-soft:#675f52; --nc-bone:#f2ecdf; --nc-secondary:#e0d5c5;
+    --nc-muted:#cfc2b1; --nc-primary:#e6dccb; --nc-on-primary:#201c18;
+    --nc-success:#94d2af; --nc-success-bg:#294135;
+    --nc-warning:#efc17f; --nc-warning-bg:#4c3825;
+    --nc-error:#e9968c; --nc-error-bg:#4a2c2a;
   }
   html,body {background:var(--nc-bg);color:var(--nc-bone)}
   body {font-family:'Alegreya',Georgia,serif;font-size:16px;line-height:1.45}
@@ -51,7 +51,7 @@
     min-height:42px;border-radius:3px;font-family:'Alegreya SC',Georgia,serif;
     font-size:16px;font-weight:700;padding:8px 16px;
   }
-  button.primary:hover,header.app button.print-btn:hover{background:#f0e8d8}
+  button.primary:hover,header.app button.print-btn:hover{background:#f5ede0}
   button.secondary{
     color:var(--nc-bone);background:var(--nc-raised);border:1px solid var(--nc-line);
     border-radius:3px;min-height:42px;font-family:'Alegreya SC',Georgia,serif;
@@ -69,7 +69,7 @@
   header.app .lang-picker select,.print-toolbar select{
     -webkit-appearance:none;appearance:none;min-height:44px;
     padding:9px 49px 9px 13px;color:var(--nc-bone);
-    background-color:#26231f;
+    background-color:#35312b;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23eae4d8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 6 8 10.5 12.5 6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 15px center;background-size:15px 15px;
     border:1px solid var(--nc-line);border-radius:3px;
@@ -78,7 +78,7 @@
   #bd-body input[type="text"],#bd-body input[type="number"],#bd-body input[type="date"],
   #bd-body input[type="search"],.bd-toolbar input,.lib-toolbar input[type="text"],
   textarea.json-in,.lib-inv-paste textarea{
-    color:var(--nc-bone);background:#26231f;border:1px solid var(--nc-line);
+    color:var(--nc-bone);background:#35312b;border:1px solid var(--nc-line);
     border-radius:3px;min-height:44px;padding:9px 12px;
     font:16px/1.35 'Alegreya',Georgia,serif;
   }
@@ -133,7 +133,7 @@
     display:inline-flex;align-items:center;justify-content:center;
     min-height:40px;min-width:62px;padding:7px 11px;
     font:700 14px 'Alegreya SC',Georgia,serif;
-    color:var(--nc-secondary);background:var(--nc-surface);
+    color:var(--nc-secondary);background:var(--nc-raised);
     border:1px solid var(--nc-line-soft);margin-left:-1px;cursor:pointer;
   }
   .bd-affinity-option:first-of-type span{margin-left:0;border-radius:3px 0 0 3px}
@@ -186,6 +186,72 @@
   .queue-item .name:focus{outline-color:var(--nc-bone);background:var(--nc-raised)}
   .queue-item button{min-width:32px;min-height:32px}
   footer.app-foot{border-color:var(--nc-line-soft)}
+
+  /* Legibility pass: existing builder CSS uses 12–13px !important on some
+     action controls. The integrated app must override those, not only the demo. */
+  #bd-body .bd-items select {
+    font-size:15px !important; min-height:44px !important;
+    padding:9px 49px 9px 13px !important; max-width:100%;
+  }
+  #bd-body .bd-list h4 {font-size:16px; color:var(--nc-secondary)}
+  #bd-body .bd-model-head input[type=text] {font-size:16px}
+  #bd-body .bd-model-head button.secondary {min-height:40px}
+  #bd-body .bd-amb-head button.secondary,
+  #bd-body .bd-crumbs button.secondary {min-height:38px;font-size:15px}
+  #bd-body .bd-amb-text,#bd-body .bd-src small,#bd-body .bd-tx,
+  #bd-body .bd-field-row,#bd-body .bd-hint {font-size:15px;color:var(--nc-secondary)}
+  #bd-body .bd-amb-head,#bd-body .bd-model-head {color:var(--nc-bone)}
+  #bd-body .bd-warn li {font-size:15px}
+  .lib-tile .preview {font-size:14px}
+  .lib-tile .printed-lbl,.lib-tile .need {font-size:13px}
+  /* Stat block uses actual semantic dl/dt/dd markup from builder-tab.js. */
+  #bd-body .bd-stats {
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(79px,1fr));gap:8px;
+    margin:14px 0;padding:0;
+  }
+  #bd-body .bd-stats .bd-stat {
+    margin:0;padding:9px 10px;background:var(--nc-raised);
+    border:1px solid var(--nc-line-soft);border-radius:3px;
+    min-width:0;
+  }
+  #bd-body .bd-stats dt {
+    color:var(--nc-secondary);
+    font:700 14px/1.1 'Alegreya SC',Georgia,serif;
+    letter-spacing:.035em;
+  }
+  #bd-body .bd-stats dd {
+    margin:4px 0 0;color:var(--nc-bone);
+    font:700 23px/1.1 'Alegreya',Georgia,serif;
+    font-variant-numeric:tabular-nums;
+  }
+  #bd-body .bd-model {
+    background:var(--nc-surface);border-color:#716759;
+    box-shadow:0 1px 0 #1c1a17,inset 0 1px 0 #61584a;
+  }
+  #bd-body .bd-panel{background:var(--nc-surface);border-color:#716759}
+  #bd-body .bd-list {border-color:var(--nc-line-soft)}
+  #bd-body .bd-affinity-option span{background:var(--nc-raised)}
+  #bd-body .bd-affinity-option input:checked+span {background:var(--nc-primary)}
+  #bd-body .bd-summary .wb-chip.good{color:#b3e5c7;border-color:#629e7b;background:#2b4134}
+  #bd-body .bd-summary .wb-chip.over {color:#ffc4bd;border-color:#b86a62;background:#4b302c}
+  #bd-body .bd-warn li{color:#f9ddae;background:#4a3726;border-color:#bf9152;border-left-color:var(--nc-warning)}
+  #bd-body .bd-upgrade.owned{border-color:#629e7b}
+  #bd-body .bd-callout{border-left-color:var(--nc-primary)}
+  #bd-body .bd-prog{color:var(--nc-bone)}
+  #bd-body .bd-amb.done .bd-prog{color:var(--nc-success)}
+  #bd-body .bd-choice {background:var(--nc-raised);border-color:var(--nc-line-soft)}
+  #bd-body .bd-step {border-color:var(--nc-line-soft)}
+  .lib-tile {background:var(--nc-surface);border-color:#716759}
+  .lib-tile:hover{background:var(--nc-raised);border-color:#a59a88}
+  .lib-tile.has-printed{border-color:#629e7b}
+  .lib-tile .tile-head{gap:10px}
+  .lib-tile .printed-ctl button{min-width:36px;min-height:36px}
+  .lib-tile .printed-n{color:var(--nc-bone)}
+  .lib-tile .need.done {background:var(--nc-success);color:#131d16}
+  .match-row.matched{border-left-color:var(--nc-success)}
+  .match-row.fuzzy{border-left-color:var(--nc-warning)}
+  .match-row.unmatched{border-left-color:var(--nc-error)}
+
   @media(max-width:900px){
     header.app{flex-wrap:wrap;gap:8px 12px}
     nav.tabs{order:3;width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}
