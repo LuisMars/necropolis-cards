@@ -75,7 +75,7 @@ export function campaignClick(act, el, g) {
     case "amb-drop":       g.ambitions.active = g.ambitions.active.filter(k => k !== key); return true;
     case "amb-complete": {
       const r = completeAmbition(g, key, catalog(), rewardPick[key] || null);
-      if (r.treasure) pending = { kind: r.treasure };
+      if (r.treasure) pending = { kind: r.treasure, ambition: r.ambition };
       return true;
     }
     case "t-roll":         pending = { kind: el.dataset.kind, greater: el.dataset.kind === "greater",
@@ -83,7 +83,7 @@ export function campaignClick(act, el, g) {
     case "t-claim-greater": pending = { kind: "greater", greater: true }; return true;
     case "t-take": {
       const to = document.getElementById(`t-to-${el.dataset.take}`)?.value || null;
-      giveTreasure(g, key, to, { greaterClaim: !!pending?.greater });
+      giveTreasure(g, key, to, { greaterClaim: !!pending?.greater, ambition: pending?.ambition || null });
       if (pending?.source === "rewards" && g.campaign.afterBattle) g.campaign.afterBattle.treasuresLeft -= 1;
       pending = null;
       return true;

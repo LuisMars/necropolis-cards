@@ -22,7 +22,7 @@ const $clearBtn  = document.getElementById("clear-queue-btn");
 const $sampleBtn = document.getElementById("sample-btn");
 
 import { SAMPLE_JSON } from "./sample.js";
-import { isLink, decodeLink } from "./builder/codec.js";
+import { isLink, decodeLink, encodeLink } from "./builder/codec.js";
 import { fromAppJson, toAppJson } from "./builder/appjson.js";
 import { FORMAT } from "./builder/gathering.js";
 import { store } from "./gatherings.js";
@@ -73,8 +73,9 @@ function importJson(text, { queue = true } = {}) {
     try { data = JSON.parse(text); }
     catch (e) { alert("Invalid JSON: " + e.message); return { matches: [], notes }; }
     if (data?.format === FORMAT) {
-      // A Builder backup: restore it as it was, and show its roster.
-      keepGathering(data, notes);
+      // A Builder backup: restore it as it was (same id), and show its roster.
+      store.save(data);
+      notes.unshift(`Restored the Builder backup "${data.name || "Untitled gathering"}".`);
       data = toAppJson(data, state.catalog);
     } else {
       const { gathering, unmatched } = fromAppJson(data, state.catalog);
@@ -163,7 +164,20 @@ export function applyPayload(data, { queue = true } = {}) {
   return matches;
 }
 
+/** What makes two imports the same warband: its link (models, gear,
+ *  traits, spells) plus the model names, which the link doesn't carry. */
+const fingerprint = (g) => `${encodeLink(g, state.catalog)}|${g.models.map(m => m.name || "").join("|")}`;
+
 function keepGathering(gathering, notes) {
+  // Importing the same warband again opens the saved one instead of
+  // adding a copy (which would also hide its campaign progress).
+  const fp = fingerprint(gathering);
+  const twin = store.list().find(g => fingerprint(g) === fp);
+  if (twin) {
+    store.save(twin);   // makes it the current gathering
+    notes.unshift(`Already saved as "${twin.name || "Untitled gathering"}"; opened it.`);
+    return;
+  }
   store.save(gathering);
   const n = gathering.models.length;
   notes.unshift(`Saved as a builder gathering (${n} ${n === 1 ? "model" : "models"}).`);

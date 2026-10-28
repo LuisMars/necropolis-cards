@@ -82,7 +82,8 @@ test("ambitions: progress, rewards, and a greater treasure every 5", () => {
   assert.equal(evaluate(g, catalog).deploymentLimit, 400);
   assert.equal(greaterOwed(g), 0);
   const r = completeAmbition(g, "ambitions/scour-the-lands", catalog);
-  assert.deepEqual(r, { treasure: "minor" });
+  assert.equal(r.treasure, "minor");
+  assert.ok(r.ambition);                                                       // so undo can take it back
   assert.equal(greaterOwed(g), 1);
   giveTreasure(g, "greater-treasures/cinder-ash-bolts", null, { greaterClaim: true });
   assert.equal(greaterOwed(g), 0);
