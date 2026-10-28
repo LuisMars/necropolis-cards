@@ -71,12 +71,20 @@
   --gothic: "JSL Blackletter", "Alegreya", serif;
 }
 * { box-sizing: border-box; }
+/* The base as printing has always seen it: the printed cards and roster
+ * inherit from here, so the app's own typography is screen-only below. */
 html, body {
   margin: 0; padding: 0; min-height: 100%;
   background: var(--bg); color: var(--text);
-  font-family: var(--serif); font-size: 16px;
-  font-variant-numeric: lining-nums;
-  line-height: 1.45;
+  font-family: -apple-system, system-ui, "Segoe UI", sans-serif; font-size: 15px;
+  line-height: 1.4;
+}
+@media screen {
+  html, body {
+    font-family: var(--serif); font-size: 16px;
+    font-variant-numeric: lining-nums;
+    line-height: 1.45;
+  }
 }
 button, input, select, textarea { font-family: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
