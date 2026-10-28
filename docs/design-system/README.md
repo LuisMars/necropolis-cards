@@ -1,12 +1,16 @@
 # Necropolis · Bone Coal v5.4 — implementation reference
 
+**Four selectable palettes are available in the app and gallery: Ink & Bone, Obsidian, Soft Ash, and Slate. The selection persists in localStorage under `necropolis-ui-palette-v56` and does not change the card artwork.**
+
 **Open `web/design-reference.html` after running `python3 web/bundle.py` and serving `web/` over HTTP.** The page uses the application's actual `web/styles.css`, `web/design-v5.css`, bundled fonts, and (when available) the real SVG card renderer. It is a specimen page, not a second application.
 
 ## Source of truth
 
 | Concern | Source |
 |---|---|
-| Color tokens, layout skin, control dimensions | `web/design-v5.css` |
+| Base design and component dimensions | `web/design-v5.css` |
+| Four palettes and screen-only token overrides | `web/design-palettes.css` |
+| Palette selection, persistence, sync | `web/js/design-palettes.js` |
 | Base application and original font declarations | `web/styles.css` |
 | Real builder HTML generation and events | `web/js/builder-tab.js` |
 | Campaign screen and ledger | `web/js/builder-campaign.js`; `web/js/builder/campaign.js` |
@@ -20,9 +24,9 @@
 
 1. Keep card art, decorative ink splatters, SVG templates, fonts *inside printed cards*, 63 × 88 mm dimensions, and A4 layout unchanged. Do not copy a mock card into production. The HTML reference loads the real rendered card where generated assets exist.
 2. Use JSL Blackletter only for the Necropolis brand and the unchanged game cards; Alegreya Small Caps for compact headers and action headings; Alegreya for legible prose, numbers and ordinary inputs.
-3. Bone Coal is **warm grayscale**: page `#171512`, panels `#302D28`, raised fields `#3A3630`, bone text `#F2ECDF`, secondary `#E0D5C5`. Semantic colors: success `#94D2AF`, warning `#EFC17F`, error `#E9968C`. Do not use these accents decoratively.
+3. Palette defaults to **Ink & Bone**, with alternative **Obsidian**, **Soft Ash**, and **Slate**. Do not flatten the options into one design until the user selects a final direction. Full variables are defined in `web/design-palettes.css`. Keep semantic success/warning/error distinct and avoid using them decoratively.
 4. Avoid piling decorative frames on editable panels. Card artwork can be ornate; application chrome should prioritize usable hierarchy, clear fields, and visible state.
-5. Keep `design-v5.css` within `@media screen`. Its role is screen chrome; the game's `@media print` is authoritative.
+5. Keep `design-v5.css` and `design-palettes.css` within `@media screen`. Screen palette preferences must **never** recolor the card SVGs or affect the game's `@media print` styles.
 
 ## Reuse the working HTML patterns
 
@@ -39,9 +43,10 @@
 1. `python3 web/bundle.py`
 2. `python3 -m http.server -d web 8000`
 3. Open `http://localhost:8000/design-reference.html`, then `http://localhost:8000/`.
-4. Compare actual controls with specimens. Fix discrepancies in the real HTML-generating modules or shared CSS, never by pasting dummy data into the app.
-5. Test keyboard focus, radio selection, model restrictions, long select labels, mobile widths, all seven after-battle steps, and card/roster printing.
-6. Run `node --test tests/*.test.js` after generating the bundle. Confirm printed card output has no visual regression.
+4. Switch all four palettes in the app and the HTML reference; confirm the selection survives refresh, is keyboard-accessible, and that printed cards and sheets are identical in every palette.
+5. Compare actual controls with specimens. Fix discrepancies in the real HTML-generating modules or shared CSS, never by pasting dummy data into the app.
+6. Test keyboard focus, radio selection, model restrictions, long select labels, mobile widths, all seven after-battle steps, and card/roster printing.
+7. Run `node --test tests/*.test.js` after generating the bundle. Confirm printed card output has no visual regression.
 
 ## Status
 
