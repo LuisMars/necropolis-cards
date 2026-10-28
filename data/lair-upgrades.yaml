@@ -1,0 +1,145 @@
+# Lair Upgrades — rulebook v0.9 p.71 ("Wayfinders, Pack Beasts and Seers").
+# Bought during a campaign for 50 obols each; each upgrade can only be
+# purchased once. Rendered with equipment.svg for the cost + flavour + effect
+# layout. Dank Culvert and Abandoned Mine (and Dusty Crypts / Bell Tower)
+# share the same effect in the rulebook — kept as printed.
+
+- name: Arcane Library
+  name_es: Biblioteca Arcana
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Musty grimoires stacked high in piles; occult knowledge from ages past.
+  flavor_es: Grimorios mohosos apilados en altos montones; saber oculto de eras pasadas.
+  effect: |
+    Gain 1 spell of any type.
+  effect_es: |
+    Gana 1 hechizo de cualquier tipo.
+
+- name: Balefire Brazier
+  name_es: Brasero de Fuego Fúnebre
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: A channelling brazier burning with darkling flame.
+  flavor_es: Un brasero canalizador que arde con una llama sombría.
+  effect: |
+    Gain 1 mana point of any type.
+  effect_es: |
+    Gana 1 punto de maná de cualquier tipo.
+
+- name: Forgotten Forge
+  name_es: Forja Olvidada
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Ancient fire and ancient steel combined for a singular purpose.
+  flavor_es: Fuego antiguo y acero antiguo unidos con un único propósito.
+  effect: |
+    Weapons and armour purchase costs -20%, rounding down.
+  effect_es: |
+    El coste de compra de armas y armaduras se reduce un 20 %, redondeando hacia abajo.
+
+- name: Dank Culvert
+  name_es: Alcantarilla Húmeda
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Once carrying water in the darkness, now a place accumulating detritus.
+  flavor_es: Antaño conducía agua en la oscuridad; ahora es un lugar donde se acumulan desechos.
+  effect: |
+    Gain +d10 obols at the end of each scenario.
+  effect_es: |
+    Gana +1D10 óbolos al final de cada escenario.
+
+- name: Abandoned Mine
+  name_es: Mina Abandonada
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Silver veins spiral into the earth; finite riches from the depths.
+  flavor_es: Vetas de plata se hunden en espiral en la tierra; riquezas finitas de las profundidades.
+  effect: |
+    Gain +d10 obols at the end of each scenario.
+  effect_es: |
+    Gana +1D10 óbolos al final de cada escenario.
+
+- name: Dusty Crypts
+  name_es: Criptas Polvorientas
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: A place of meagre rest for those that serve.
+  flavor_es: Un lugar de escaso descanso para quienes sirven.
+  effect: |
+    Deployment limit +50.
+  effect_es: |
+    +50 al límite de despliegue.
+
+- name: Bell Tower
+  name_es: Campanario
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: The peal of this great bell rings forth across the ruins, declaring to all where the power lies.
+  flavor_es: El tañido de esta gran campana resuena por las ruinas, proclamando a todos dónde reside el poder.
+  effect: |
+    Deployment limit +50.
+  effect_es: |
+    +50 al límite de despliegue.
+
+- name: Dark Tunnels
+  name_es: Túneles Oscuros
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Winding deep below the earth, an ancient network piercing the labyrinth below.
+  flavor_es: Serpenteando bajo la tierra, una antigua red que perfora el laberinto inferior.
+  effect: |
+    Each scenario, deploy a single model within 2" of the centre of the board.
+  effect_es: |
+    En cada escenario, despliega una única miniatura a 2" o menos del centro del tablero.
+
+- name: Alchemy Workshop
+  name_es: Taller de Alquimia
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Illuminated by phosphorus flasks and cluttered with collections of perilous liquids.
+  flavor_es: Iluminado por frascos de fósforo y atestado de colecciones de líquidos peligrosos.
+  effect: |
+    You may choose to buy 1 throwing pot or potion each after battle sequence from the Alchemy Workshop list.
+  effect_es: |
+    En cada secuencia posterior a la batalla puedes comprar 1 frasco arrojadizo o poción de la lista del Taller de Alquimia.
+
+- name: Gloomy Hall
+  name_es: Salón Lúgubre
+  category: LAIR UPGRADE
+  category_es: MEJORA DE GUARIDA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: A great and dimly lit hall, a suitable chamber for minions to perfect their chosen paths.
+  flavor_es: Un gran salón en penumbra, cámara adecuada para que los esbirros perfeccionen el camino elegido.
+  effect: |
+    One model in your gathering may take a trait from your covenant or the wretched undead list.
+  effect_es: |
+    Una miniatura de tu Séquito puede tomar un rasgo de tu pacto o de la lista de los No Muertos Miserables.
