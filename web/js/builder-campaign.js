@@ -331,7 +331,8 @@ function improvementsHtml(g, ev) {
     const stats = ["ap", "move", "violence", "ranged", "hp", ...(e.isLeader ? ["mana", "spells"] : [])];
     const final = { ...e.stats, mana: e.mana, spells: e.spellsAllowed };
     const capped = new Set(e.warnings.filter(w => w.code === "improvement-cap").map(w => w.params.stat));
-    const rowsHtml = stats.map(st => {
+    // Only stats something changed get a row; the rest read off the line above.
+    const rowsHtml = stats.filter(st => (e.sources[st] || []).length).map(st => {
       const chips = (e.sources[st] || []).map(src => {
         const cls = src.amount > 0 ? "up" : "down";
         const when = src.battle ? ` · ${esc(L("battle"))} ${src.battle}` : "";
@@ -348,7 +349,8 @@ function improvementsHtml(g, ev) {
     return `
       <div class="bd-ledger">
         <h4>${esc(modelTitle(m))}</h4>
-        <table class="bd-table"><tr><th></th><th>${esc(L("base"))}</th><th>${esc(L("changes"))}</th><th>${esc(L("total"))}</th></tr>${rowsHtml}</table>
+        <div class="bd-stats">${stats.map(st => `<span><i>${esc(L(st))}</i> <b>${shown(st, final[st])}</b></span>`).join("")}</div>
+        ${rowsHtml ? `<table class="bd-table"><tr><th></th><th>${esc(L("base"))}</th><th>${esc(L("changes"))}</th><th>${esc(L("total"))}</th></tr>${rowsHtml}</table>` : ""}
         <div class="bd-inline">
           <select id="led-stat-${uid}">${statOpts}</select>
           <input type="number" id="led-amt-${uid}" value="1" class="bd-die">

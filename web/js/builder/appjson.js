@@ -120,7 +120,9 @@ export function toAppJson(gathering, catalog) {
 
   const out = {
     covenant: cov?.app_name || catalog.row(gathering.covenant)?.name || "",
-    totalObols: ev.total,
+    // The roster compares its total against this: the 300 to build, or the
+    // deployment limit once the campaign has started.
+    totalObols: ev.budget ?? ev.deploymentLimit,
     gathering: gathering.models.map((m, i) => {
       const e = ev.models[i];
       const row = catalog.row(m.profile) || {};

@@ -15,7 +15,7 @@ test("our export matches the app's numbers model by model", () => {
   const { gathering } = decodeLink(EXAMPLE_LINK, catalog);
   const ours = toAppJson(gathering, catalog);
   assert.equal(ours.covenant, EXAMPLE_EXPORT.covenant);
-  assert.equal(ours.totalObols, 345);
+  assert.equal(ours.totalObols, 300);   // the roster's budget: 300 to build
   ours.gathering.forEach((e, i) => {
     const app = EXAMPLE_EXPORT.gathering[i].profile;
     for (const k of ["hp", "actionPoints", "move", "violence", "ranged", "obols", "affinity"]) {

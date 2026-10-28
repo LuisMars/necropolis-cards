@@ -24,7 +24,7 @@ import {
   soulBinder, tombRobber, hasAlchemy, buyAlchemy, price, rollScenarioPart, canRerollOmen,
   finishAfterBattle, greaterOwed, rollTreasure, treasureTable,
 } from "./builder/campaign.js";
-import { ambitionsHtml, pendingHtml, upgradesHtml, setPending } from "./builder-campaign.js";
+import { ambitionsHtml, pendingHtml, upgradesHtml, setPending, pendingTreasure } from "./builder-campaign.js";
 import { maladiesOf } from "./builder/ledger.js";
 
 const esc = escapeHtml;
@@ -205,7 +205,9 @@ function rewardsStep(g, a) {
     : `<p>${esc(L(a.battle.result === "loss" ? "loss" : "win"))}: ${r.obols} + 2d10</p>
        <div class="bd-inline">${rollBtn("ab-roll-rewards")} ${esc(L("orType"))} ${dieInput("ab-d1", dice[0])} ${dieInput("ab-d2", dice[1])}
          <button type="button" class="primary" data-act="ab-apply-rewards">${esc(L("apply"))}</button></div>`;
-  const treasures = done && a.treasuresLeft > 0
+  // While a rolled treasure waits to be handed out, its own panel holds the
+  // roll; a second Roll button here would quietly re-roll it.
+  const treasures = done && a.treasuresLeft > 0 && !pendingTreasure()
     ? `<div class="bd-inline"><b>${a.treasuresLeft}</b> ${esc(L("treasureRolls"))}
          <button type="button" class="secondary" data-act="ab-roll-treasure">🎲 ${esc(L("rollTreasure"))}</button></div>` : "";
 
@@ -247,8 +249,9 @@ function bazaarStep(g, a) {
   // Markets: buy gear, recruit, sell gear and treasures.
   const gear = [["weapons", ["melee-weapons", "ranged-weapons", "thrown-weapons", "colossal-weapons"]],
                 ["armour", ["armours"]], ["equipment", ["miscellaneous-equipment"]]]
-    .flatMap(([lst, cats]) => cats.flatMap(cat => rows(cat).map(([k, r]) =>
-      [`${lst}|${k}`, `${pickField(r, "name", lang())} · ${buyPrice(g, catalog(), k)}`])));
+    .flatMap(([lst, cats]) => cats.flatMap(cat => rows(cat)
+      .filter(([k]) => buyPrice(g, catalog(), k) > 0)       // nothing to buy in a free Improvised Weapon
+      .map(([k, r]) => [`${lst}|${k}`, `${pickField(r, "name", lang())} · ${buyPrice(g, catalog(), k)}`])));
   const recruits = rows("minions").map(([k, r]) => [k, `${pickField(r, "name", lang())} · ${price(r)}`]);
   const sells = g.models.flatMap(m => ["weapons", "armour"].flatMap(lst => (m[lst] || []).map((k, n) =>
     sellValue(catalog(), k) > 0 ? `<span class="bd-item">${esc(modelTitle(m))}: ${esc(name(k))}
@@ -309,5 +312,6 @@ function scenarioStep(g, a) {
     ${part("missions", "mission")}
     <label class="bd-check"><input type="checkbox" data-act="ab-omen-agree"${a.omenAgreed ? " checked" : ""}> ${esc(L("bothAgree"))}</label>
     ${a.omenAgreed ? part("dread-omens", "omen", reroll) : ""}
+    ${a.treasuresLeft > 0 ? `<p class="bd-warn-line">${a.treasuresLeft} ${esc(L("treasureRolls"))} — ${esc(L("rollsLost"))}</p>` : ""}
     <p><button type="button" class="primary" data-act="ab-finish">${esc(L("finish"))}</button></p>`;
 }

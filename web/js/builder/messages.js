@@ -172,6 +172,7 @@ const UI = {
   treasureLost:   ["Treasure lost", "Tesoro perdido"],
   obolsAdded:     ["obols added", "óbolos añadidos"],
   treasureRolls:  ["minor treasure rolls left", "tiradas de tesoro menor pendientes"],
+  rollsLost:      ["take them in step 2 before finishing, or they are lost.", "tómalas en el paso 2 antes de terminar o se perderán."],
   rollTreasure:   ["Roll a minor treasure", "Tirar un tesoro menor"],
   lairIncome:     ["Lair income", "Ingresos de la guarida"],
   purloiner:      ["Purloiner", "Ladrón"],
