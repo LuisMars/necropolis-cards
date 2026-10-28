@@ -448,7 +448,7 @@ function modelHtml(g, m, e, idx) {
     [L("ap"), e.stats.ap], [L("move"), e.stats.move], [L("violence"), target(e.stats.violence)],
     [L("ranged"), target(e.stats.ranged)], [L("hp"), e.stats.hp],
     ...(leader ? [[L("mana"), e.mana], [L("spells"), e.spellsAllowed]] : []),
-  ].map(([k, v]) => `<span><i>${esc(k)}</i> <b>${esc(String(v ?? "—"))}</b></span>`).join("");
+  ].map(([k, v]) => `<div class="bd-stat"><dt>${esc(k)}</dt><dd>${esc(String(v ?? "—"))}</dd></div>`).join("");
 
   // Sellswords come with fixed armaments (p.74-76): show them, nothing to pick.
   const sw = e.isSellsword;
@@ -480,7 +480,7 @@ function modelHtml(g, m, e, idx) {
         <button type="button" class="secondary" data-act="m-down" data-uid="${uid}" title="↓"${idx === g.models.length - 1 ? " disabled" : ""}>↓</button>
         <button type="button" class="secondary" data-act="m-remove" data-uid="${uid}" title="${esc(L("remove"))}">✕</button>
       </div>
-      <div class="bd-stats">${stats}</div>
+      <dl class="bd-stats">${stats}</dl>
       ${warningsHtml(e.warnings)}
       <div class="bd-lists">${sections}</div>
     </section>`;
