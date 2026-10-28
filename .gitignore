@@ -27,3 +27,6 @@ web/fonts/
 # Local-only docs (keep READMEs only)
 *.md
 !README.md
+
+# Dev tooling (package.json: Playwright for the UI tests)
+node_modules/

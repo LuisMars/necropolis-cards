@@ -166,8 +166,10 @@ web/
 ```
 
 The builder modules take the bundle as an argument and never touch the
-page, so `tests/` runs them under Node (`python3 web/bundle.py && node
---test tests/*.test.js`; CI runs the same before each deploy).
+page, so `tests/` runs them under Node (`python3 web/bundle.py && npm
+test`). `tests/ui/` drives the Builder in headless Chromium against the
+served site (`npm install && npx playwright install chromium && npm run
+test:ui`). CI runs both before each deploy.
 
 No build step, no framework — every file is loaded as an ES module by
 the browser at runtime.
