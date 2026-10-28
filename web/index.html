@@ -10,6 +10,7 @@
 <link rel="preload" href="fonts/AlegreyaSC-Bold.ttf"    as="font" type="font/ttf" crossorigin="anonymous">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="design-v5.css">
+<link rel="stylesheet" href="design-palettes.css">
 </head>
 <body>
 
@@ -30,6 +31,12 @@
       <option value="es">Español</option>
     </select>
   </label>
+<label class="nc-theme-picker" for="nc-theme-select">Theme
+  <select id="nc-theme-select" data-nc-palette-control aria-label="Appearance palette">
+    <option value="ink-bone">Ink &amp; Bone</option><option value="obsidian">Obsidian</option>
+    <option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
+  </select>
+</label>
   <span class="badge"><span id="queue-count">0</span> in queue</span>
   <button class="print-btn" id="global-print-btn">⎙ Print</button>
 </header>
@@ -138,6 +145,7 @@
   </p>
 </footer>
 
+<script src="js/design-palettes.js"></script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
