@@ -325,13 +325,18 @@ function headHtml(g) {
 
 function summaryHtml(g, ev) {
   const over = ev.budget != null && ev.total > ev.budget;
+  // The 300 obols are the first build's budget only; once the campaign
+  // starts, the deployment limit and the treasury take over.
   const spent = ev.budget != null
-    ? `<b>${ev.total}</b> / ${ev.budget} ${esc(L("obols"))} ${esc(L("spent"))}`
-    : `<b>${ev.total}</b> ${esc(L("obols"))}`;
+    ? `<b>${ev.total}</b> / ${ev.budget} ${esc(L("obols"))} ${esc(L("spent"))} · ${esc(L("firstBuild"))}`
+    : `<b>${ev.total}</b> ${esc(L("obols"))} · ${esc(L("treasury"))} <b>${Number(g.treasury) || 0}</b>`;
+  const startBtn = ev.budget != null
+    ? `<button type="button" class="secondary" data-act="start-built">${esc(L("alreadyBuilt"))}</button>` : "";
   const nWarn = ev.warnings.length;
   return `
     <div class="bd-summary">
       <span class="wb-chip ${over ? "over" : "good"}">${spent}</span>
+      ${startBtn}
       <span class="wb-chip">${esc(L("deployment"))} <b>${ev.deploymentLimit}</b></span>
       <span class="wb-chip"><b>${g.models.length}</b> ${esc(L(g.models.length === 1 ? "model" : "models"))}</span>
       ${nWarn

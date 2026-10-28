@@ -29,6 +29,15 @@ test("starting the campaign turns the leftover budget into the treasury", () => 
   assert.deepEqual(ev.warnings, []);
 });
 
+test("a band that was already built starts with a treasury of 0", () => {
+  const { gathering: g } = decodeLink(EXAMPLE_LINK, catalog);   // 345 obols
+  g.models[0].mana = { bone: 4 };
+  assert.deepEqual(codes(g), ["over-budget"]);                   // first build: 300
+  startCampaign(g, catalog, { alreadyBuilt: true });
+  assert.equal(g.treasury, 0);
+  assert.deepEqual(codes(g), []);                                // 345 fits the 350 limit
+});
+
 test("lair upgrades cost 50 once, and change the gathering", () => {
   const g = example();
   startCampaign(g, catalog);

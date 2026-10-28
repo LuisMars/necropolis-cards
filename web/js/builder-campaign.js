@@ -67,6 +67,7 @@ export function campaignClick(act, el, g) {
   ensureCampaign(g);
   switch (act) {
     case "start":          startCampaign(g, catalog()); return true;
+    case "start-built":    startCampaign(g, catalog(), { alreadyBuilt: true }); return true;
     case "upgrade-buy":    buyUpgrade(g, key, catalog()); return true;
     case "upgrade-refund": refundUpgrade(g, key, catalog()); return true;
     case "free-rabble":    hireSellsword(g, "sellswords/desperate-rabble", catalog(), { free: true }); return true;

@@ -24,11 +24,15 @@ export function ensureCampaign(g) {
   return g;
 }
 
-/** Start the campaign: the obols left from the 300 become the treasury. */
-export function startCampaign(g, catalog) {
+/**
+ * Start the campaign: the obols left from the 300 become the treasury.
+ * A band built before it reached the Builder (an import) has a treasury
+ * we can't know, so `alreadyBuilt` starts it at 0 for the player to set.
+ */
+export function startCampaign(g, catalog, { alreadyBuilt = false } = {}) {
   ensureCampaign(g);
   const ev = evaluate(g, catalog);
-  g.treasury = (ev.budget ?? 0) - ev.total;
+  g.treasury = alreadyBuilt ? 0 : (ev.budget ?? 0) - ev.total;
   return g.treasury;
 }
 

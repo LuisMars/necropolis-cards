@@ -76,6 +76,8 @@ const UI = {
   notStarted:     ["The campaign hasn't started. Starting it turns the obols left from the 300 into your treasury:",
                    "La campaña no ha empezado. Al empezarla, los óbolos que sobran de los 300 pasan a tu tesoro:"],
   startCampaign:  ["Start campaign", "Empezar campaña"],
+  firstBuild:     ["first build", "primera creación"],
+  alreadyBuilt:   ["Band already built? Start campaign", "¿Banda ya creada? Empezar campaña"],
   treasury:       ["Treasury", "Tesoro"],
   deployBase:     ["Base deployment limit", "Límite de despliegue base"],
   lairBonus:      ["from the lair", "por la guarida"],
@@ -197,7 +199,8 @@ export function describe(w, catalog, lang = "en") {
     case "unique-trait":        return es ? `Solo una miniatura puede tener ${item}.` : `Only one model may take ${item}.`;
     case "covenant-traits":     return es ? `${p.count} rasgos de pacto o de No Muertos Miserables; se permiten ${p.allowed}.`
                                           : `${p.count} covenant or Wretched Undead traits; ${p.allowed} allowed.`;
-    case "over-budget":         return es ? `${p.total} óbolos gastados de ${p.budget}.` : `${p.total} obols spent of ${p.budget}.`;
+    case "over-budget":         return es ? `${p.total} óbolos gastados de los ${p.budget} de la primera creación. Si la banda ya está creada, empieza su campaña.`
+                                          : `${p.total} obols spent of the ${p.budget} for the first build. If the band is already built, start its campaign.`;
     case "over-deployment":     return es ? `${p.total} óbolos desplegados; el límite es ${p.limit}.` : `${p.total} obols fielded; the deployment limit is ${p.limit}.`;
     case "too-many-treasures":  return es ? `${p.count} tesoros ${p.kind === "greater" ? "mayores" : "menores"}; puede llevar ${p.max}.`
                                           : `${p.count} ${p.kind} treasures; it can carry ${p.max}.`;
