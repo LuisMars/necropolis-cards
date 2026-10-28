@@ -166,6 +166,30 @@ minions:
     weapons_only: [colossal-weapons/*]
     unique: true
 
+# p.74-76 Sellswords: added to the roster for `obols`, paid `deploy_obols`
+# (on the card row) each time they are deployed — free when the opponent's
+# deployment limit is 100+ higher. They don't count toward the deployment
+# limit, and only one may be deployed per scenario. Their armaments are fixed.
+sellswords:
+  sellswords/desperate-rabble:
+    keywords: [Husk, Remnant, Sellsword]
+    affinity: [blood, bone, plasm]
+  sellswords/blightblade-beast-hunter:
+    keywords: [Husk, Sellsword]
+    affinity: [blood, bone]
+  sellswords/threefold-hunter-of-the-waste:
+    keywords: [Husk, Sellsword]
+    affinity: [blood, bone]
+  sellswords/neoteric-arcuballista:
+    keywords: [Husk, Sellsword]
+    affinity: [blood, bone]
+
+# p.66-73: which card categories count as minor and greater treasures
+# (potions and throwing pots count as minor treasures, p.73).
+treasures:
+  minor: [minor-treasures, potions, throwing-pots]
+  greater: [greater-treasures]
+
 # p.42 Lairs: roll a D5 for the tens and a D10 for the ones (11-60), or
 # choose. Spanish from the official translation (Necropolis español v1.1,
 # p.42). English typos fixed: "fo", "Sancutom", "Oprhaned".

@@ -7,6 +7,8 @@
 
 - name: Arcane Library
   name_es: Biblioteca Arcana
+  obols: 50
+  modifiers: { spells: 1 }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -21,6 +23,8 @@
 
 - name: Balefire Brazier
   name_es: Brasero de Fuego Fatuo
+  obols: 50
+  modifiers: { mana: 1 }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -35,6 +39,8 @@
 
 - name: Forgotten Forge
   name_es: Forja Olvidada
+  obols: 50
+  modifiers: { gear_discount: 20 }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -49,6 +55,8 @@
 
 - name: Dank Culvert
   name_es: Alcantarilla Humeda
+  obols: 50
+  modifiers: { income: d10 }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -63,6 +71,8 @@
 
 - name: Abandoned Mine
   name_es: Mina Abandonada
+  obols: 50
+  modifiers: { income: d10 }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -77,6 +87,8 @@
 
 - name: Dusty Crypts
   name_es: Criptas Polvorientas
+  obols: 50
+  modifiers: { deployment: 50 }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -91,6 +103,8 @@
 
 - name: Bell Tower
   name_es: Campanario
+  obols: 50
+  modifiers: { deployment: 50 }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -105,6 +119,7 @@
 
 - name: Dark Tunnels
   name_es: Túneles Oscuros
+  obols: 50
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -119,6 +134,8 @@
 
 - name: Alchemy Workshop
   name_es: Taller de Alquimia
+  obols: 50
+  modifiers: { shop: alchemy }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
@@ -133,6 +150,8 @@
 
 - name: Gloomy Hall
   name_es: Salón Lúgubre
+  obols: 50
+  modifiers: { bonus_traits: 1 }
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
