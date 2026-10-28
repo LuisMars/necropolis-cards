@@ -8,6 +8,7 @@
   <!-- IMPORTANT: same stylesheets as the real application, not a second imitation. -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="design-v5.css">
+<link rel="stylesheet" href="design-palettes.css">
   <style>
     /* Reference-page layout only. Production component rules live in design-v5.css. */
     .ds-shell{max-width:1420px;margin:auto;padding:24px 28px 100px}
@@ -89,6 +90,12 @@
       <a href="#builder">Builder</a><a href="#feedback">Feedback</a><a href="#cards">Cards</a>
       <a href="index.html">Open app</a>
     </nav>
+    <label class="nc-theme-picker" for="nc-theme-select">Theme
+  <select id="nc-theme-select" data-nc-palette-control aria-label="Appearance palette">
+    <option value="ink-bone">Ink &amp; Bone</option><option value="obsidian">Obsidian</option>
+    <option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
+  </select>
+</label>
   </header>
   <p class="ds-intro">This page uses the <strong>same CSS classes, tokens and font files</strong> as the real application. It is a visual reference, not a second game implementation. Examples below use sample content and do not save or change campaign state.</p>
   <aside class="ds-reference"><strong>Important:</strong> The original card designs, PDF-derived artwork, SVG templates, and A4 print output are immutable. Application chrome is the only design surface being changed.</aside>
@@ -285,6 +292,7 @@
     Reference only. This page does not edit saved gatherings. To apply a component, update the actual generator in the app and keep its existing rules, events and persistence. See <strong>docs/design-system/README.md</strong>.
   </footer>
 </main>
+<script src="js/design-palettes.js"></script>
 <script>
 (function(){
   var primary=document.getElementById('ds-primary');
