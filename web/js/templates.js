@@ -48,7 +48,12 @@ export function renderCardSvg(q) {
   if (!tpl) return "<div>Missing template</div>";
 
   const lang = state.lang || "en";
-  const row = { ...q.row, ...(q.override || {}) };
+  // Category banner as a fallback: queue items keep a copy of the row from
+  // when they were added, which predates any header added to the category.
+  const catHeader = {};
+  if (cat.header != null)    catHeader.header = cat.header;
+  if (cat.header_es != null) catHeader.header_es = cat.header_es;
+  const row = { ...catHeader, ...q.row, ...(q.override || {}) };
   // Localise static template chrome (banner defaults, headings, stat labels)
   // before substitution so {{KEY}} placeholders are never matched.
   tpl = translateLabels(tpl, lang);

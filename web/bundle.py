@@ -224,6 +224,7 @@ def main():
             "title":    cat.get("title", cat["key"]),
             "template": cat["template"],
             "header":   cat.get("header"),
+            "header_es": cat.get("header_es"),
             "group":    cat.get("group", ""),
             "rows":     rows,
         }

@@ -1,0 +1,146 @@
+# Lair Upgrades — rulebook v0.9 p.71 ("Wayfinders, Pack Beasts and Seers").
+# Bought during a campaign for 50 obols each; each upgrade can only be
+# purchased once. Rendered with equipment.svg for the cost + flavour + effect
+# layout. Dank Culvert and Abandoned Mine (and Dusty Crypts / Bell Tower)
+# share the same effect in the rulebook — kept as printed. Spanish text is
+# the official translation (Necropolis español v1.1, p.71), verbatim.
+
+- name: Arcane Library
+  name_es: Biblioteca Arcana
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Musty grimoires stacked high in piles; occult knowledge from ages past.
+  flavor_es: Grimorios polvorientos apilados en montones; conocimiento oculto de eras pasadas.
+  effect: |
+    Gain 1 spell of any type.
+  effect_es: |
+    Gana 1 hechizo de cualquier tipo.
+
+- name: Balefire Brazier
+  name_es: Brasero de Fuego Fatuo
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: A channelling brazier burning with darkling flame.
+  flavor_es: Un brasero de canalización que arde con oscura llama.
+  effect: |
+    Gain 1 mana point of any type.
+  effect_es: |
+    Gana 1 punto de maná de cualquier tipo.
+
+- name: Forgotten Forge
+  name_es: Forja Olvidada
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Ancient fire and ancient steel combined for a singular purpose.
+  flavor_es: Fuego y acero ancestrales combinados para un propósito singular.
+  effect: |
+    Weapons and armour purchase costs -20%, rounding down.
+  effect_es: |
+    El coste de compra de armas y armaduras se reduce en un 20% redondeando hacia abajo.
+
+- name: Dank Culvert
+  name_es: Alcantarilla Humeda
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Once carrying water in the darkness, now a place accumulating detritus.
+  flavor_es: Antes transportaba agua en la oscuridad, ahora es un lugar donde se acumulan los detritos.
+  effect: |
+    Gain +d10 obols at the end of each scenario.
+  effect_es: |
+    Gana +d10 óbolos al final de cada escenario.
+
+- name: Abandoned Mine
+  name_es: Mina Abandonada
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Silver veins spiral into the earth; finite riches from the depths.
+  flavor_es: Vetas de plata se enroscan en la tierra; riquezas finitas de las profundidades.
+  effect: |
+    Gain +d10 obols at the end of each scenario.
+  effect_es: |
+    Gana +1D10 óbolos al final de cada escenario.
+
+- name: Dusty Crypts
+  name_es: Criptas Polvorientas
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: A place of meagre rest for those that serve.
+  flavor_es: Un mísero lugar de descanso para aquellos que sirven.
+  effect: |
+    Deployment limit +50.
+  effect_es: |
+    Límite de Despliegue +50.
+
+- name: Bell Tower
+  name_es: Campanario
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: The peal of this great bell rings forth across the ruins, declaring to all where the power lies.
+  flavor_es: Una gran campana resuena a través de las ruinas anunciando a todos dónde reside el poder.
+  effect: |
+    Deployment limit +50.
+  effect_es: |
+    Límite de Despliegue +50.
+
+- name: Dark Tunnels
+  name_es: Túneles Oscuros
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Winding deep below the earth, an ancient network piercing the labyrinth below.
+  flavor_es: Una red ancestral serpentea bajo la tierra perforando el laberinto bajo la Ciudad Infinita.
+  effect: |
+    Each scenario, deploy a single model within 2" of the centre of the board.
+  effect_es: |
+    Despliega una sola miniatura en un radio de 2" del centro del tablero en cada escenario.
+
+- name: Alchemy Workshop
+  name_es: Taller de Alquimia
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: Illuminated by phosphorus flasks and cluttered with collections of perilous liquids.
+  flavor_es: Iluminado por frascos de fósforo y abarrotado de colecciones de peligrosos líquidos.
+  effect: |
+    You may choose to buy 1 throwing pot or potion each after battle sequence from the Alchemy Workshop list.
+  effect_es: |
+    Puedes elegir comprar 1 poción después de la secuencia de después de la batalla en el Taller de Alquimia.
+
+- name: Gloomy Hall
+  name_es: Salón Lúgubre
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
+  cost: 50 obols
+  cost_es: 50 óbolos
+  armour: "—"
+  flavor: A great and dimly lit hall, a suitable chamber for minions to perfect their chosen paths.
+  flavor_es: Un gran salón pobremente iluminado, una cámara adecuada para que los siervos perfeccionen sus aprendizajes.
+  effect: |
+    One model in your gathering may take a trait from your covenant or the wretched undead list.
+  effect_es: |
+    Una miniatura de tu Séquito puede tomar un rasgo de tu pacto o de la lista de los No Muertos Miserables.

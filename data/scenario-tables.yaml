@@ -1,0 +1,91 @@
+# Scenario tables — WIP Necropolis Rules 0.9, pp. 57, 59, 62.
+# The random tables and actions that missions/omens refer to but which don't
+# fit on the mission card itself: Ancient Horror's lair detritus table, The
+# Hidden Stash's stash table, and the Lost Peddler omen's Hastily Browse.
+# Rendered via rule.svg; each table row is its own paragraph so it starts on
+# a fresh line. Spanish follows the official translation (Necropolis
+# español v1.1, pp. 57, 59, 62), condensed only where the card is too small.
+
+- category: MISSION TABLE
+  category_es: TABLA DE MISIÓN
+  name: Lair Detritus
+  name_es: Restos de la Guarida
+  restrictions: Ancient Horror · D10
+  restrictions_es: Horror Ancestral · 1D10
+  sigil: ""
+  effect: |
+    Investigate Lair Detritus (AP 1, base to base with an objective): remove the objective and roll a d10.
+
+    1–2 Apoplectic: the opposing player picks a model within 3" of the Horror without the Colossal keyword. It is pushed up to 24" toward the acting model, ignoring terrain; both suffer 6 damage. If none is within 3", the Horror moves 6" toward the acting model.
+
+    3–5 Desecration: the Horror moves 6" toward the acting model by the shortest route.
+
+    6–9 A Terrible Liquid: the model gains an Eater-Water.
+
+    10 A Jar of Bile: gain 5+d10 obols.
+  effect_es: |
+    Investigar Restos de la Guarida (PA 1, base con base con un objetivo): retíralo y tira 1D10.
+
+    1–2 Enloquecido: el rival elige una miniatura sin la palabra clave Colosal a 3" del Horror. Es empujada hasta 24" hacia quien Investiga los Restos, ignorando el terreno; ambas sufren 6 de daño. Si no hay ninguna, el Horror se mueve 6" hacia quien Investiga.
+
+    3–5 Profanación: mueve el Horror 6" hacia quien Investiga por la ruta más corta.
+
+    6–9 Un líquido terrible: la miniatura gana el objeto Agua Devoradora.
+
+    10 Un jarro de hiel: gana 5+1D10 óbolos.
+
+- category: MISSION TABLE
+  category_es: TABLA DE MISIÓN
+  name: Hidden Stash
+  name_es: Alijo Oculto
+  restrictions: The Hidden Stash · D10
+  restrictions_es: El Alijo Oculto · 1D10
+  sigil: ""
+  effect: |
+    Pick Up Relic (base to base with an objective): remove it and roll a d10. The last objective on the board always gives the 10 result.
+
+    1–2 Trapped Chest: the objective explodes in a shower of cinders; all models within 3" suffer 3 damage.
+
+    3–4 Disturbed Rest: place a Necromantic Remnant NPC of any type, armed with an improvised weapon, where the objective was.
+
+    5–9 Wisps of Power: place a mana token of any type where the objective was.
+
+    10 Hidden Treasure: gain a relic token.
+  effect_es: |
+    Recoger una reliquia (base con base con un objetivo): retíralo y tira 1D10. Si es el último objetivo, recibes el resultado 10.
+
+    1–2 Cofre trampa: el objetivo explota en una lluvia de cenizas; las miniaturas a 3" sufren 3 puntos de daño.
+
+    3–4 Descanso alterado: coloca un PNJ de Remanente Nigromántico con un arma improvisada donde estaba el objetivo.
+
+    5–9 Jirones de poder: coloca un marcador de maná de cualquier tipo donde estaba el objetivo.
+
+    10 Tesoro oculto: ganas un marcador de reliquia.
+
+- category: OMEN ACTION
+  category_es: ACCIÓN DE AUGURIO
+  name: Hastily Browse
+  name_es: Hojear Rápidamente
+  restrictions: Lost Peddler · AP 1
+  restrictions_es: Mercader Perdido · PA 1
+  sigil: ""
+  effect: |
+    Only in base contact with a model with the Peddler keyword. The browsing model may gain one of these items by paying its cost in obols:
+
+    Eater-Water · 10 obols
+
+    Thunderclap · 10 obols
+
+    Sunburst · 10 obols
+
+    Stonetar · 10 obols
+  effect_es: |
+    Esta acción solo puede usarse en contacto base con base con el Mercader. La miniatura que hojea puede obtener uno de los siguientes objetos pagando su coste en óbolos:
+
+    Agua Devoradora · 10 óbolos
+
+    Estallido Atronador · 10 óbolos
+
+    Estallido Solar · 10 óbolos
+
+    Alquitrán Pétreo · 10 óbolos

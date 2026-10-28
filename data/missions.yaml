@@ -1,8 +1,22 @@
-# Scenarios from WIP Necropolis Rules 0.9 (pp. 56-60).
+# Scenarios from WIP Necropolis Rules 0.9 (pp. 55-60).
 # Body fields are wrapped at 45 chars × maxlines configured in
 # templates/mission.svg; longer rulebook scenarios with sub-tables
-# (Ancient Horror, The Hidden Stash) are condensed — players should
-# consult the book for the full random table.
+# (Ancient Horror, The Hidden Stash) keep their random tables on separate
+# cards in scenario-tables.yaml.
+
+- category: MISSION
+  name: Consult the Seer
+  name_es: Consultar al Vidente
+  flavor: This spectral augur appears so rarely that the undead rush to record its words of import.
+  flavor_es: Este adivino espectral aparece tan raramente que los no muertos corren a oír sus palabras.
+  objectives: |
+    Place a Seer model in the centre. It cannot be pushed, damaged, targeted by spells or activated in the Others phase. At the end of each turn it moves 5" toward a random table corner, ignoring vertical movement as if it could fly; if it touches a board edge, return it to the centre. A melee attack targeting the Seer steals 1 relic, which the attacker now carries.
+  objectives_es: |
+    Coloca al Vidente en el centro del tablero. No puede ser empujado, sufrir daño, ser objetivo de acciones mágicas ni ser activado en la fase de Otros. Al final de cada turno se mueve 5" hacia una esquina aleatoria como si tuviera la palabra clave Volar; si toca un borde, es devuelto al centro. Los ataques cuerpo a cuerpo dirigidos al Vidente otorgan una reliquia al atacante.
+  deployment: Follow the normal rules for deployment.
+  deployment_es: Usa las reglas estándar.
+  victory: The gathering carrying the most relics after 5 turns wins. Shattered models drop their relics.
+  victory_es: El Séquito que obtenga más reliquias después de 5 turnos gana. Si las miniaturas son Hechas añicos, todas las reliquias que lleven se dejan caer con normalidad.
 
 - category: MISSION
   name: Secure the Artefacts
@@ -58,7 +72,7 @@
   flavor: An undead weapon, a rampaging beast, bringing renown to those who dare its lair.
   flavor_es: Un arma no muerta, una bestia desenfrenada que trae fama a quienes se atreven a entrar en su guarida.
   objectives: |
-    Deploy a Gigantic Horror NPC armed with a colossal weapon in the centre; it has 5 armour. Alternate placing 2 objectives per player + 1 in the centre, 3" apart and 3" from any board edge. Models base-to-base with an objective may take "Investigate Lair Detritus" (AP 1) to roll on the rulebook's lair table.
+    Deploy a Gigantic Horror NPC armed with a colossal weapon in the centre; it has 5 armour. Alternate placing 2 objectives per player + 1 in the centre, 3" apart and 3" from any board edge. Models base-to-base with an objective may take "Investigate Lair Detritus" (AP 1): remove it and roll on the Lair Detritus table card.
   objectives_es: |
     Despliega un Horror Colosal (PNJ) armado con un arma colosal en el centro; tiene 5 de armadura. Alternad colocando 2 objetivos por jugador + 1 en el centro, a 3" entre sí y a 3" de cualquier borde. Las miniaturas en contacto base con base con un objetivo pueden realizar «Investigar Restos de la Guarida» (PA 1) para tirar en la tabla de guaridas del reglamento.
   deployment: Follow the normal rules for deployment.
@@ -100,7 +114,7 @@
   flavor: Great treasure, hidden and protected by ancient hands.
   flavor_es: Grandes tesoros ocultos protegidos por manos ancestrales.
   objectives: |
-    Alternate placing 2 objectives per player + 1 in the centre, 3" apart and 3" from any board edge. Models base-to-base with an objective may take "Pick Up Relic" — remove it and roll on the rulebook's stash table (traps, restless minions, mana wisps, or hidden treasure).
+    Alternate placing 2 objectives per player + 1 in the centre, 3" apart and 3" from any board edge. Models base-to-base with an objective may take "Pick Up Relic": remove it and roll on the Hidden Stash table card. The last objective always gives the 10 result.
   objectives_es: |
     Alternad colocando 2 objetivos por jugador + 1 en el centro, a 3" entre sí y a 3" de cualquier borde. Las miniaturas en contacto base con base con un objetivo pueden realizar «Recoger Reliquia»: retíralo y tira en la tabla de alijos del reglamento (trampas, secuaces inquietos, volutas de maná o tesoro oculto).
   deployment: Follow the normal rules for deployment.

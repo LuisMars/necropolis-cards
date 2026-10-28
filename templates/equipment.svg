@@ -21,7 +21,7 @@
   <!-- SPLOTCHES -->
 
   <image xlink:href="file:///home/luismars/necropolis-images/alpha/img-029-048-alpha.png" x="-2.557" y="-2.715" width="67.565" height="18.443" preserveAspectRatio="none" data-edit-idx="4"/>
-  <text class="banner-title" x="31.5" data-edit-idx="5" y="8.8" style="font-size: 7.489px;">Equipment</text>
+  <text class="banner-title" x="31.5" data-edit-idx="5" y="8.8" style="font-size: 7.489px;">{{HEADER}}</text>
 
   <text class="name" x="31.5" y="19.098" data-edit-idx="6">{{NAME}}</text>
   <text class="category" x="31.5" y="24.34" data-edit-idx="8">{{CATEGORY}}</text>
