@@ -6,8 +6,8 @@
 
 - name: Arcane Library
   name_es: Biblioteca Arcana
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -20,8 +20,8 @@
 
 - name: Balefire Brazier
   name_es: Brasero de Fuego Fúnebre
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -34,8 +34,8 @@
 
 - name: Forgotten Forge
   name_es: Forja Olvidada
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -48,8 +48,8 @@
 
 - name: Dank Culvert
   name_es: Alcantarilla Húmeda
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -62,8 +62,8 @@
 
 - name: Abandoned Mine
   name_es: Mina Abandonada
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -76,8 +76,8 @@
 
 - name: Dusty Crypts
   name_es: Criptas Polvorientas
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -90,8 +90,8 @@
 
 - name: Bell Tower
   name_es: Campanario
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -104,8 +104,8 @@
 
 - name: Dark Tunnels
   name_es: Túneles Oscuros
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -118,8 +118,8 @@
 
 - name: Alchemy Workshop
   name_es: Taller de Alquimia
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
@@ -132,8 +132,8 @@
 
 - name: Gloomy Hall
   name_es: Salón Lúgubre
-  category: LAIR UPGRADE
-  category_es: MEJORA DE GUARIDA
+  category: PURCHASE ONCE
+  category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"

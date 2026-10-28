@@ -19,9 +19,9 @@ groups:
       - { key: melee-weapons,            title: Melee Weapons,            template: weapon,          data: melee-weapons.yaml,            header: Weapon,        header_es: Arma }
       - { key: colossal-weapons,         title: Colossal Weapons,         template: weapon,          data: colossal-weapons.yaml,         header: Colossal Weapon, header_es: Arma Colosal }
       - { key: ranged-weapons,           title: Ranged Weapons,           template: weapon,          data: ranged-weapons.yaml,           header: Weapon,        header_es: Arma }
-      - { key: armours,                  title: Armours,                  template: equipment,       data: armours.yaml }
+      - { key: armours,                  title: Armours,                  template: equipment,       data: armours.yaml, header: Equipment, header_es: Equipo }
       - { key: thrown-weapons,           title: Thrown Weapons,           template: weapon,          data: thrown-weapons.yaml, header: Thrown Weapon, header_es: Arma Arrojadiza }
-      - { key: miscellaneous-equipment,  title: Miscellaneous Equipment,  template: equipment,       data: miscellaneous-equipment.yaml }
+      - { key: miscellaneous-equipment,  title: Miscellaneous Equipment,  template: equipment,       data: miscellaneous-equipment.yaml, header: Equipment, header_es: Equipo }
 
   - title: Sellswords
     items:
@@ -29,11 +29,11 @@ groups:
 
   - title: Campaign Items
     items:
-      - { key: minor-treasures,    title: Minor Treasures,        template: equipment,        data: minor-treasures.yaml }
-      - { key: greater-treasures,  title: Greater Treasures,      template: equipment,        data: greater-treasures.yaml }
+      - { key: minor-treasures,    title: Minor Treasures,        template: equipment,        data: minor-treasures.yaml, header: Equipment, header_es: Equipo }
+      - { key: greater-treasures,  title: Greater Treasures,      template: equipment,        data: greater-treasures.yaml, header: Equipment, header_es: Equipo }
       - { key: throwing-pots,      title: Throwing Pots,          template: weapon,           data: throwing-pots.yaml, header: Thrown Pot, header_es: Frasco }
-      - { key: potions,            title: Potions,                template: equipment,        data: potions.yaml }
-      - { key: lair-upgrades,      title: Lair Upgrades,          template: equipment,        data: lair-upgrades.yaml }
+      - { key: potions,            title: Potions,                template: equipment,        data: potions.yaml, header: Equipment, header_es: Equipo }
+      - { key: lair-upgrades,      title: Lair Upgrades,          template: equipment,        data: lair-upgrades.yaml, header: Lair Upgrade, header_es: Mejora de Guarida }
 
   - title: Campaign
     items:
