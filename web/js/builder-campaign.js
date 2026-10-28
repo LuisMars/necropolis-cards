@@ -104,9 +104,10 @@ export function campaignClick(act, el, g) {
     }
     case "battle-del":     removeBattle(g, Number(i)); return true;
     case "led-add": {
-      const amt = parseInt(document.getElementById(`led-amt-${uid}`)?.value, 10);
-      if (amt) addManualEntry(g, uid, document.getElementById(`led-stat-${uid}`)?.value,
-                              amt, (document.getElementById(`led-note-${uid}`)?.value || "").trim());
+      const amt = parseInt(document.getElementById("led-amt")?.value, 10);
+      const who = document.getElementById("led-model")?.value;
+      if (amt && who) addManualEntry(g, who, document.getElementById("led-stat")?.value,
+                                     amt, (document.getElementById("led-note")?.value || "").trim());
       return true;
     }
     case "led-del":        removeLedgerEntry(g, uid, el.dataset.id); return true;
@@ -128,9 +129,38 @@ export function campaignHtml(g, ev) {
         <button type="button" class="primary" data-act="start">${esc(L("startCampaign"))}</button>
       </div>`;
   }
-  const open = `<div class="bd-inline bd-ab-open"><button type="button" class="primary" data-act="ab-open">${esc(L("afterBattle"))}</button></div>`;
-  return [open, deploymentHtml(g, ev), pendingHtml(g), ambitionsHtml(g), treasuresHtml(g),
-          upgradesHtml(g), improvementsHtml(g, ev), historyHtml(g), battleLogHtml(g)].join("");
+  const lead = `
+    <div class="bd-lead">
+      <button type="button" class="primary" data-act="ab-open">${esc(L("afterBattle"))}</button>
+      <p>${esc(L("afterBattleLead"))}</p>
+    </div>`;
+  const changes = ev.models.reduce((n, e) => n + Object.values(e.sources || {}).flat()
+    .filter(x => ["ambition", "malady", "manual"].includes(x.type)).length, 0);
+  return [
+    lead,
+    pendingHtml(g),
+    fold("treasury", deploymentHtml(g, ev)),
+    fold("ambitions", ambitionsHtml(g)),
+    fold("treasures", treasuresHtml(g)),
+    fold("upgrades", upgradesHtml(g), `${g.lair.upgrades.length} ${L("ownedCount")}`),
+    fold("improvements", improvementsHtml(g, ev), changes ? `${changes} ${L(changes === 1 ? "changesCount1" : "changesCount")}` : ""),
+    fold("history", historyHtml(g)),
+    fold("log", battleLogHtml(g), `${g.history.length} ${L(g.history.length === 1 ? "battleCount1" : "battleCount")}`),
+  ].join("");
+}
+
+/* Sections fold so the view leads with what's used every game. Their open
+ * state survives redraws; these start open. */
+const openFolds = new Set(["treasury", "ambitions", "treasures", "log"]);
+export function setFold(id, open) { if (open) openFolds.add(id); else openFolds.delete(id); }
+
+/** Turn a `.bd-panel` with an <h3> into a folding section. */
+function fold(id, html, meta = "") {
+  const m = /^\s*<div class="bd-panel">\s*<h3>([\s\S]*?)<\/h3>([\s\S]*)<\/div>\s*$/.exec(html);
+  if (!m) return html;
+  return `<details class="bd-fold" data-fold="${id}"${openFolds.has(id) ? " open" : ""}>
+    <summary><h3>${m[1]}</h3>${meta ? `<span class="bd-fold-meta">${esc(meta)}</span>` : ""}</summary>
+    <div class="bd-fold-body">${m[2]}</div></details>`;
 }
 
 /** Purchases and sales, one line each: "Bought Blade (Aberrant Husk) −10". */
@@ -168,9 +198,11 @@ function deploymentHtml(g, ev) {
   const rabble = free && !g.campaign.freeRabbleUsed
     ? `<button type="button" class="secondary" data-act="free-rabble">${esc(L("freeRabble"))}</button>` : "";
   return `
-    <div class="bd-panel bd-grid2">
+    <div class="bd-panel">
+      <h3>${esc(L("treasuryAndBattle"))}</h3>
+      <div class="bd-grid2">
       <div>
-        <h3>${esc(L("treasury"))}</h3>
+        <h4>${esc(L("treasury"))}</h4>
         <label class="bd-num"><input type="number" data-act="treasury" data-fid="c-treasury" value="${Number(g.treasury) || 0}"> ${esc(L("obols"))}</label>
         <label class="bd-num">${esc(L("deployBase"))} <input type="number" step="50" data-act="deploy-base" data-fid="c-deploy" value="${base}"></label>
         ${lm.deployment ? `<small>+${lm.deployment} ${esc(L("lairBonus"))}</small>` : ""}
@@ -178,11 +210,12 @@ function deploymentHtml(g, ev) {
         ${g.campaign.transactions.length ? `<h4>${esc(L("sinceLastBattle"))}</h4>${transactionsHtml(g, g.campaign.transactions)}` : ""}
       </div>
       <div>
-        <h3>${esc(L("nextBattle"))}</h3>
+        <h4>${esc(L("nextBattle"))}</h4>
         <label class="bd-check"><input type="checkbox" data-act="opp-higher" data-fid="c-opp"${g.campaign.opponentHigher ? " checked" : ""}> ${esc(L("oppHigher"))}</label>
         ${free ? `<p class="bd-good">${esc(L("freeSellsword"))}</p>${rabble}` : ""}
-        <div class="bd-fields">${fieldRows}</div>
+        <div class="bd-fielded">${fieldRows}</div>
         <select data-act="hire" data-fid="c-hire"><option value="">${esc(L("hire"))}</option>${hires}</select>
+      </div>
       </div>
     </div>`;
 }
@@ -254,7 +287,8 @@ export function ambitionsHtml(g) {
   const add = [...groups].map(([p, os]) => `<optgroup label="${esc(p)}">${os.join("")}</optgroup>`).join("");
   return `
     <div class="bd-panel">
-      <h3>${esc(L("ambitions"))} <small>${a.active.length} / 4 ${esc(L("active"))} · ${a.completed} ${esc(L("completed"))}</small></h3>
+      <h3>${esc(L("ambitions"))}</h3>
+      <p class="bd-hint">${a.active.length} ${esc(L("ofFourActive"))}, ${a.completed} ${esc(L("completed"))}.</p>
       ${active}
       <select data-act="amb-add" data-fid="c-amb-add"><option value="">${esc(L("addAmbition"))}</option>${add}</select>
     </div>`;
@@ -277,12 +311,14 @@ function treasuresHtml(g) {
   const all = ["minor-treasures", "greater-treasures", "potions", "throwing-pots"].map(cat =>
     `<optgroup label="${esc(catalog().bundle.categories[cat]?.title || cat)}">` +
     rows(cat).map(([k, r]) => `<option value="${esc(k)}">${esc(pickField(r, "name", lang()))}</option>`).join("") + `</optgroup>`).join("");
+  const shownHolders = holders.filter(([, , list]) => list.length);
   return `
     <div class="bd-panel">
       <h3>${esc(L("treasures"))}</h3>
-      ${holders.map(([title, uid, list]) => `
+      ${shownHolders.length ? shownHolders.map(([title, uid, list]) => `
         <div class="bd-list"><h4>${esc(title)}</h4>
-          <div class="bd-items">${list.map((k, n) => chip(k, n, uid)).join("") || "<small>—</small>"}</div></div>`).join("")}
+          <div class="bd-items">${list.map((k, n) => chip(k, n, uid)).join("")}</div></div>`).join("")
+        : `<p class="bd-hint">${esc(L("noTreasures"))}</p>`}
       <div class="bd-inline">
         <select data-act="t-add" data-fid="c-tadd"><option value="">${esc(L("addTreasure"))}</option>${all}</select>
         <button type="button" class="secondary" data-act="t-roll" data-kind="minor">🎲 ${esc(L("rollMinor"))}</button>
@@ -297,7 +333,7 @@ export function upgradesHtml(g) {
       <div><b>${esc(pickField(r, "name", lang()))}</b> <small>${r.obols}</small></div>
       <div class="bd-amb-text">${esc(String(pickField(r, "effect", lang()) || "").trim())}</div>
       ${owned.has(k)
-        ? `<span class="bd-good">✓ ${esc(L("owned"))}</span> <button type="button" class="secondary" data-act="upgrade-refund" data-key="${esc(k)}">${esc(L("refund"))}</button>`
+        ? `<span class="bd-good">${esc(L("owned"))}</span> <button type="button" class="link" data-act="upgrade-refund" data-key="${esc(k)}">${esc(L("refundUpgrade"))}</button>`
         : `<button type="button" class="secondary" data-act="upgrade-buy" data-key="${esc(k)}">${esc(L("buy"))} · ${r.obols}</button>`}
     </div>`).join("");
   return `<div class="bd-panel"><h3>${esc(L("lairUpgrades"))}</h3><div class="bd-upgrades">${items}</div></div>`;
@@ -325,45 +361,54 @@ const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
  */
 function improvementsHtml(g, ev) {
   const shown = (st, v) => (v == null ? "—" : (st === "violence" || st === "ranged") ? `${v}+` : String(v));
+  const CAMPAIGN = ["ambition", "malady", "manual", "lair"];
+  const unchanged = [];
   const cards = g.models.map((m, i) => {
     const e = ev.models[i];
     if (e.isSellsword) return "";
+    if (!Object.values(e.sources || {}).flat().some(x => CAMPAIGN.includes(x.type))) {
+      unchanged.push(modelTitle(m));
+      return "";
+    }
     const stats = ["ap", "move", "violence", "ranged", "hp", ...(e.isLeader ? ["mana", "spells"] : [])];
     const final = { ...e.stats, mana: e.mana, spells: e.spellsAllowed };
     const capped = new Set(e.warnings.filter(w => w.code === "improvement-cap").map(w => w.params.stat));
-    // Only stats something changed get a row; the rest read off the line above.
+    // Only stats something changed get a row, with every source behind them.
     const rowsHtml = stats.filter(st => (e.sources[st] || []).length).map(st => {
       const chips = (e.sources[st] || []).map(src => {
         const cls = src.amount > 0 ? "up" : "down";
-        const when = src.battle ? ` · ${esc(L("battle"))} ${src.battle}` : "";
+        const when = src.battle ? ` <small>${esc(L("battle"))} ${src.battle}</small>` : "";
         const del = src.type === "manual"
-          ? `<button type="button" data-act="led-del" data-uid="${esc(m.uid)}" data-id="${esc(src.id)}" title="${esc(L("remove"))}">✕</button>` : "";
-        return `<span class="bd-src ${cls} t-${src.type}">${signed(src.amount)} ${esc(sourceLabel(src))}<small>${when}</small>${del}</span>`;
+          ? `<button type="button" data-act="led-del" data-uid="${esc(m.uid)}" data-id="${esc(src.id)}" aria-label="${esc(L("remove"))}">✕</button>` : "";
+        return `<span class="bd-src ${cls} t-${src.type}">${signed(src.amount)} ${esc(sourceLabel(src))}${when}${del}</span>`;
       }).join("");
       const base = st === "mana" || st === "spells" ? "" : shown(st, e.base[st]);
       return `<tr${capped.has(st) ? ' class="over"' : ""}><th>${esc(L(st))}</th><td>${base}</td>
-        <td>${chips || "<small>—</small>"}</td><td><b>${shown(st, final[st])}</b></td></tr>`;
+        <td>${chips}</td><td><b>${shown(st, final[st])}</b></td></tr>`;
     }).join("");
-    const uid = esc(m.uid);
-    const statOpts = stats.map(st => `<option value="${st}">${esc(L(st))}</option>`).join("");
     return `
       <div class="bd-ledger">
         <h4>${esc(modelTitle(m))}</h4>
-        <div class="bd-stats">${stats.map(st => `<span><i>${esc(L(st))}</i> <b>${shown(st, final[st])}</b></span>`).join("")}</div>
-        ${rowsHtml ? `<table class="bd-table"><tr><th></th><th>${esc(L("base"))}</th><th>${esc(L("changes"))}</th><th>${esc(L("total"))}</th></tr>${rowsHtml}</table>` : ""}
-        <div class="bd-inline">
-          <select id="led-stat-${uid}">${statOpts}</select>
-          <input type="number" id="led-amt-${uid}" value="1" class="bd-die">
-          <input type="text" id="led-note-${uid}" placeholder="${esc(L("reason"))}">
-          <button type="button" class="secondary" data-act="led-add" data-uid="${uid}">${esc(L("addChange"))}</button>
-        </div>
+        <table class="bd-table"><tr><th></th><th>${esc(L("base"))}</th><th>${esc(L("changes"))}</th><th>${esc(L("total"))}</th></tr>${rowsHtml}</table>
       </div>`;
   }).join("");
+  const models = g.models.filter((m, i) => !ev.models[i].isSellsword)
+    .map(m => `<option value="${esc(m.uid)}">${esc(modelTitle(m))}</option>`).join("");
+  const statOpts = ["ap", "move", "violence", "ranged", "hp", "mana", "spells"]
+    .map(st => `<option value="${st}">${esc(L(st))}</option>`).join("");
   return `
     <div class="bd-panel">
       <h3>${esc(L("improvements"))}</h3>
       <p class="bd-hint">${esc(L("improvementsHint"))}</p>
       ${cards}
+      ${unchanged.length ? `<p class="bd-hint">${esc(L("noChangesYet"))} ${esc(unchanged.join(", "))}.</p>` : ""}
+      <div class="bd-inline bd-led-form">
+        <select id="led-model" aria-label="${esc(L("modelsLabel"))}">${models}</select>
+        <select id="led-stat" aria-label="${esc(L("stat"))}">${statOpts}</select>
+        <input type="number" id="led-amt" value="1" class="bd-die" aria-label="${esc(L("amount"))}">
+        <input type="text" id="led-note" placeholder="${esc(L("reason"))}">
+        <button type="button" class="secondary" data-act="led-add">${esc(L("addChange"))}</button>
+      </div>
     </div>`;
 }
 
@@ -380,7 +425,7 @@ function historyHtml(g) {
       : e.applied?.bonus_traits ? L("bonusTrait") : "";
     return `<tr><td>${esc(e.date || "")}</td><td>${e.battle ? `${esc(L("battle"))} ${e.battle}` : ""}</td>
       <td>${esc(name(e.ambition))}</td><td>${esc(target)}</td>
-      <td>${e.id ? `<button type="button" class="secondary" data-act="amb-undo" data-id="${esc(e.id)}">${esc(L("refund"))}</button>` : ""}</td></tr>`;
+      <td>${e.id ? `<button type="button" class="link" data-act="amb-undo" data-id="${esc(e.id)}">${esc(L("undo"))}</button>` : ""}</td></tr>`;
   }).join("");
   const maladies = g.models.flatMap(m => maladiesOf(m, catalog().rules).map(x => {
     const def = (catalog().rules.maladies || []).find(d => d.key === x.key) || {};

@@ -1,10 +1,15 @@
 /**
  * Builder tab — create and edit gatherings (rulebook pp.17-42).
  *
- * The saved gathering (web/js/gatherings.js) is the only state: every edit
- * clones it, changes the clone, saves it and redraws the tab from it, with
- * costs, stats and warnings recomputed by builder/rules.js. Nothing is
- * blocked; a broken rule shows as a warning on the model it applies to.
+ * Laid out as a gathering sheet: the models on the left, and beside them a
+ * ledger that stays in view — who the gathering is, what it costs, what is
+ * wrong with it, and what to do with it.
+ *
+ * Edits go into a draft (web/js/gatherings.js), not the saved gathering:
+ * every change clones the working copy, changes the clone and redraws, with
+ * costs, stats and warnings recomputed by builder/rules.js. "Save changes"
+ * commits the draft, "Discard" drops it, so options and gear can be tried
+ * out freely. Nothing is blocked; a broken rule shows on its model.
  *
  * Hand-off to the rest of the app goes through the Companion App JSON the
  * gathering exports (builder/appjson.js): the Warband roster renders it and
@@ -14,17 +19,16 @@
 import { state, saveWarband } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { pickField } from "./i18n.js";
-import { store } from "./gatherings.js";
+import { store, drafts } from "./gatherings.js";
 import { applyPayload } from "./import.js";
-import { evaluate, AFFINITIES } from "./builder/rules.js";
+import { evaluate, campaignStarted, AFFINITIES } from "./builder/rules.js";
 import { newGathering, newModel } from "./builder/gathering.js";
 import { toAppJson } from "./builder/appjson.js";
 import { linkUrl, defaultWeapon } from "./builder/codec.js";
 import { categoryOf, slug, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./builder/catalog.js";
 import { describe, label, itemName } from "./builder/messages.js";
-import { campaignHtml, campaignChange, campaignClick } from "./builder-campaign.js";
 import { buyGear, sellGear, recruit, record } from "./builder/campaign.js";
-import { campaignStarted } from "./builder/rules.js";
+import { campaignHtml, campaignChange, campaignClick, setFold } from "./builder-campaign.js";
 import { afterBattleHtml, afterBattleChange, afterBattleClick } from "./builder-afterbattle.js";
 
 const $pick   = $("bd-pick");
@@ -35,7 +39,7 @@ const $delBtn = $("bd-del");
 
 let hooks = {};
 let status = "";          // one line of feedback from the last action (HTML)
-let summaryOpen = false;  // the warning summary, opened from the count chip
+let summaryOpen = false;  // every warning listed, opened from the ledger
 let view = "gathering";   // "gathering" (build) or "campaign"
 
 const esc = escapeHtml;
@@ -43,40 +47,58 @@ const lang = () => state.lang || "en";
 const L = (k) => label(k, lang());
 const catalog = () => state.catalog;
 
+/* ---- the working copy ------------------------------------------------------ */
+
+/** The gathering as the player sees it: its draft if there is one. */
+function working() {
+  const cur = store.current();
+  return cur ? drafts.get(cur.id) || cur : null;
+}
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+/** Does this gathering have changes that aren't saved? */
+const dirty = (g) => !!g && !!drafts.get(g.id) && !same(drafts.get(g.id), store.get(g.id));
+
+function keep(g) {
+  // Back to exactly what is saved: no draft needed.
+  if (same(g, store.get(g.id))) drafts.remove(g.id);
+  else drafts.set(g);
+}
+
 export function initBuilder({ onChange, switchToWarband }) {
   hooks = { onChange, switchToWarband };
-  $newBtn.addEventListener("click", () => { store.save(newGathering()); status = ""; renderBuilder(); });
+  $newBtn.addEventListener("click", () => { store.save(newGathering()); status = ""; view = "gathering"; renderBuilder(); });
   $dupBtn.addEventListener("click", () => {
-    const g = store.current();
+    const g = working();
     if (!g) return;
-    store.save({ ...structuredClone(g), id: newGathering().id,
-                 name: `${g.name || L("untitled")} ${L("copySuffix")}` });
+    store.save({ ...structuredClone(g), id: newGathering().id, name: `${g.name || L("untitled")} ${L("copySuffix")}` });
     renderBuilder();
   });
   $delBtn.addEventListener("click", () => {
     const g = store.current();
-    if (g && confirm(L("confirmDelete"))) { store.remove(g.id); status = ""; renderBuilder(); }
+    if (g && confirm(L("confirmDelete"))) { drafts.remove(g.id); store.remove(g.id); status = ""; renderBuilder(); }
   });
   $pick.addEventListener("change", () => {
     const g = store.get($pick.value);
-    if (g) store.save(g);   // saving makes it current
+    if (g) store.save(g);   // saving makes it current; its draft, if any, stays
     status = "";
     renderBuilder();
   });
   $body.addEventListener("change", onChange_);
   $body.addEventListener("click", onClick);
+  // Folding sections remember whether they're open ("toggle" doesn't bubble).
+  $body.addEventListener("toggle", (e) => { if (e.target.dataset?.fold) setFold(e.target.dataset.fold, e.target.open); }, true);
 }
 
-/* ---- editing ------------------------------------------------------------- */
+/* ---- editing --------------------------------------------------------------- */
 
-/** Clone the current gathering, let `fn` change it, save and redraw. The
- *  redraw waits a tick so a Tab key press lands its focus first. */
+/** Clone the working copy, let `fn` change it, keep it as the draft and
+ *  redraw. The redraw waits a tick so a Tab key press lands its focus first. */
 function edit(fn) {
-  const cur = store.current();
+  const cur = working();
   if (!cur) return;
   const g = structuredClone(cur);
   fn(g);
-  store.save(g);
+  keep(g);
   setTimeout(renderBuilder, 0);
 }
 
@@ -144,7 +166,10 @@ function changeProfile(g, m, key) {
 
 const GEAR = ["weapons", "armour", "equipment"];
 
-function addItem(m, list, key) {
+function addItem(g, m, list, key) {
+  // In a campaign gear is bought at the Bazaar price (p.72); traits and
+  // spells come from rewards, not the treasury.
+  if (campaignStarted(g) && GEAR.includes(list)) return buyGear(g, catalog(), m.uid, list, key);
   // The free Improvised Weapon is only there because a model needs a
   // weapon: a real one takes its place.
   const lone = list === "weapons" && m.weapons.length === 1 &&
@@ -156,7 +181,7 @@ function addItem(m, list, key) {
 function onChange_(e) {
   const el = e.target.closest("[data-act]");
   if (!el) return;
-  const { act, uid, list, aff } = el.dataset;
+  const { act, uid, aff } = el.dataset;
   const v = el.value;
   edit(g => {
     if (afterBattleChange(act, el, g) || campaignChange(act, el, g)) return;
@@ -175,13 +200,11 @@ function onChange_(e) {
       case "m-name":     m.name = v.trim(); break;
       case "m-profile":  changeProfile(g, m, v); break;
       case "m-aff":      m.affinity = v || null; break;
-      case "m-add":
-        if (!v) break;
-        // In a campaign gear is bought at the Bazaar price (p.72); traits
-        // and spells come from rewards, not the treasury.
-        if (campaignStarted(g) && GEAR.includes(list)) buyGear(g, catalog(), m.uid, list, v);
-        else addItem(m, list, v);
+      case "m-add": {
+        const [list, key] = v.split("|");
+        if (list && key) addItem(g, m, list, key);
         break;
+      }
       case "m-mana":     m.mana = { ...m.mana, [aff]: Math.max(0, parseInt(v, 10) || 0) }; break;
     }
   });
@@ -191,12 +214,17 @@ function onClick(e) {
   const el = e.target.closest("button[data-act]");
   if (!el) return;
   const { act, uid, list, i } = el.dataset;
-  const g = store.current();
-  if (act === "view") { view = el.dataset.view; renderBuilder(); return; }
-  // Campaign actions change a clone; only a handled one is saved.
+  const g = working();
+  switch (act) {
+    case "new":     $newBtn.click(); return;
+    case "view":    view = el.dataset.view; renderBuilder(); return;
+    case "save":    store.save(drafts.get(g.id)); drafts.remove(g.id); status = esc(L("saved")); renderBuilder(); return;
+    case "discard": if (confirm(L("confirmDiscardDraft"))) { drafts.remove(g.id); status = ""; renderBuilder(); } return;
+  }
+  // Campaign and after-battle actions change a clone; only a handled one is kept.
   const clone = g ? structuredClone(g) : null;
   if (clone && (afterBattleClick(act, el, clone) || campaignClick(act, el, clone))) {
-    store.save(clone);
+    keep(clone);
     setTimeout(renderBuilder, 0);
     return;
   }
@@ -231,7 +259,7 @@ function onClick(e) {
   }
 }
 
-/* ---- lair names (p.42) ---------------------------------------------------- */
+/* ---- lair names (p.42) ----------------------------------------------------- */
 
 /** D5 for the tens, D10 for the ones: 11-60. */
 function rollLair() {
@@ -245,7 +273,7 @@ function lairName(roll) {
   return e ? pickField(e, "name", lang()) : "";
 }
 
-/* ---- hand-off -------------------------------------------------------------- */
+/* ---- hand-off --------------------------------------------------------------- */
 
 function showRoster(g) {
   state.warband = toAppJson(g, catalog());
@@ -286,7 +314,7 @@ function download(name, obj) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-/* ---- rendering ------------------------------------------------------------- */
+/* ---- rendering --------------------------------------------------------------- */
 
 export function renderBuilder() {
   if (!catalog()) return;
@@ -294,96 +322,114 @@ export function renderBuilder() {
   const focused = document.activeElement?.dataset?.fid;
 
   const all = store.list();
-  const g = store.current();
-  $newBtn.textContent = `+ ${L("newGathering")}`;
+  const g = working();
+  $newBtn.textContent = L("newGathering");
   $dupBtn.textContent = L("duplicate");
   $delBtn.textContent = L("delete");
-  $dupBtn.disabled = $delBtn.disabled = !g;
-  $pick.hidden = !all.length;
+  $dupBtn.hidden = $delBtn.hidden = $newBtn.hidden = !g;   // the empty state has its own button
+  $pick.hidden = all.length < 2;
   $pick.innerHTML = all.map(x =>
-    `<option value="${esc(x.id)}"${x.id === g?.id ? " selected" : ""}>${esc(x.name || L("untitled"))}</option>`).join("");
+    `<option value="${esc(x.id)}"${x.id === g?.id ? " selected" : ""}>${esc((drafts.get(x.id) || x).name || L("untitled"))}` +
+    `${dirty(x) ? ` (${esc(L("unsavedShort"))})` : ""}</option>`).join("");
 
   if (!g) {
-    $body.innerHTML = `<div class="empty-msg">${esc(L("empty"))}</div>`;
+    $body.innerHTML = `<div class="bd-empty"><p>${esc(L("empty"))}</p>
+      <button type="button" class="primary" data-act="new">${esc(L("newGathering"))}</button></div>`;
     return;
   }
   const ev = evaluate(g, catalog());
-  $body.innerHTML =
-    headHtml(g) +
-    summaryHtml(g, ev) +
-    (summaryOpen && ev.warnings.length
-      ? warningSummaryHtml(g, ev)
-      : warningsHtml(ev.warnings.filter(w => !w.model))) +
-    viewSwitchHtml() +
-    (view === "campaign"
-      ? (g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev))
-      : g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") + addModelHtml(g));
+  const main = view === "campaign"
+    ? (g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev))
+    : (campaignStarted(g) ? `<p class="bd-hint">${esc(L("campaignShop"))}</p>` : "") +
+      g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") + addModelHtml(g);
+  $body.innerHTML = `
+    <div class="bd-layout">
+      <div class="bd-main">
+        ${viewTabsHtml()}
+        ${summaryOpen && ev.warnings.length ? warningSummaryHtml(g, ev) : ""}
+        ${main}
+      </div>
+      <aside class="bd-side">${ledgerHtml(g, ev)}</aside>
+    </div>`;
 
   if (focused) $body.querySelector(`[data-fid="${CSS.escape(focused)}"]`)?.focus();
 }
 
-function viewSwitchHtml() {
-  const b = (v) => `<button type="button" class="${view === v ? "primary" : "secondary"}" data-act="view" data-view="${v}">` +
-    `${esc(L(v === "campaign" ? "viewCampaign" : "viewGathering"))}</button>`;
-  return `<div class="bd-views">${b("gathering")}${b("campaign")}</div>`;
+function viewTabsHtml() {
+  const b = (v, k) => `<button type="button" class="${view === v ? "active" : ""}" data-act="view" data-view="${v}">${esc(L(k))}</button>`;
+  return `<nav class="bd-views">${b("gathering", "viewGathering")}${b("campaign", "viewCampaign")}</nav>`;
 }
 
-function headHtml(g) {
+/**
+ * The ledger beside the sheet: draft state, identity, the figures that
+ * matter (spend against budget, treasury, deployment limit), problems, and
+ * what to do with the gathering — one primary action at a time.
+ */
+function ledgerHtml(g, ev) {
+  const isDirty = dirty(g);
   const covs = (catalog().rules.covenants || []).map(c =>
-    `<option value="${esc(c.key)}"${c.key === g.covenant ? " selected" : ""}>${esc(itemName(catalog(), c.key, lang()))}</option>`);
+    `<option value="${esc(c.key)}"${c.key === g.covenant ? " selected" : ""}>${esc(itemName(catalog(), c.key, lang()))}</option>`).join("");
   const lairs = (catalog().rules.lair_names || []).map(e =>
-    `<option value="${e.roll}">${e.roll} · ${esc(pickField(e, "name", lang()))}</option>`);
+    `<option value="${e.roll}">${e.roll}. ${esc(pickField(e, "name", lang()))}</option>`).join("");
+
+  const first = ev.budget != null;
+  const over = first && ev.total > ev.budget;
+  const pct = first ? Math.min(100, Math.round(ev.total / ev.budget * 100)) : 0;
+  const figures = first ? `
+      <div class="bd-fig${over ? " over" : ""}">
+        <dt>${esc(L("obolsSpent"))}</dt><dd><b>${ev.total}</b> ${esc(L("of"))} ${ev.budget}</dd>
+        <div class="bd-meter"><span style="width:${pct}%"></span></div>
+      </div>` : `
+      <div class="bd-fig"><dt>${esc(L("treasury"))}</dt><dd><b>${Number(g.treasury) || 0}</b> ${esc(L("obols"))}</dd></div>
+      <div class="bd-fig"><dt>${esc(L("rosterValue"))}</dt><dd><b>${ev.total}</b> ${esc(L("obols"))}</dd></div>`;
+
+  const own = ev.warnings.filter(w => !w.model);
+  const n = ev.warnings.length;
+  const warnings = n ? `
+      <div class="bd-ledger-warn">
+        ${own.length ? `<ul class="bd-notes">${own.map(w => `<li>${esc(describe(w, catalog(), lang()))}</li>`).join("")}</ul>` : ""}
+        <button type="button" class="link" data-act="summary" aria-expanded="${summaryOpen}">
+          ${esc(summaryOpen ? L("hideWarnings") : `${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("showAll")}`)}</button>
+      </div>` : `<p class="bd-good">${esc(L("noWarnings"))}</p>`;
+
   return `
-    <div class="bd-head">
+    ${isDirty ? `
+      <div class="bd-draft" role="status">
+        <p>${esc(L("unsaved"))}</p>
+        <button type="button" class="primary" data-act="save">${esc(L("saveChanges"))}</button>
+        <button type="button" class="link" data-act="discard">${esc(L("discardChanges"))}</button>
+      </div>` : ""}
+    <h2 class="bd-gname">${esc(g.name || L("untitled"))}</h2>
+    <div class="bd-fields">
       <label>${esc(L("name"))}
         <input type="text" data-act="name" data-fid="g-name" value="${esc(g.name)}" placeholder="${esc(L("untitled"))}"></label>
       <label>${esc(L("covenant"))}
-        <select data-act="covenant" data-fid="g-cov">
-          <option value="">${esc(L("chooseCovenant"))}</option>${covs.join("")}
-        </select></label>
-      <label class="bd-lair">${esc(L("lair"))}
-        <span class="bd-inline">
-          <input type="text" data-act="lair-name" data-fid="g-lair" value="${esc(g.lair?.name || "")}">
-          <button type="button" class="secondary" data-act="lair-roll" data-fid="g-roll">🎲 ${esc(L("rollLair"))}</button>
-          <select data-act="lair-pick" data-fid="g-lair-pick"><option value="">${esc(L("pickLair"))}</option>${lairs.join("")}</select>
-        </span></label>
-    </div>`;
-}
-
-function summaryHtml(g, ev) {
-  const over = ev.budget != null && ev.total > ev.budget;
-  // The 300 obols are the first build's budget only; once the campaign
-  // starts, the deployment limit and the treasury take over.
-  const spent = ev.budget != null
-    ? `<b>${ev.total}</b> / ${ev.budget} ${esc(L("obols"))} ${esc(L("spent"))} · ${esc(L("firstBuild"))}`
-    : `<b>${ev.total}</b> ${esc(L("obols"))} · ${esc(L("treasury"))} <b>${Number(g.treasury) || 0}</b>`;
-  const startBtn = ev.budget != null
-    ? `<button type="button" class="secondary" data-act="start-built">${esc(L("alreadyBuilt"))}</button>` : "";
-  const nWarn = ev.warnings.length;
-  return `
-    <div class="bd-summary">
-      <span class="wb-chip ${over ? "over" : "good"}">${spent}</span>
-      ${startBtn}
-      <span class="wb-chip">${esc(L("deployment"))} <b>${ev.deploymentLimit}</b></span>
-      <span class="wb-chip"><b>${g.models.length}</b> ${esc(L(g.models.length === 1 ? "model" : "models"))}</span>
-      ${nWarn
-        ? `<button type="button" class="wb-chip over bd-chip-btn" data-act="summary" aria-expanded="${summaryOpen}">` +
-          `<b>${nWarn}</b> ${esc(L(nWarn === 1 ? "warning" : "warnings"))} ${summaryOpen ? "▴" : "▾"}</button>`
-        : `<span class="wb-chip good">${esc(L("noWarnings"))}</span>`}
-      <span class="spacer"></span>
-      <button type="button" class="primary" data-act="roster">${esc(L("viewRoster"))}</button>
-      <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>
-      <button type="button" class="secondary" data-act="link">${esc(L("copyLink"))}</button>
-      <button type="button" class="secondary" data-act="export">${esc(L("exportJson"))}</button>
-      <button type="button" class="secondary" data-act="backup">${esc(L("backup"))}</button>
+        <select data-act="covenant" data-fid="g-cov"><option value="">${esc(L("chooseCovenant"))}</option>${covs}</select></label>
+      <label>${esc(L("lair"))}
+        <input type="text" data-act="lair-name" data-fid="g-lair" value="${esc(g.lair?.name || "")}" placeholder="${esc(L("lairPlaceholder"))}"></label>
+      <div class="bd-lair-tools">
+        <button type="button" class="link" data-act="lair-roll" data-fid="g-roll">${esc(L("rollLair"))}</button>
+        <select data-act="lair-pick" data-fid="g-lair-pick" aria-label="${esc(L("pickLair"))}"><option value="">${esc(L("pickLair"))}</option>${lairs}</select>
+      </div>
     </div>
-    ${status ? `<div class="bd-status">${status}</div>` : ""}
-    ${ev.budget == null && view === "gathering" ? `<p class="bd-hint">${esc(L("campaignShop"))}</p>` : ""}`;
-}
-
-function warningsHtml(ws) {
-  if (!ws.length) return "";
-  return `<ul class="bd-warn">${ws.map(w => `<li>${esc(describe(w, catalog(), lang()))}</li>`).join("")}</ul>`;
+    <dl class="bd-figs">
+      ${figures}
+      <div class="bd-fig"><dt>${esc(L("deploymentLimit"))}</dt><dd><b>${ev.deploymentLimit}</b></dd></div>
+      <div class="bd-fig"><dt>${esc(L("modelsLabel"))}</dt><dd><b>${g.models.length}</b></dd></div>
+    </dl>
+    ${first ? `<p class="bd-hint">${over ? "" : `${esc(L("firstBuildNote"))} `}<button type="button" class="link" data-act="start-built">${esc(L("alreadyBuilt"))}</button></p>` : ""}
+    ${warnings}
+    <div class="bd-actions">
+      <button type="button" class="${isDirty ? "secondary" : "primary"}" data-act="roster">${esc(L("viewRoster"))}</button>
+      <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>
+      <details class="bd-share">
+        <summary>${esc(L("shareExport"))}</summary>
+        <button type="button" class="link" data-act="link">${esc(L("copyLink"))}</button>
+        <button type="button" class="link" data-act="export">${esc(L("exportJson"))}</button>
+        <button type="button" class="link" data-act="backup">${esc(L("backup"))}</button>
+      </details>
+    </div>
+    ${status ? `<div class="bd-status">${status}</div>` : ""}`;
 }
 
 /**
@@ -402,15 +448,14 @@ function warningSummaryHtml(g, ev) {
     const ws = ev.models[i].warnings;
     if (!ws.length) return;
     const type = itemName(catalog(), m.profile, lang());
-    const title = m.name ? `${m.name} (${type})` : type;
-    groups.push(`<li class="bd-sum-group"><h4>${esc(title)}</h4><ul>` +
+    groups.push(`<li class="bd-sum-group"><h4>${esc(m.name ? `${m.name} (${type})` : type)}</h4><ul>` +
       ws.map(w => `<li><button type="button" data-act="goto" data-uid="${esc(m.uid)}">${line(w)}</button></li>`).join("") +
       `</ul></li>`);
   });
   return `<ul class="bd-sum">${groups.join("")}</ul>`;
 }
 
-/** Scroll a model's card into view and flash it. */
+/** Scroll a model's card into view and mark it briefly. */
 function gotoModel(uid) {
   const card = document.getElementById(`bd-model-${uid}`);
   if (!card) return;
@@ -423,9 +468,16 @@ function gotoModel(uid) {
 /** "7+" for target numbers, "—" when the model has none. */
 const target = (n) => (n == null ? "—" : `${n}+`);
 
+/**
+ * One model on the sheet: its name in blackletter as on its card, type and
+ * keyword, cost, the stat strip, any problems, what it carries, and one
+ * menu to add to it.
+ */
 function modelHtml(g, m, e, idx) {
   const leader = e.isLeader;
+  const sw = e.isSellsword;
   const uid = esc(m.uid);
+  const typeName = itemName(catalog(), m.profile, lang());
   const profiles = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r => {
     const key = `${cat}/${slug(r.name)}`;
     return `<option value="${esc(key)}"${key === m.profile ? " selected" : ""}>${esc(pickField(r, "name", lang()))}</option>`;
@@ -433,91 +485,96 @@ function modelHtml(g, m, e, idx) {
   const affs = allowedAffinities(m.profile).map(a =>
     `<option value="${a}"${a === m.affinity ? " selected" : ""}>${esc(L(a))}</option>`).join("");
   const stats = [
-    [L("ap"), e.stats.ap], [L("move"), e.stats.move], [L("violence"), target(e.stats.violence)],
-    [L("ranged"), target(e.stats.ranged)], [L("hp"), e.stats.hp],
-    ...(leader ? [[L("mana"), e.mana], [L("spells"), e.spellsAllowed]] : []),
-  ].map(([k, v]) => `<span><i>${esc(k)}</i> <b>${esc(String(v ?? "—"))}</b></span>`).join("");
+    ["ap", e.stats.ap], ["move", e.stats.move], ["violence", target(e.stats.violence)],
+    ["ranged", target(e.stats.ranged)], ["hp", e.stats.hp],
+    ...(leader ? [["mana", e.mana], ["spells", e.spellsAllowed]] : []),
+  ].map(([k, v]) => `<span class="bd-stat"><b>${esc(String(v ?? "—"))}</b><i>${esc(L(k))}</i></span>`).join("");
 
-  // Sellswords come with fixed armaments (p.74-76): show them, nothing to pick.
-  const sw = e.isSellsword;
+  // What it carries: only lists that have something, in the card's order.
   const swRow = sw ? catalog().row(m.profile) || {} : null;
-  const sections = sw ? `<div class="bd-list"><h4>${esc(L("armaments"))}</h4>` +
-      `<div class="bd-amb-text">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</div></div>` : [
-    listHtml(m, "traits", leader ? TRAIT_CATEGORIES : ["covenant-wretched-traits", "wretched-undead-traits"]),
-    leader ? listHtml(m, "spells", ["spells"]) : "",
-    listHtml(m, "weapons", WEAPON_CATEGORIES),
-    listHtml(m, "armour", ["armours"]),
-    listHtml(m, "equipment", ["miscellaneous-equipment"]),
-    leader ? manaHtml(m) : "",
-  ].join("");
+  const lists = sw
+    ? [`<dt>${esc(L("armaments"))}</dt><dd class="bd-prose">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</dd>`]
+    : ["traits", "spells", "weapons", "armour", "equipment"]
+        .filter(list => (m[list] || []).length)
+        .map(list => `<dt>${esc(L(list))}</dt><dd>${chipsHtml(m, list)}</dd>`);
+  if (leader) lists.push(`<dt>${esc(L("mana"))}</dt><dd>${manaHtml(m)}</dd>`);
 
   return `
-    <section class="bd-model${leader ? " leader" : ""}" id="bd-model-${uid}">
-      <div class="bd-model-head">
-        <input type="text" data-act="m-name" data-uid="${uid}" data-fid="${uid}-name" value="${esc(m.name || "")}" placeholder="${esc(L("modelName"))}">
-        ${sw ? `<span class="bd-type">${esc(itemName(catalog(), m.profile, lang()))} <span class="bd-tag">${esc(L("sellsword"))}</span></span>`
-             : `<select data-act="m-profile" data-uid="${uid}" data-fid="${uid}-profile">
-          <optgroup label="${esc(L("leaders"))}">${profiles("leaders")}</optgroup>
-          <optgroup label="${esc(L("minions"))}">${profiles("minions")}</optgroup>
-        </select>`}
-        <select data-act="m-aff" data-uid="${uid}" data-fid="${uid}-aff" title="${esc(L("affinity"))}">
-          <option value="">${esc(L("chooseAffinity"))}</option>${affs}
-        </select>
-        <span class="wb-chip accent"><b>${e.cost}</b> ${esc(L("obols"))}${sw
-          ? ` · ${Number(swRow.deploy_obols) || 0} ${esc(L("deployCost"))}` : ""}</span>
+    <section class="bd-model${leader ? " leader" : ""}${m.affinity ? ` aff-${m.affinity}` : ""}" id="bd-model-${uid}">
+      <header class="bd-model-head">
+        <div class="bd-model-title">
+          <input type="text" class="bd-model-name" data-act="m-name" data-uid="${uid}" data-fid="${uid}-name"
+                 value="${esc(m.name || "")}" placeholder="${esc(typeName)}" aria-label="${esc(L("modelName"))}">
+          <div class="bd-model-type">
+            ${sw ? `<span>${esc(typeName)}, ${esc(L("sellsword").toLowerCase())}</span>`
+                 : `<select data-act="m-profile" data-uid="${uid}" data-fid="${uid}-profile" aria-label="${esc(L("modelType"))}">
+                      <optgroup label="${esc(L("leaders"))}">${profiles("leaders")}</optgroup>
+                      <optgroup label="${esc(L("minions"))}">${profiles("minions")}</optgroup>
+                    </select>`}
+            <select data-act="m-aff" data-uid="${uid}" data-fid="${uid}-aff" aria-label="${esc(L("affinity"))}">
+              <option value="">${esc(L("chooseAffinity"))}</option>${affs}
+            </select>
+          </div>
+        </div>
+        <div class="bd-model-cost"><b>${e.cost}</b> ${esc(L("obols"))}${sw
+          ? `<small>${esc(L("deployCost"))} ${Number(swRow.deploy_obols) || 0}</small>` : ""}</div>
+      </header>
+      <div class="bd-statline">${stats}</div>
+      ${e.warnings.length ? `<ul class="bd-notes">${e.warnings.map(w => `<li>${esc(describe(w, catalog(), lang()))}</li>`).join("")}</ul>` : ""}
+      ${lists.length ? `<dl class="bd-kit">${lists.join("")}</dl>` : ""}
+      <footer class="bd-model-foot">
+        ${sw ? "" : addMenuHtml(m, leader)}
         <span class="spacer"></span>
-        <button type="button" class="secondary" data-act="m-up" data-uid="${uid}" title="↑"${idx === 0 ? " disabled" : ""}>↑</button>
-        <button type="button" class="secondary" data-act="m-down" data-uid="${uid}" title="↓"${idx === g.models.length - 1 ? " disabled" : ""}>↓</button>
-        <button type="button" class="secondary" data-act="m-remove" data-uid="${uid}" title="${esc(L("remove"))}">✕</button>
-      </div>
-      <div class="bd-stats">${stats}</div>
-      ${warningsHtml(e.warnings)}
-      <div class="bd-lists">${sections}</div>
+        <button type="button" class="link" data-act="m-up" data-uid="${uid}"${idx === 0 ? " disabled" : ""}>${esc(L("moveUp"))}</button>
+        <button type="button" class="link" data-act="m-down" data-uid="${uid}"${idx === g.models.length - 1 ? " disabled" : ""}>${esc(L("moveDown"))}</button>
+        <button type="button" class="link danger" data-act="m-remove" data-uid="${uid}">${esc(L("removeModel"))}</button>
+      </footer>
     </section>`;
 }
 
-/** Category headings for the add menus. */
+function chipsHtml(m, list) {
+  const uid = esc(m.uid);
+  return (m[list] || []).map((key, i) => {
+    const name = itemName(catalog(), key, lang());
+    const cost = Number(catalog().row(key)?.obols) || 0;
+    return `<span class="bd-item">${esc(name)}${cost ? `<small>${cost}</small>` : ""}` +
+      `<button type="button" data-act="m-del-item" data-uid="${uid}" data-list="${list}" data-i="${i}" aria-label="${esc(L("remove"))} ${esc(name)}">✕</button></span>`;
+  }).join("");
+}
+
+/** Category headings for the add menu. */
 const CAT_TITLE = {
-  "basic-leader-traits":      ["Basic Leader Traits", "Rasgos básicos de líder"],
-  "covenant-leader-traits":   ["Covenant Leader Traits", "Rasgos de líder de pacto"],
-  "covenant-wretched-traits": ["Covenant Traits", "Rasgos de pacto"],
-  "wretched-undead-traits":   ["Wretched Undead Traits", "Rasgos de No Muertos Miserables"],
-  "melee-weapons":            ["Melee Weapons", "Armas cuerpo a cuerpo"],
-  "ranged-weapons":           ["Ranged Weapons", "Armas a distancia"],
-  "thrown-weapons":           ["Thrown Weapons", "Armas arrojadizas"],
-  "colossal-weapons":         ["Colossal Weapons", "Armas colosales"],
+  "basic-leader-traits":      ["Basic leader traits", "Rasgos básicos de líder"],
+  "covenant-leader-traits":   ["Covenant leader traits", "Rasgos de líder de pacto"],
+  "covenant-wretched-traits": ["Covenant traits", "Rasgos de pacto"],
+  "wretched-undead-traits":   ["Wretched Undead traits", "Rasgos de No Muertos Miserables"],
+  "melee-weapons":            ["Melee weapons", "Armas cuerpo a cuerpo"],
+  "ranged-weapons":           ["Ranged weapons", "Armas a distancia"],
+  "thrown-weapons":           ["Thrown weapons", "Armas arrojadizas"],
+  "colossal-weapons":         ["Colossal weapons", "Armas colosales"],
   "armours":                  ["Armour", "Armaduras"],
-  "miscellaneous-equipment":  ["Miscellaneous Equipment", "Equipo misceláneo"],
+  "miscellaneous-equipment":  ["Equipment", "Equipo misceláneo"],
 };
 
-function listHtml(m, list, cats) {
+/** One menu for everything a model can take, grouped as on the cards. */
+function addMenuHtml(m, leader) {
   const uid = esc(m.uid);
-  const chips = (m[list] || []).map((key, i) => {
-    const row = catalog().row(key);
-    const cost = Number(row?.obols) || 0;
-    return `<span class="bd-item">${esc(itemName(catalog(), key, lang()))}` +
-      (cost ? ` <small>${cost}</small>` : "") +
-      `<button type="button" data-act="m-del-item" data-uid="${uid}" data-list="${list}" data-i="${i}" title="${esc(L("remove"))}">✕</button></span>`;
-  }).join("");
-
-  const groups = list === "spells" ? spellGroups() : cats.map(cat => [
-    (lang() === "es" ? CAT_TITLE[cat]?.[1] : CAT_TITLE[cat]?.[0]) || cat,
-    (catalog().bundle.categories[cat]?.rows || []).map(r => [`${cat}/${slug(r.name)}`, r]),
-  ]);
-  const options = groups.map(([title, rows]) => `<optgroup label="${esc(title)}">` + rows.map(([key, r]) => {
+  const group = (title, list, rows) => `<optgroup label="${esc(title)}">` + rows.map(([key, r]) => {
     const cost = Number(r.obols) || 0;
-    return `<option value="${esc(key)}">${esc(pickField(r, "name", lang()))}${cost ? ` · ${cost}` : ""}</option>`;
-  }).join("") + `</optgroup>`).join("");
-
-  return `
-    <div class="bd-list">
-      <h4>${esc(L(list))}</h4>
-      <div class="bd-items">${chips}
-        <select data-act="m-add" data-uid="${uid}" data-list="${list}" data-fid="${uid}-add-${list}">
-          <option value="">${esc(L("add"))}</option>${options}
-        </select>
-      </div>
-    </div>`;
+    return `<option value="${esc(`${list}|${key}`)}">${esc(pickField(r, "name", lang()))}${cost ? ` (${cost})` : ""}</option>`;
+  }).join("") + `</optgroup>`;
+  const cat = (c) => (catalog().bundle.categories[c]?.rows || []).map(r => [`${c}/${slug(r.name)}`, r]);
+  const title = (c) => (lang() === "es" ? CAT_TITLE[c]?.[1] : CAT_TITLE[c]?.[0]) || c;
+  const traitCats = leader ? TRAIT_CATEGORIES : ["covenant-wretched-traits", "wretched-undead-traits"];
+  const groups = [
+    ...traitCats.map(c => group(title(c), "traits", cat(c))),
+    ...(leader ? spellGroups().map(([school, rows]) => group(`${L("spells")}: ${school}`, "spells", rows)) : []),
+    ...WEAPON_CATEGORIES.map(c => group(title(c), "weapons", cat(c))),
+    group(title("armours"), "armour", cat("armours")),
+    group(title("miscellaneous-equipment"), "equipment", cat("miscellaneous-equipment")),
+  ];
+  return `<select class="bd-add" data-act="m-add" data-uid="${uid}" data-fid="${uid}-add">
+      <option value="">${esc(L("addToModel"))}</option>${groups.join("")}</select>`;
 }
 
 /** Spells grouped by school, in the order the rulebook lists them. */
@@ -533,22 +590,21 @@ function spellGroups() {
 
 function manaHtml(m) {
   const uid = esc(m.uid);
-  const inputs = AFFINITIES.map(a => `
-    <label>${esc(L(a))}
+  return `<span class="bd-mana">` + AFFINITIES.map(a => `
+    <label class="aff-${a}">${esc(L(a))}
       <input type="number" min="0" max="9" data-act="m-mana" data-uid="${uid}" data-aff="${a}" data-fid="${uid}-mana-${a}" value="${Number(m.mana?.[a]) || 0}">
-    </label>`).join("");
-  return `<div class="bd-list"><h4>${esc(L("mana"))}</h4><div class="bd-mana">${inputs}</div></div>`;
+    </label>`).join("") + `</span>`;
 }
 
 function addModelHtml(g) {
   const hasLeader = g.models.some(m => isLeaderKey(m.profile));
   const opts = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r =>
-    `<option value="${esc(`${cat}/${slug(r.name)}`)}">${esc(pickField(r, "name", lang()))} · ${Number(r.obols) || 0}</option>`).join("");
+    `<option value="${esc(`${cat}/${slug(r.name)}`)}">${esc(pickField(r, "name", lang()))} (${Number(r.obols) || 0})</option>`).join("");
   return `
     <div class="bd-add-model">
-      ${g.models.length ? "" : `<span class="bd-hint">${esc(L("noModels"))}</span>`}
-      <select data-act="add-model" data-fid="add-model">
-        <option value="">${esc(L("addModel"))}…</option>
+      ${g.models.length ? "" : `<p>${esc(L("noModels"))}</p>`}
+      <select data-act="add-model" data-fid="add-model" class="bd-add">
+        <option value="">${esc(L(hasLeader ? "addModel" : "addLeader"))}</option>
         ${hasLeader ? "" : `<optgroup label="${esc(L("leaders"))}">${opts("leaders")}</optgroup>`}
         <optgroup label="${esc(L("minions"))}">${opts("minions")}</optgroup>
       </select>

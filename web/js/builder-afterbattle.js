@@ -122,19 +122,23 @@ const rollBtn = (act, attrs = "") =>
 export function afterBattleHtml(g, ev) {
   const a = g.campaign.afterBattle;
   const steps = catalog().rules.after_battle || [];
-  const crumbs = [`<button type="button" class="${a.step === 0 ? "primary" : "secondary"}" data-act="ab-goto" data-step="0">${esc(L("battle"))}</button>`,
-    ...steps.map((s, n) => `<button type="button" class="${a.step === n + 1 ? "primary" : "secondary"}" data-act="ab-goto" data-step="${n + 1}">${n + 1}. ${esc(pickField(s, "name", lang()))}</button>`)].join("");
+  // The steps are a sequence, so they're numbered; the ones behind the
+  // current step are marked done.
+  const crumb = (n, text) => `<li class="${a.step === n ? "now" : a.step > n ? "done" : ""}">
+      <button type="button" data-act="ab-goto" data-step="${n}"${a.step === n ? ' aria-current="step"' : ""}>${esc(text)}</button></li>`;
+  const crumbs = `<ol class="bd-crumbs">${crumb(0, L("battle"))}${steps.map((s, n) => crumb(n + 1, pickField(s, "name", lang()))).join("")}</ol>`;
   const body = [battleStep, maladiesStep, rewardsStep, minorStep, ambitionsStep, totalStep, bazaarStep, scenarioStep][a.step](g, a, ev);
   return `
     <div class="bd-panel bd-wizard">
-      <h3>${esc(L("afterBattleT"))} <small>${esc(L("treasury"))} ${Number(g.treasury) || 0} · +${a.obols} ${esc(L("obolsAdded"))}</small></h3>
-      <div class="bd-crumbs">${crumbs}</div>
+      <h3>${esc(L("afterBattleT"))}</h3>
+      <p class="bd-hint">${esc(L("treasury"))} ${Number(g.treasury) || 0} ${esc(L("obols"))}, +${a.obols} ${esc(L("obolsAdded"))}.</p>
+      ${crumbs}
       <div class="bd-step">${body}</div>
       <div class="bd-inline bd-wizard-nav">
-        <button type="button" class="secondary" data-act="ab-step" data-by="-1"${a.step === 0 ? " disabled" : ""}>← ${esc(L("back"))}</button>
-        ${a.step < 7 ? `<button type="button" class="primary" data-act="ab-step" data-by="1">${esc(L(a.step === 0 ? "begin" : "next"))} →</button>` : ""}
+        <button type="button" class="secondary" data-act="ab-step" data-by="-1"${a.step === 0 ? " disabled" : ""}>${esc(L("back"))}</button>
+        ${a.step < 7 ? `<button type="button" class="primary" data-act="ab-step" data-by="1">${esc(L(a.step === 0 ? "begin" : "next"))}</button>` : ""}
         <span class="spacer"></span>
-        <button type="button" class="secondary" data-act="ab-discard">${esc(L("discard"))}</button>
+        <button type="button" class="link danger" data-act="ab-discard">${esc(L("discardSequence"))}</button>
       </div>
     </div>`;
 }

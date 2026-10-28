@@ -23,7 +23,10 @@ Five tabs:
    jumping to its model. From
    there a gathering opens in the Warband tab, queues its cards, copies its
    Companion App link, or downloads as the app's JSON or as a Builder
-   backup. Saved gatherings live in the browser (localStorage).
+   backup. Saved gatherings live in the browser (localStorage). Edits go
+   into a draft first, so options and gear can be tried freely: **Save
+   changes** commits the draft, **Discard changes** puts everything back
+   (treasury included); drafts survive a reload.
    Its **Campaign** view tracks the gathering between games: treasury and
    deployment limit (who is fielded, sellswords hired and the free ones the
    rules allow), lair upgrades, the 4 active ambitions with their rewards
