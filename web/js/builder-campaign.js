@@ -243,7 +243,7 @@ export function pendingHtml(g) {
       <div class="bd-inline">
         <button type="button" class="secondary" data-act="t-roll" data-kind="${kind}">🎲 ${esc(L(kind === "greater" ? "rollGreater" : "rollMinor"))}</button>
         <select data-act="t-pick" data-fid="c-tpick"><option value="">${esc(L("pickTreasure"))}</option>${table}</select>
-        <button type="button" class="secondary" data-act="t-cancel">✕</button>
+        <button type="button" class="secondary" data-act="t-cancel" aria-label="${esc(L("cancel"))}" title="${esc(L("cancel"))}">✕</button>
       </div>
       ${choices ? `<div class="bd-choices">${choices}</div>` : ""}
     </div>`;
@@ -271,7 +271,7 @@ export function ambitionsHtml(g) {
           <button type="button" class="secondary" data-act="amb-tick" data-key="${esc(key)}" data-step="-1">−</button>
           <span class="bd-prog">${prog} / ${goal}</span>
           <button type="button" class="secondary" data-act="amb-tick" data-key="${esc(key)}" data-step="1">+</button>
-          <button type="button" class="secondary" data-act="amb-drop" data-key="${esc(key)}" title="${esc(L("remove"))}">✕</button>
+          <button type="button" class="secondary" data-act="amb-drop" data-key="${esc(key)}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">✕</button>
         </div>
         <div class="bd-amb-text">${esc(pickField(r, "condition", lang()) || "")} → ${esc(pickField(r, "reward", lang()) || "")}</div>
         ${done ? `<div class="bd-inline">${pick}<button type="button" class="secondary" data-act="amb-complete" data-key="${esc(key)}"${canComplete ? "" : " disabled"}>${esc(L("complete"))}</button></div>` : ""}
@@ -301,8 +301,8 @@ function treasuresHtml(g) {
   const chip = (key, idx, from) => {
     const kind = treasureKind(catalog(), key);
     return `<span class="bd-item">${esc(name(key))} <small>${esc(L(kind === "greater" ? "greaterT" : "minorT"))}</small>
-      <select data-act="t-move" data-from="${esc(from || "")}" data-i="${idx}">${dests(from)}</select>
-      <button type="button" data-act="t-del" data-from="${esc(from || "")}" data-i="${idx}" title="${esc(L("remove"))}">✕</button></span>`;
+      <select data-act="t-move" data-from="${esc(from || "")}" data-i="${idx}" aria-label="${esc(L("moveTo"))}">${dests(from)}</select>
+      <button type="button" data-act="t-del" data-from="${esc(from || "")}" data-i="${idx}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">✕</button></span>`;
   };
   const holders = [
     [L("stash"), null, g.stash],
@@ -333,7 +333,7 @@ export function upgradesHtml(g) {
       <div><b>${esc(pickField(r, "name", lang()))}</b> <small>${r.obols}</small></div>
       <div class="bd-amb-text">${esc(String(pickField(r, "effect", lang()) || "").trim())}</div>
       ${owned.has(k)
-        ? `<span class="bd-good">${esc(L("owned"))}</span> <button type="button" class="link" data-act="upgrade-refund" data-key="${esc(k)}">${esc(L("refundUpgrade"))}</button>`
+        ? `<div class="bd-upgrade-act"><span class="bd-good">✓ ${esc(L("owned"))}</span> <button type="button" class="link" data-act="upgrade-refund" data-key="${esc(k)}">${esc(L("refundUpgrade"))}</button></div>`
         : `<button type="button" class="secondary" data-act="upgrade-buy" data-key="${esc(k)}">${esc(L("buy"))} · ${r.obols}</button>`}
     </div>`).join("");
   return `<div class="bd-panel"><h3>${esc(L("lairUpgrades"))}</h3><div class="bd-upgrades">${items}</div></div>`;
@@ -456,7 +456,7 @@ function battleLogHtml(g) {
     <tr><td>${esc(e.date || "")}</td><td>${esc(e.environment ? name(e.environment) : "—")}</td>
       <td>${esc(e.mission ? name(e.mission) : "—")}</td><td>${esc(e.omen ? name(e.omen) : "—")}</td>
       <td>${esc(res(e.result))}</td><td>${e.obols || 0}</td><td>${esc(e.notes || "")}</td>
-      <td><button type="button" class="secondary" data-act="battle-del" data-i="${n}" title="${esc(L("remove"))}">✕</button></td></tr>
+      <td><button type="button" class="secondary" data-act="battle-del" data-i="${n}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">✕</button></td></tr>
     ${(e.transactions || []).length ? `<tr class="bd-tx-row"><td></td><td colspan="7">${transactionsHtml(g, e.transactions)}</td></tr>` : ""}`).join("");
   return `
     <div class="bd-panel">
@@ -465,16 +465,17 @@ function battleLogHtml(g) {
         <tr><th>${esc(L("date"))}</th><th>${esc(L("environment"))}</th><th>${esc(L("mission"))}</th><th>${esc(L("omen"))}</th>
             <th>${esc(L("result"))}</th><th>${esc(L("obolsGained"))}</th><th>${esc(L("notes"))}</th><th></th></tr>
         ${entries || `<tr><td colspan="8"><small>${esc(L("noBattles"))}</small></td></tr>`}
-        <tr class="bd-log-form">
-          <td><input type="date" id="bl-date" value="${new Date().toISOString().slice(0, 10)}"></td>
-          <td><select id="bl-env">${opt("environments", true)}</select></td>
-          <td><select id="bl-mission">${opt("missions", true)}</select></td>
-          <td><select id="bl-omen">${opt("dread-omens", true)}</select></td>
-          <td><select id="bl-result"><option value="win">${esc(L("win"))}</option><option value="loss">${esc(L("loss"))}</option><option value="draw">${esc(L("draw"))}</option></select></td>
-          <td><input type="number" id="bl-obols" value="0"></td>
-          <td><input type="text" id="bl-notes"></td>
-          <td><button type="button" class="secondary" data-act="battle-add">${esc(L("logBattle"))}</button></td>
-        </tr>
       </table></div>
+      <h4>${esc(L("logNew"))}</h4>
+      <div class="bd-form bd-log-form">
+        <label>${esc(L("date"))} <input type="date" id="bl-date" value="${new Date().toISOString().slice(0, 10)}"></label>
+        <label>${esc(L("environment"))} <select id="bl-env">${opt("environments", true)}</select></label>
+        <label>${esc(L("mission"))} <select id="bl-mission">${opt("missions", true)}</select></label>
+        <label>${esc(L("omen"))} <select id="bl-omen">${opt("dread-omens", true)}</select></label>
+        <label>${esc(L("result"))} <select id="bl-result"><option value="win">${esc(L("win"))}</option><option value="loss">${esc(L("loss"))}</option><option value="draw">${esc(L("draw"))}</option></select></label>
+        <label>${esc(L("obolsGained"))} <input type="number" id="bl-obols" value="0"></label>
+        <label class="bd-log-notes">${esc(L("notes"))} <input type="text" id="bl-notes"></label>
+      </div>
+      <p><button type="button" class="secondary" data-act="battle-add">${esc(L("logBattle"))}</button></p>
     </div>`;
 }

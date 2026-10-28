@@ -391,7 +391,7 @@ textarea.json-in {
 .wb-toolbar .spacer { flex: 1; }
 .wb-summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .wb-summary .wb-cov {
-  font-family: var(--caps); font-weight: 700; font-size: 20px; color: var(--text);
+  font-family: var(--gothic); font-weight: 400; font-size: 24px; color: var(--text);
   max-width: 42ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .wb-summary .wb-empty { color: var(--muted); font-size: 14px; }
@@ -437,8 +437,8 @@ textarea.json-in {
   background: var(--panel); border: 1px solid var(--border); border-radius: 3px; padding: 16px 18px;
 }
 .bd-gname {
-  font-family: var(--caps); font-weight: 700; font-size: 26px; line-height: 1.15;
-  margin: 0 0 14px; overflow-wrap: anywhere; letter-spacing: 0.02em;
+  font-family: var(--gothic); font-weight: 400; font-size: 34px; line-height: 1.1;
+  margin: 0 0 14px; overflow-wrap: anywhere;
 }
 /* Unsaved changes: the warning status pattern — sign, words and colour. */
 .bd-draft {

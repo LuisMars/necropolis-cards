@@ -114,8 +114,8 @@ export function afterBattleClick(act, el, g) {
 /* ---- rendering ------------------------------------------------------------- */
 
 /** "Roll" button + a field to type a physical die. */
-const dieInput = (id, value) =>
-  `<input type="number" min="1" max="10" id="${id}" value="${value ?? ""}" class="bd-die">`;
+const dieInput = (id, value, n = 1) =>
+  `<input type="number" min="1" max="10" id="${id}" value="${value ?? ""}" class="bd-die" placeholder="d10" aria-label="${esc(L("die"))} ${n}">`;
 const rollBtn = (act, attrs = "") =>
   `<button type="button" class="secondary" data-act="${act}"${attrs}>🎲 ${esc(L("roll"))}</button>`;
 
@@ -194,7 +194,7 @@ function maladiesStep(g, a) {
   }
   return `${head}
     <div class="bd-inline">${rollBtn("ab-roll-malady")} ${esc(L("orType"))}
-      <input type="number" min="1" max="10" class="bd-die" data-act="ab-malady-roll" value="${a.maladyRoll ?? ""}"></div>
+      <input type="number" min="1" max="10" class="bd-die" data-act="ab-malady-roll" value="${a.maladyRoll ?? ""}" placeholder="d10" aria-label="${esc(L("die"))}"></div>
     ${def ? `<p><b>${a.maladyRoll} · ${esc(pickField(def, "name", lang()))}</b> — ${esc(pickField(def, "effect", lang()))}</p>
       <div class="bd-inline">${choice}<button type="button" class="secondary" data-act="ab-apply-malady">${esc(L("apply"))}</button></div>` : ""}
     ${hp}`;
@@ -207,7 +207,7 @@ function rewardsStep(g, a) {
   const main = done
     ? `<p class="bd-good">✓ +${done.obols} ${esc(L("obolsAdded"))} (${r.obols} + ${done.dice.join(" + ")})</p>`
     : `<p>${esc(L(a.battle.result === "loss" ? "loss" : "win"))}: ${r.obols} + 2d10</p>
-       <div class="bd-inline">${rollBtn("ab-roll-rewards")} ${esc(L("orType"))} ${dieInput("ab-d1", dice[0])} ${dieInput("ab-d2", dice[1])}
+       <div class="bd-inline">${rollBtn("ab-roll-rewards")} ${esc(L("orType"))} ${dieInput("ab-d1", dice[0])} ${dieInput("ab-d2", dice[1], 2)}
          <button type="button" class="secondary" data-act="ab-apply-rewards">${esc(L("apply"))}</button></div>`;
   // While a rolled treasure waits to be handed out, its own panel holds the
   // roll; a second Roll button here would quietly re-roll it.
@@ -227,7 +227,7 @@ function rewardsStep(g, a) {
     const r2 = a.purlRolls?.[m.uid] || [];
     return `<div class="bd-inline">${esc(modelTitle(m))}: ${got != null
       ? `<span class="bd-good">✓ +${got}</span>`
-      : `${rollBtn("ab-purl-roll", ` data-uid="${esc(m.uid)}"`)} ${dieInput(`ab-pr1-${m.uid}`, r2[0])} ${dieInput(`ab-pr2-${m.uid}`, r2[1])}
+      : `${rollBtn("ab-purl-roll", ` data-uid="${esc(m.uid)}"`)} ${dieInput(`ab-pr1-${m.uid}`, r2[0])} ${dieInput(`ab-pr2-${m.uid}`, r2[1], 2)}
          <small>${esc(L("ifUnderMove"))}</small>
          <button type="button" class="secondary" data-act="ab-purl" data-uid="${esc(m.uid)}">${esc(L("apply"))}</button>`}</div>`;
   }).join("");

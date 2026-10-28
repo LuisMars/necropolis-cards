@@ -104,10 +104,10 @@ function renderQueue() {
     item.innerHTML = `
       <span class="cat">${escapeHtml(cat ? cat.title : q.key)}</span>
       <span class="name" contenteditable="true" spellcheck="false" title="Click to rename">${escapeHtml(label)}</span>
-      <button title="Edit fields" class="edit-btn">${expanded ? "▴" : "▾"}</button>
-      <button title="Move up">↑</button>
-      <button title="Move down">↓</button>
-      <button title="Remove">✕</button>`;
+      <button title="Edit fields" aria-label="Edit fields" aria-expanded="${expanded}" class="edit-btn">${expanded ? "▴" : "▾"}</button>
+      <button title="Move up" aria-label="Move up">↑</button>
+      <button title="Move down" aria-label="Move down">↓</button>
+      <button title="Remove" aria-label="Remove">✕</button>`;
     const nameSpan = item.querySelector(".name");
     const edBtn = item.querySelector(".edit-btn");
     const [, up, dn, rm] = item.querySelectorAll("button");

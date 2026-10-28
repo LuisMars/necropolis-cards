@@ -41,6 +41,7 @@ let hooks = {};
 let status = "";          // one line of feedback from the last action (HTML)
 let summaryOpen = false;  // every warning listed, opened from the ledger
 let view = "gathering";   // "gathering" (build) or "campaign"
+let sideOpen = false;     // narrow screens: the ledger's details and actions shown
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
@@ -255,6 +256,7 @@ function onClick(e) {
     case "export":     download(`${fileStem(g)}.json`, toAppJson(g, catalog())); break;
     case "backup":     download(`${fileStem(g)}-backup.json`, g); break;
     case "summary":    summaryOpen = !summaryOpen; renderBuilder(); break;
+    case "side-toggle": sideOpen = !sideOpen; renderBuilder(); break;
     case "goto":       gotoModel(uid); break;
   }
 }
@@ -349,7 +351,7 @@ export function renderBuilder() {
         ${summaryOpen && ev.warnings.length ? warningSummaryHtml(g, ev) : ""}
         ${main}
       </div>
-      <aside class="bd-side">${ledgerHtml(g, ev)}</aside>
+      <aside class="bd-side${sideOpen ? " open" : ""}">${ledgerHtml(g, ev)}</aside>
     </div>`;
 
   if (focused) $body.querySelector(`[data-fid="${CSS.escape(focused)}"]`)?.focus();
@@ -404,7 +406,10 @@ function ledgerHtml(g, ev) {
         <button type="button" class="primary" data-act="save">${esc(L("saveChanges"))}</button>
         <button type="button" class="link" data-act="discard">${esc(L("discardChanges"))}</button>
       </div>` : ""}
-    <h2 class="bd-gname">${esc(g.name || L("untitled"))}</h2>
+    <div class="bd-side-head">
+      <h2 class="bd-gname">${esc(g.name || L("untitled"))}</h2>
+      <button type="button" class="secondary bd-side-toggle" data-act="side-toggle" aria-expanded="${sideOpen}">${esc(L(sideOpen ? "ledgerLess" : "ledgerMore"))}</button>
+    </div>
     <div class="bd-fields">
       <label>${esc(L("name"))}
         <input type="text" data-act="name" data-fid="g-name" value="${esc(g.name)}" placeholder="${esc(L("untitled"))}"></label>
