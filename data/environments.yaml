@@ -1,0 +1,101 @@
+# Environments — WIP Necropolis Rules 0.9, pp. 53-54.
+# Step 1 of scenario setup: suggested 16"×16" board layouts with flavour.
+# The book says not to treat them as hard rules. "VII. More coming????" is a
+# placeholder in the rulebook and has no card. Rendered via rule.svg: flavour
+# paragraph first, then the board setup.
+
+- category: ENVIRONMENT
+  category_es: ENTORNO
+  name: The Endless City
+  name_es: La Ciudad Infinita
+  restrictions: Environment I
+  restrictions_es: Entorno I
+  sigil: ""
+  effect: |
+    The ruins of the city stretch out like a maze, shadowed figures and arcane treasures lost in the twists of its ancient streets.
+
+    Place 2-3 ruins. Ideally they can be scaled and jumped between.
+  effect_es: |
+    Las ruinas de la ciudad se extienden como un laberinto, con figuras en sombras y tesoros arcanos perdidos en los recovecos de sus antiguas calles.
+
+    Coloca 2-3 ruinas. Lo ideal es que se pueda trepar por ellas y saltar entre ellas.
+
+- category: ENVIRONMENT
+  category_es: ENTORNO
+  name: Hintertombs Labyrinth
+  name_es: Laberinto de Sepulcros Inferiores
+  restrictions: Environment II
+  restrictions_es: Entorno II
+  sigil: ""
+  effect: |
+    Beneath the city itself lies the labyrinth, millennia of tunnels and catacombs spun like a web into the dark below.
+
+    3-5 wall sections with no climbable platforms.
+  effect_es: |
+    Bajo la propia ciudad yace el laberinto, milenios de túneles y catacumbas tejidos como una telaraña en la oscuridad inferior.
+
+    3-5 secciones de muro sin plataformas escalables.
+
+- category: ENVIRONMENT
+  category_es: ENTORNO
+  name: Eternal Autumn
+  name_es: Otoño Eterno
+  restrictions: Environment III
+  restrictions_es: Entorno III
+  sigil: ""
+  effect: |
+    When all things died, so too did the forest. But as the cursed living returned to their rotting bodies so too did the great wood. Paths change, branches grasp; pushed by a malevolent collective intelligence.
+
+    2-3 trees, leaving room for models to pass between.
+  effect_es: |
+    Cuando todo murió, también murió el bosque. Pero cuando los malditos vivos regresaron a sus cuerpos putrefactos, también regresó el gran bosque. Los senderos cambian, las ramas aferran, impulsadas por una malévola inteligencia colectiva.
+
+    2-3 árboles, dejando espacio para que las miniaturas pasen entre ellos.
+
+- category: ENVIRONMENT
+  category_es: ENTORNO
+  name: The Great Wastes
+  name_es: Los Grandes Yermos
+  restrictions: Environment IV
+  restrictions_es: Entorno IV
+  sigil: ""
+  effect: |
+    Beyond the known lands lie the great wastes, a desert of ash rising in great drifts over the remains of fallen empires.
+
+    A single central terrain piece such as a ruined building, a towering beacon, or a dead tree. Objectives placed within it go on the highest level possible.
+  effect_es: |
+    Más allá de las tierras conocidas yacen los grandes yermos, un desierto de ceniza que se alza en enormes dunas sobre los restos de imperios caídos.
+
+    Un único elemento de terreno central, como un edificio en ruinas, una almenara imponente o un árbol muerto. Los objetivos colocados en él van en el nivel más alto posible.
+
+- category: ENVIRONMENT
+  category_es: ENTORNO
+  name: Undead Settlement
+  name_es: Asentamiento No Muerto
+  restrictions: Environment V
+  restrictions_es: Entorno V
+  sigil: ""
+  effect: |
+    In the heart of the endless city, clinging to the outer walls of the Grandlich towers lie shanty towns of desperate undead. Their hovels form a network of alleys and snickets perfect for an ambush.
+
+    3-5 buildings and fences arranged into a tight settlement.
+  effect_es: |
+    En el corazón de la ciudad infinita, aferrados a los muros exteriores de las torres de los Grandes Liches, se alzan barrios de chabolas de no muertos desesperados. Sus casuchas forman una red de callejones y pasadizos perfecta para una emboscada.
+
+    3-5 edificios y vallas dispuestos en un asentamiento compacto.
+
+- category: ENVIRONMENT
+  category_es: ENTORNO
+  name: Flatwater Mire
+  name_es: Ciénaga de Aguas Quietas
+  restrictions: Environment VI
+  restrictions_es: Entorno VI
+  sigil: ""
+  effect: |
+    Once an area of the city filled with chapels, temples and houses of worship. Now dark waters have risen, drowning the area in a shallow lake. Strange shapes move below the surface as the undead move from rooftop to spire to keep safe from the horrors below.
+
+    3-5 buildings interconnected by bridges over marshes, which count as dangerous terrain.
+  effect_es: |
+    Antaño una zona de la ciudad llena de capillas, templos y casas de culto. Ahora se han alzado aguas oscuras que anegan la zona en un lago poco profundo. Formas extrañas se mueven bajo la superficie mientras los no muertos saltan de tejado en aguja para ponerse a salvo de los horrores de abajo.
+
+    3-5 edificios interconectados por puentes sobre marismas, que cuentan como terreno peligroso.
