@@ -2,7 +2,8 @@
 # Bought during a campaign for 50 obols each; each upgrade can only be
 # purchased once. Rendered with equipment.svg for the cost + flavour + effect
 # layout. Dank Culvert and Abandoned Mine (and Dusty Crypts / Bell Tower)
-# share the same effect in the rulebook — kept as printed.
+# share the same effect in the rulebook — kept as printed. Spanish text is
+# the official translation (Necropolis español v1.1, p.71), verbatim.
 
 - name: Arcane Library
   name_es: Biblioteca Arcana
@@ -12,21 +13,21 @@
   cost_es: 50 óbolos
   armour: "—"
   flavor: Musty grimoires stacked high in piles; occult knowledge from ages past.
-  flavor_es: Grimorios mohosos apilados en altos montones; saber oculto de eras pasadas.
+  flavor_es: Grimorios polvorientos apilados en montones; conocimiento oculto de eras pasadas.
   effect: |
     Gain 1 spell of any type.
   effect_es: |
     Gana 1 hechizo de cualquier tipo.
 
 - name: Balefire Brazier
-  name_es: Brasero de Fuego Fúnebre
+  name_es: Brasero de Fuego Fatuo
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
   flavor: A channelling brazier burning with darkling flame.
-  flavor_es: Un brasero canalizador que arde con una llama sombría.
+  flavor_es: Un brasero de canalización que arde con oscura llama.
   effect: |
     Gain 1 mana point of any type.
   effect_es: |
@@ -40,25 +41,25 @@
   cost_es: 50 óbolos
   armour: "—"
   flavor: Ancient fire and ancient steel combined for a singular purpose.
-  flavor_es: Fuego antiguo y acero antiguo unidos con un único propósito.
+  flavor_es: Fuego y acero ancestrales combinados para un propósito singular.
   effect: |
     Weapons and armour purchase costs -20%, rounding down.
   effect_es: |
-    El coste de compra de armas y armaduras se reduce un 20 %, redondeando hacia abajo.
+    El coste de compra de armas y armaduras se reduce en un 20% redondeando hacia abajo.
 
 - name: Dank Culvert
-  name_es: Alcantarilla Húmeda
+  name_es: Alcantarilla Humeda
   category: PURCHASE ONCE
   category_es: COMPRA ÚNICA
   cost: 50 obols
   cost_es: 50 óbolos
   armour: "—"
   flavor: Once carrying water in the darkness, now a place accumulating detritus.
-  flavor_es: Antaño conducía agua en la oscuridad; ahora es un lugar donde se acumulan desechos.
+  flavor_es: Antes transportaba agua en la oscuridad, ahora es un lugar donde se acumulan los detritos.
   effect: |
     Gain +d10 obols at the end of each scenario.
   effect_es: |
-    Gana +1D10 óbolos al final de cada escenario.
+    Gana +d10 óbolos al final de cada escenario.
 
 - name: Abandoned Mine
   name_es: Mina Abandonada
@@ -68,7 +69,7 @@
   cost_es: 50 óbolos
   armour: "—"
   flavor: Silver veins spiral into the earth; finite riches from the depths.
-  flavor_es: Vetas de plata se hunden en espiral en la tierra; riquezas finitas de las profundidades.
+  flavor_es: Vetas de plata se enroscan en la tierra; riquezas finitas de las profundidades.
   effect: |
     Gain +d10 obols at the end of each scenario.
   effect_es: |
@@ -82,11 +83,11 @@
   cost_es: 50 óbolos
   armour: "—"
   flavor: A place of meagre rest for those that serve.
-  flavor_es: Un lugar de escaso descanso para quienes sirven.
+  flavor_es: Un mísero lugar de descanso para aquellos que sirven.
   effect: |
     Deployment limit +50.
   effect_es: |
-    +50 al límite de despliegue.
+    Límite de Despliegue +50.
 
 - name: Bell Tower
   name_es: Campanario
@@ -96,11 +97,11 @@
   cost_es: 50 óbolos
   armour: "—"
   flavor: The peal of this great bell rings forth across the ruins, declaring to all where the power lies.
-  flavor_es: El tañido de esta gran campana resuena por las ruinas, proclamando a todos dónde reside el poder.
+  flavor_es: Una gran campana resuena a través de las ruinas anunciando a todos dónde reside el poder.
   effect: |
     Deployment limit +50.
   effect_es: |
-    +50 al límite de despliegue.
+    Límite de Despliegue +50.
 
 - name: Dark Tunnels
   name_es: Túneles Oscuros
@@ -110,11 +111,11 @@
   cost_es: 50 óbolos
   armour: "—"
   flavor: Winding deep below the earth, an ancient network piercing the labyrinth below.
-  flavor_es: Serpenteando bajo la tierra, una antigua red que perfora el laberinto inferior.
+  flavor_es: Una red ancestral serpentea bajo la tierra perforando el laberinto bajo la Ciudad Infinita.
   effect: |
     Each scenario, deploy a single model within 2" of the centre of the board.
   effect_es: |
-    En cada escenario, despliega una única miniatura a 2" o menos del centro del tablero.
+    Despliega una sola miniatura en un radio de 2" del centro del tablero en cada escenario.
 
 - name: Alchemy Workshop
   name_es: Taller de Alquimia
@@ -124,11 +125,11 @@
   cost_es: 50 óbolos
   armour: "—"
   flavor: Illuminated by phosphorus flasks and cluttered with collections of perilous liquids.
-  flavor_es: Iluminado por frascos de fósforo y atestado de colecciones de líquidos peligrosos.
+  flavor_es: Iluminado por frascos de fósforo y abarrotado de colecciones de peligrosos líquidos.
   effect: |
     You may choose to buy 1 throwing pot or potion each after battle sequence from the Alchemy Workshop list.
   effect_es: |
-    En cada secuencia posterior a la batalla puedes comprar 1 frasco arrojadizo o poción de la lista del Taller de Alquimia.
+    Puedes elegir comprar 1 poción después de la secuencia de después de la batalla en el Taller de Alquimia.
 
 - name: Gloomy Hall
   name_es: Salón Lúgubre
@@ -138,7 +139,7 @@
   cost_es: 50 óbolos
   armour: "—"
   flavor: A great and dimly lit hall, a suitable chamber for minions to perfect their chosen paths.
-  flavor_es: Un gran salón en penumbra, cámara adecuada para que los esbirros perfeccionen el camino elegido.
+  flavor_es: Un gran salón pobremente iluminado, una cámara adecuada para que los siervos perfeccionen sus aprendizajes.
   effect: |
     One model in your gathering may take a trait from your covenant or the wretched undead list.
   effect_es: |

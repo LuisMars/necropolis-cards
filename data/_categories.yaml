@@ -33,7 +33,7 @@ groups:
       - { key: greater-treasures,  title: Greater Treasures,      template: equipment,        data: greater-treasures.yaml, header: Equipment, header_es: Equipo }
       - { key: throwing-pots,      title: Throwing Pots,          template: weapon,           data: throwing-pots.yaml, header: Thrown Pot, header_es: Frasco }
       - { key: potions,            title: Potions,                template: equipment,        data: potions.yaml, header: Equipment, header_es: Equipo }
-      - { key: lair-upgrades,      title: Lair Upgrades,          template: equipment,        data: lair-upgrades.yaml, header: Lair Upgrade, header_es: Mejora de Guarida }
+      - { key: lair-upgrades,      title: Lair Upgrades,          template: equipment,        data: lair-upgrades.yaml, header: Lair Upgrade, header_es: Mejora de la Guarida }
 
   - title: Campaign
     items:

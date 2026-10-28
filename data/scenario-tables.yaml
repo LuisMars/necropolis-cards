@@ -3,7 +3,8 @@
 # fit on the mission card itself: Ancient Horror's lair detritus table, The
 # Hidden Stash's stash table, and the Lost Peddler omen's Hastily Browse.
 # Rendered via rule.svg; each table row is its own paragraph so it starts on
-# a fresh line.
+# a fresh line. Spanish follows the official translation (Necropolis
+# español v1.1, pp. 57, 59, 62), condensed only where the card is too small.
 
 - category: MISSION TABLE
   category_es: TABLA DE MISIÓN
@@ -23,15 +24,15 @@
 
     10 A Jar of Bile: gain 5+d10 obols.
   effect_es: |
-    Investigar Restos de la Guarida (PA 1, en contacto con un objetivo): retira el objetivo y tira 1D10.
+    Investigar Restos de la Guarida (PA 1, base con base con un objetivo): retíralo y tira 1D10.
 
-    1–2 Apoplejía: el oponente elige una miniatura a 3" del Horror sin la palabra clave Colosal. Es empujada hasta 24" hacia la miniatura que actúa, ignorando el terreno; ambas sufren 6 de daño. Si no hay ninguna a 3", el Horror se mueve 6" hacia quien actúa.
+    1–2 Enloquecido: el rival elige una miniatura sin la palabra clave Colosal a 3" del Horror. Es empujada hasta 24" hacia quien Investiga los Restos, ignorando el terreno; ambas sufren 6 de daño. Si no hay ninguna, el Horror se mueve 6" hacia quien Investiga.
 
-    3–5 Profanación: el Horror se mueve 6" hacia la miniatura que actúa por la ruta más corta.
+    3–5 Profanación: mueve el Horror 6" hacia quien Investiga por la ruta más corta.
 
-    6–9 Un Líquido Terrible: la miniatura obtiene un Agua Devoradora.
+    6–9 Un líquido terrible: la miniatura gana el objeto Agua Devoradora.
 
-    10 Un Tarro de Bilis: gana 5+1D10 óbolos.
+    10 Un jarro de hiel: gana 5+1D10 óbolos.
 
 - category: MISSION TABLE
   category_es: TABLA DE MISIÓN
@@ -51,20 +52,20 @@
 
     10 Hidden Treasure: gain a relic token.
   effect_es: |
-    Recoger Reliquia (en contacto con un objetivo): retíralo y tira 1D10. El último objetivo siempre da un 10.
+    Recoger una reliquia (base con base con un objetivo): retíralo y tira 1D10. Si es el último objetivo, recibes el resultado 10.
 
-    1–2 Cofre Trampa: el objetivo estalla en una lluvia de cenizas; todas las miniaturas a 3" sufren 3 de daño.
+    1–2 Cofre trampa: el objetivo explota en una lluvia de cenizas; las miniaturas a 3" sufren 3 puntos de daño.
 
-    3–4 Descanso Perturbado: coloca un Remanente Nigromántico PNJ de cualquier tipo, armado con un arma improvisada, donde estaba el objetivo.
+    3–4 Descanso alterado: coloca un PNJ de Remanente Nigromántico con un arma improvisada donde estaba el objetivo.
 
-    5–9 Volutas de Poder: coloca un marcador de maná de cualquier tipo donde estaba el objetivo.
+    5–9 Jirones de poder: coloca un marcador de maná de cualquier tipo donde estaba el objetivo.
 
-    10 Tesoro Oculto: gana un marcador de reliquia.
+    10 Tesoro oculto: ganas un marcador de reliquia.
 
 - category: OMEN ACTION
   category_es: ACCIÓN DE AUGURIO
   name: Hastily Browse
-  name_es: Ojeada Apresurada
+  name_es: Hojear Rápidamente
   restrictions: Lost Peddler · AP 1
   restrictions_es: Mercader Perdido · PA 1
   sigil: ""
@@ -78,10 +79,8 @@
     Sunburst · 10 obols
 
     Stonetar · 10 obols
-
-    Each is a single-use throwing pot; see its card.
   effect_es: |
-    Solo en contacto con una miniatura con la palabra clave Mercader. La miniatura puede obtener uno de estos objetos pagando su coste en óbolos:
+    Esta acción solo puede usarse en contacto base con base con el Mercader. La miniatura que hojea puede obtener uno de los siguientes objetos pagando su coste en óbolos:
 
     Agua Devoradora · 10 óbolos
 
@@ -90,5 +89,3 @@
     Estallido Solar · 10 óbolos
 
     Alquitrán Pétreo · 10 óbolos
-
-    Cada uno es un frasco arrojadizo de un solo uso; consulta su carta.

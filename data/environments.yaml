@@ -2,7 +2,8 @@
 # Step 1 of scenario setup: suggested 16"×16" board layouts with flavour.
 # The book says not to treat them as hard rules. "VII. More coming????" is a
 # placeholder in the rulebook and has no card. Rendered via rule.svg: flavour
-# paragraph first, then the board setup.
+# paragraph first, then the board setup. Spanish text is the official
+# translation (Necropolis español v1.1, pp. 53-54), verbatim.
 
 - category: ENVIRONMENT
   category_es: ENTORNO
@@ -16,14 +17,14 @@
 
     Place 2-3 ruins. Ideally they can be scaled and jumped between.
   effect_es: |
-    Las ruinas de la ciudad se extienden como un laberinto, con figuras en sombras y tesoros arcanos perdidos en los recovecos de sus antiguas calles.
+    Las ruinas de la ciudad se extienden como un laberinto, figuras sombrías y tesoros arcanos aparecen perdidos en los recovecos de sus antiguas calles.
 
-    Coloca 2-3 ruinas. Lo ideal es que se pueda trepar por ellas y saltar entre ellas.
+    Coloca de 2 a 3 ruinas de tal manera que se puedan escalar y saltar entre ellas.
 
 - category: ENVIRONMENT
   category_es: ENTORNO
   name: Hintertombs Labyrinth
-  name_es: Laberinto de Sepulcros Inferiores
+  name_es: Laberinto de los Sepulcros Inferiores
   restrictions: Environment II
   restrictions_es: Entorno II
   sigil: ""
@@ -32,9 +33,9 @@
 
     3-5 wall sections with no climbable platforms.
   effect_es: |
-    Bajo la propia ciudad yace el laberinto, milenios de túneles y catacumbas tejidos como una telaraña en la oscuridad inferior.
+    Bajo la propia ciudad yace el laberinto, miles de túneles y catacumbas entretejidos como una tela de araña en la oscuridad profunda.
 
-    3-5 secciones de muro sin plataformas escalables.
+    Coloca de 3 a 5 secciones de muro sin plataformas escalables.
 
 - category: ENVIRONMENT
   category_es: ENTORNO
@@ -48,9 +49,9 @@
 
     2-3 trees, leaving room for models to pass between.
   effect_es: |
-    Cuando todo murió, también murió el bosque. Pero cuando los malditos vivos regresaron a sus cuerpos putrefactos, también regresó el gran bosque. Los senderos cambian, las ramas aferran, impulsadas por una malévola inteligencia colectiva.
+    Cuando todas las cosas murieron, el bosque también. Pero así como los malditos regresaron a sus cuerpos podridos, también lo hizo el gran bosque. Los senderos cambian, las ramas atrapan; impulsadas por una malévola inteligencia colectiva.
 
-    2-3 árboles, dejando espacio para que las miniaturas pasen entre ellos.
+    Coloca de 2 a 3 árboles que dejen espacio para que las miniaturas pasen entre ellos.
 
 - category: ENVIRONMENT
   category_es: ENTORNO
@@ -64,14 +65,14 @@
 
     A single central terrain piece such as a ruined building, a towering beacon, or a dead tree. Objectives placed within it go on the highest level possible.
   effect_es: |
-    Más allá de las tierras conocidas yacen los grandes yermos, un desierto de ceniza que se alza en enormes dunas sobre los restos de imperios caídos.
+    Más allá de las tierras conocidas se extienden los grandes yermos, un desierto de cenizas que se eleva en grandes montones sobre los restos de imperios caídos.
 
-    Un único elemento de terreno central, como un edificio en ruinas, una almenara imponente o un árbol muerto. Los objetivos colocados en él van en el nivel más alto posible.
+    Una única pieza de terreno central, como un edificio en ruinas, un imponente faro o un árbol muerto. Si se colocan objetivos dentro de la pieza de terreno intenta colocarlos en el nivel más alto posible.
 
 - category: ENVIRONMENT
   category_es: ENTORNO
   name: Undead Settlement
-  name_es: Asentamiento No Muerto
+  name_es: Asentamiento de No Muertos
   restrictions: Environment V
   restrictions_es: Entorno V
   sigil: ""
@@ -80,14 +81,14 @@
 
     3-5 buildings and fences arranged into a tight settlement.
   effect_es: |
-    En el corazón de la ciudad infinita, aferrados a los muros exteriores de las torres de los Grandes Liches, se alzan barrios de chabolas de no muertos desesperados. Sus casuchas forman una red de callejones y pasadizos perfecta para una emboscada.
+    En el corazón de la ciudad infinita, aferrándose a los muros exteriores de las torres de los Grandes Liches, hay ciudades de no muertos desesperados. Sus chozas forman una red de callejones perfectos para una emboscada.
 
-    3-5 edificios y vallas dispuestos en un asentamiento compacto.
+    Coloca de 3 a 5 edificios y vallas dispuestos en un asentamiento estrecho y compacto.
 
 - category: ENVIRONMENT
   category_es: ENTORNO
   name: Flatwater Mire
-  name_es: Ciénaga de Aguas Quietas
+  name_es: Lodazal de Aguas Quietas
   restrictions: Environment VI
   restrictions_es: Entorno VI
   sigil: ""
@@ -96,6 +97,6 @@
 
     3-5 buildings interconnected by bridges over marshes, which count as dangerous terrain.
   effect_es: |
-    Antaño una zona de la ciudad llena de capillas, templos y casas de culto. Ahora se han alzado aguas oscuras que anegan la zona en un lago poco profundo. Formas extrañas se mueven bajo la superficie mientras los no muertos saltan de tejado en aguja para ponerse a salvo de los horrores de abajo.
+    Una zona de la ciudad que antes estaba llena de capillas, templos y casas de culto. Ahora las oscuras aguas han subido, ahogando la zona en un lago poco profundo. Formas extrañas se mueven bajo la superficie mientras los no muertos se mueven por los tejados para mantenerse a salvo de los horrores que habitan en lo más bajo.
 
-    3-5 edificios interconectados por puentes sobre marismas, que cuentan como terreno peligroso.
+    Coloca de 3 a 5 edificios interconectados por puentes sobre marismas que cuentan como terreno peligroso.
