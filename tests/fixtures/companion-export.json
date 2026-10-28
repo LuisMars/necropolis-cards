@@ -1,0 +1,286 @@
+{
+  "covenant": "Cairn-born, Faithful of the First Grandlich",
+  "gathering": [
+    {
+      "profile": {
+        "name": "Lich",
+        "affinity": "Bone",
+        "hp": 15,
+        "mana": 4,
+        "maxSpells": 4,
+        "actionPoints": 2,
+        "move": 3,
+        "violence": 6,
+        "ranged": 7,
+        "obols": 0,
+        "special": [
+          {
+            "name": "Caster",
+            "effect": "A lich cannot wear heavy armour or carry a shield"
+          },
+          {
+            "name": "Bone Leader",
+            "effect": "If this model choses the Bone keyword, improve its Violence by 1"
+          }
+        ]
+      },
+      "traits": [
+        {
+          "name": "Osseous Sacrifice",
+          "effect": "On activation you may chose to suffer -2hp and then Bone school spells gains +1 to any damage dealt that activation. This additional damage doen't affect friendly models."
+        },
+        {
+          "name": "Studious",
+          "effect": "Choose an additional spell of any type"
+        }
+      ],
+      "spells": [
+        {
+          "name": "Summon",
+          "school": "Necromancy",
+          "apCost": 1,
+          "channel": 6,
+          "effect": "Choose a shattered model and place it back on the board within 5\" of the caster and restore 4/6hp to it"
+        },
+        {
+          "name": "Wither",
+          "school": "Necromancy",
+          "apCost": 1,
+          "channel": 5,
+          "effect": "Choose a model within 6\" and line of sight, it suffers 1/4 damage"
+        },
+        {
+          "name": "Vigour",
+          "school": "Necromancy",
+          "apCost": 1,
+          "channel": 7,
+          "effect": "Restore 3/5 hp to a model in 6\" and in line of sight"
+        },
+        {
+          "name": "Bone Spear",
+          "school": "Bone",
+          "apCost": 1,
+          "channel": 6,
+          "effect": "Choose any model with the Bone keyword within 5\" and line of sight, it suffers 2 damage. The caster may then make a ranged attack with *if the channelling roll is a success the attack gains +1/+1 damage.",
+          "weapon": {
+            "attacks": 1,
+            "damageGlance": 3,
+            "damageHit": 6,
+            "range": 6
+          }
+        }
+      ],
+      "weapons": [
+        {
+          "name": "Improvised 1h",
+          "attacks": 2,
+          "damageGlance": 1,
+          "damageHit": 3,
+          "range": 1,
+          "obols": 0
+        }
+      ]
+    },
+    {
+      "profile": {
+        "name": "Familiar",
+        "affinity": "Bone",
+        "hp": 6,
+        "actionPoints": 2,
+        "move": 4,
+        "violence": 9,
+        "ranged": 0,
+        "keywords": [
+          "Fly",
+          "Beast",
+          "Familiar"
+        ],
+        "obols": 40,
+        "special": [
+          {
+            "effect": "Familiar can only take claws & fangs as a weapon"
+          },
+          {
+            "effect": "Familliar cannot wear armour or carry a shield"
+          },
+          {
+            "name": "Unique",
+            "effect": "Each gathering can only take 1 familiar"
+          },
+          {
+            "name": "Soul Link",
+            "effect": "If a familiar moves or is pushed accross or into base contact with a mana token, the gathering receives additional mana dice of that type for its mana pool. The token is then removed. "
+          }
+        ]
+      },
+      "weapons": [
+        {
+          "name": "Claws/Fangs 2h",
+          "attacks": 3,
+          "damageGlance": 1,
+          "damageHit": 3,
+          "range": 1,
+          "obols": 5
+        }
+      ]
+    },
+    {
+      "profile": {
+        "name": "Aberrant Husk",
+        "affinity": "Bone",
+        "hp": 12,
+        "actionPoints": 2,
+        "move": 3,
+        "violence": 5,
+        "ranged": 7,
+        "keywords": [
+          "Husk"
+        ],
+        "obols": 90,
+        "special": [
+          {
+            "name": "Bone Warrior",
+            "effect": "If this model choses the Bone keyword, improve its Violence by 1"
+          },
+          {
+            "name": "Blood Warrior",
+            "effect": "If this model choses the Blood keyword, it gains +2HP."
+          },
+          {
+            "name": "Plasm Warrior",
+            "effect": "If this model choses the Plasm keyword, it gains the Fly keyword, and -2HP and cannot wear heavy armour."
+          },
+          {
+            "name": "Brutal",
+            "effect": "When this model performs an attack action, add +1 to the damage total"
+          }
+        ]
+      },
+      "weapons": [
+        {
+          "name": "Blade 1h",
+          "attacks": 3,
+          "damageGlance": 1,
+          "damageHit": 3,
+          "range": 1,
+          "obols": 10,
+          "special": [
+            "+1 armour against attack actions from melee weapons"
+          ]
+        }
+      ]
+    },
+    {
+      "profile": {
+        "name": "Skeletal Husk",
+        "affinity": "Bone",
+        "hp": 10,
+        "actionPoints": 2,
+        "move": 3,
+        "violence": 6,
+        "ranged": 7,
+        "keywords": [
+          "Husk"
+        ],
+        "obols": 50
+      },
+      "weapons": [
+        {
+          "name": "Polearm 1h",
+          "attacks": 3,
+          "damageGlance": 1,
+          "damageHit": 3,
+          "range": 2,
+          "obols": 10
+        }
+      ],
+      "armour": [
+        {
+          "name": "Light Armour",
+          "armour": 1,
+          "obols": 20
+        }
+      ]
+    },
+    {
+      "profile": {
+        "name": "Skeletal Husk",
+        "affinity": "Bone",
+        "hp": 10,
+        "actionPoints": 2,
+        "move": 3,
+        "violence": 6,
+        "ranged": 7,
+        "keywords": [
+          "Husk"
+        ],
+        "obols": 50
+      },
+      "weapons": [
+        {
+          "name": "Polearm 1h",
+          "attacks": 3,
+          "damageGlance": 1,
+          "damageHit": 3,
+          "range": 2,
+          "obols": 10
+        }
+      ],
+      "armour": [
+        {
+          "name": "Light Armour",
+          "armour": 1,
+          "obols": 20
+        }
+      ]
+    },
+    {
+      "profile": {
+        "name": "Necromantic Remnant",
+        "affinity": "Bone",
+        "hp": 6,
+        "actionPoints": 2,
+        "move": 3,
+        "violence": 9,
+        "ranged": 9,
+        "keywords": [
+          "Husk",
+          "Remnant"
+        ],
+        "obols": 35,
+        "special": [
+          {
+            "effect": "Necrotic Remnant cannot take 2h weapons apart from claws and fangs"
+          },
+          {
+            "name": "Bone Warrior"
+          },
+          {
+            "name": "Blood Warrior"
+          },
+          {
+            "name": "Plasm Warrior",
+            "effect": "If this model chooses the Plasm keyword it gains the fly keyword and -1hp."
+          }
+        ]
+      },
+      "traits": [
+        {
+          "name": "Acolyte",
+          "affinity": "Blood/Bone/Plasm",
+          "effect": "The model gains the following action. Chant, AP cost 2, the gathering receives additional mana dice of any type for its mana pool"
+        }
+      ],
+      "weapons": [
+        {
+          "name": "Claws/Fangs 2h",
+          "attacks": 3,
+          "damageGlance": 1,
+          "damageHit": 3,
+          "range": 1,
+          "obols": 5
+        }
+      ]
+    }
+  ]
+}

@@ -36,12 +36,12 @@
   <section class="tab" data-tab="import">
     <div class="row col">
       <p style="color:var(--muted); margin:0 0 6px;">
-        Paste a JSON export from the
+        Paste a JSON export or a share link from the
         <a href="https://necropolis28.vercel.app/" target="_blank" style="color:var(--accent)">Necropolis Companion App</a>.
         <strong>Load warband</strong> just reads the roster into the Warband tab;
         <strong>Load &amp; add cards to queue</strong> also queues every card it matched.
       </p>
-      <textarea id="json-in" class="json-in" placeholder='{"covenant": "…", "gathering": [...]}'></textarea>
+      <textarea id="json-in" class="json-in" placeholder='{"covenant": "…", "gathering": [...]}  or  https://necropolis28.vercel.app/gathering-creation?id=…'></textarea>
       <div style="display:flex; gap:8px;">
         <button class="primary" id="load-warband-btn">⚑ Load warband</button>
         <button class="secondary" id="parse-btn">Load &amp; add cards to queue</button>

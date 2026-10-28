@@ -18,8 +18,10 @@ the warband itself (per-model gear and costs, and the gathering's total).
 .
 ├── data/             YAML rows for every card category
 │   ├── _categories.yaml   Index — single source of truth
-│   └── app-glossary.yaml  Not a category: Spanish for Companion-App
-│                          text that has no card (see web/README.md)
+│   ├── app-glossary.yaml  Not a category: Spanish for Companion-App
+│   │                      text that has no card (see web/README.md)
+│   └── builder-rules.yaml Not a category: gathering, covenant and model-type
+│                          rules for the warband builder
 ├── templates/        SVG templates (63×88 mm) with {{KEY}} substitutions
 ├── assets/
 │   ├── images/alpha/      Card art (vendored from the rulebook)
@@ -28,6 +30,7 @@ the warband itself (per-model gear and costs, and the gathering's total).
 │   ├── bundle.py          Build script — writes data.json + templates/ + images/ + fonts/
 │   └── CNAME              Custom-domain marker for GitHub Pages
 ├── editor/           Local SVG editor (python3 editor/server.py)
+├── tests/            Builder tests (node --test tests/*.test.js, after bundle.py)
 ├── build.py          CLI to produce printable PDFs (Inkscape required)
 └── .github/workflows/pages.yml   Build + deploy to GitHub Pages on push to main
 ```

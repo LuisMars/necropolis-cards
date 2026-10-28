@@ -6,7 +6,8 @@ printable A4 sheets of the matching cards from this repo's library.
 
 Four tabs:
 
-1. **Import** — paste the Companion App's JSON. **Load warband** only reads
+1. **Import** — paste the Companion App's JSON or a share link (each import is
+   also saved as a builder gathering). **Load warband** only reads
    the roster into the Warband tab; **Load & add cards to queue** also matches
    each trait / spell / weapon / armour / model profile against our card
    data and appends the hits to the print queue. Per-model `modelName` and
@@ -107,7 +108,7 @@ web/
     ├── state.js            # global state + localStorage queue
     ├── data.js             # fetches data.json + templates, builds the name index
     ├── matching.js         # normName + findCard + keyHintFromSource
-    ├── import.js           # JSON import tab + match list
+    ├── import.js           # import tab (app JSON or share link) + match list
     ├── warband.js          # warband tab: roster model + A4 roster sheets
     ├── icons.js            # roster glyphs (obol, AP, attacks, HP, …)
     ├── i18n.js             # card/roster language: label maps + field picker
@@ -115,8 +116,19 @@ web/
     ├── print.js            # print tab + queue editor + sheet rendering
     ├── templates.js        # {{KEY}} + BODY_BLOCK substitution into inline SVG
     ├── sample.js           # the "Load sample" payload
-    └── util.js             # escapeHtml, $ helper
+    ├── util.js             # escapeHtml, $ helper
+    └── builder/            # warband builder — pure modules, no DOM
+        ├── catalog.js      # rows by stable key ("melee-weapons/blade") and app ID
+        ├── gathering.js    # the builder's save format
+        ├── rules.js        # costs, effective stats, rule warnings
+        ├── codec.js        # Companion App share links
+        ├── appjson.js      # Companion App JSON export ↔ gathering
+        └── store.js        # saved gatherings in localStorage
 ```
+
+The builder modules take the bundle as an argument and never touch the
+page, so `tests/` runs them under Node (`python3 web/bundle.py && node
+--test tests/*.test.js`; CI runs the same before each deploy).
 
 No build step, no framework — every file is loaded as an ES module by
 the browser at runtime.
