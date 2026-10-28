@@ -323,9 +323,9 @@ export function renderBuilder() {
 }
 
 function viewSwitchHtml() {
-  const b = (v) => `<button type="button" class="${view === v ? "primary" : "secondary"}" data-act="view" data-view="${v}">` +
+  const b = (v) => `<button type="button" class="secondary" data-act="view" data-view="${v}" aria-pressed="${view === v}">` +
     `${esc(L(v === "campaign" ? "viewCampaign" : "viewGathering"))}</button>`;
-  return `<div class="bd-views">${b("gathering")}${b("campaign")}</div>`;
+  return `<div class="bd-views" role="group" aria-label="Builder workspace">${b("gathering")}${b("campaign")}</div>`;
 }
 
 function headHtml(g) {
@@ -383,7 +383,7 @@ function summaryHtml(g, ev) {
 
 function warningsHtml(ws) {
   if (!ws.length) return "";
-  return `<ul class="bd-warn">${ws.map(w => `<li>${esc(describe(w, catalog(), lang()))}</li>`).join("")}</ul>`;
+  return `<ul class="bd-warn" aria-label="Rule warnings">${ws.map(w => `<li>⚠ ${esc(describe(w, catalog(), lang()))}</li>`).join("")}</ul>`;
 }
 
 /**
@@ -430,8 +430,20 @@ function modelHtml(g, m, e, idx) {
     const key = `${cat}/${slug(r.name)}`;
     return `<option value="${esc(key)}"${key === m.profile ? " selected" : ""}>${esc(pickField(r, "name", lang()))}</option>`;
   }).join("");
-  const affs = allowedAffinities(m.profile).map(a =>
-    `<option value="${a}"${a === m.affinity ? " selected" : ""}>${esc(L(a))}</option>`).join("");
+  // Short choices are visible radios, not a dropdown. Inputs keep the
+  // existing data-act=m-aff change handler and keyboard semantics intact.
+  const affChoices = [null, ...allowedAffinities(m.profile)];
+  const affinityHtml = `<fieldset class="bd-affinity-control"><legend>${esc(L("affinity"))}</legend>` +
+    affChoices.map(a => {
+      const val = a || "";
+      const text = a ? esc(L(a)) : "—";
+      const title = a ? esc(L(a)) : esc(L("chooseAffinity"));
+      const chosen = (m.affinity || "") === val;
+      return `<label class="bd-affinity-option" title="${title}">` +
+        `<input type="radio" name="aff-${uid}" value="${esc(val)}" data-act="m-aff" data-uid="${uid}" ` +
+        `data-fid="${uid}-aff-${esc(val || "none")}" aria-label="${title}"${chosen ? " checked" : ""}>` +
+        `<span>${text}</span></label>`;
+    }).join("") + `</fieldset>`;
   const stats = [
     [L("ap"), e.stats.ap], [L("move"), e.stats.move], [L("violence"), target(e.stats.violence)],
     [L("ranged"), target(e.stats.ranged)], [L("hp"), e.stats.hp],
@@ -460,9 +472,7 @@ function modelHtml(g, m, e, idx) {
           <optgroup label="${esc(L("leaders"))}">${profiles("leaders")}</optgroup>
           <optgroup label="${esc(L("minions"))}">${profiles("minions")}</optgroup>
         </select>`}
-        <select data-act="m-aff" data-uid="${uid}" data-fid="${uid}-aff" title="${esc(L("affinity"))}">
-          <option value="">${esc(L("chooseAffinity"))}</option>${affs}
-        </select>
+        ${affinityHtml}
         <span class="wb-chip accent"><b>${e.cost}</b> ${esc(L("obols"))}${sw
           ? ` · ${Number(swRow.deploy_obols) || 0} ${esc(L("deployCost"))}` : ""}</span>
         <span class="spacer"></span>
