@@ -4,6 +4,9 @@
 
 - name: Wardart
   name_es: Dardo de Guerra
+  app_id: ewt0
+  obols: 5
+  hands: 1
   category: Thrown · 1-handed
   category_es: Arrojadiza · 1 mano
   cost: 5 obols
@@ -18,6 +21,9 @@
 
 - name: Throwing Axe or Mallet
   name_es: Hacha Arrojadiza
+  app_id: ewt1
+  obols: 5
+  hands: 1
   category: Thrown · 1-handed
   category_es: Arrojadiza · 1 mano
   cost: 5 obols

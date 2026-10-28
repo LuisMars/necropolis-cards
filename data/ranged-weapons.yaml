@@ -5,6 +5,9 @@
 
 - name: Sling
   name_es: Honda
+  app_id: ewr0
+  obols: 10
+  hands: 2
   category: Ranged · 2-handed
   category_es: A Distancia · 2 manos
   cost: 10 obols
@@ -18,6 +21,9 @@
   special_es: —
 - name: Bow
   name_es: Arco
+  app_id: ewr1
+  obols: 30
+  hands: 2
   category: Ranged · 2-handed
   category_es: A Distancia · 2 manos
   cost: 30 obols
@@ -31,6 +37,9 @@
   special_es: Solo se puede realizar una acción de ataque por activación. Alternativamente puede disparar Alc 6, At 2, Da 1/3.
 - name: Crossbow
   name_es: Ballesta
+  app_id: ewr2
+  obols: 40
+  hands: 2
   category: Ranged · 2-handed
   category_es: A Distancia · 2 manos
   cost: 40 obols

@@ -180,6 +180,7 @@ def main():
         "categories": {},      # {key: {title, template, header, group, rows: [...]}}
         "templates": {},       # {template_stem: "templates/<stem>.svg"} (path on web)
         "glossary": {},        # Companion-App text with no card of its own
+        "builder": {},         # warband-builder rules (data/builder-rules.yaml)
     }
 
     # The glossary is not a category on purpose: it never reaches the Library,
@@ -189,6 +190,13 @@ def main():
         bundle["glossary"] = yaml.safe_load(glossary_path.read_text(encoding="utf-8")) or {}
         n = sum(len(v) for v in bundle["glossary"].values() if isinstance(v, list))
         print(f"  glossary: {n} entries")
+
+    # Same for the builder rules: gathering, covenant and model-type rules the
+    # Builder tab checks, with no card of their own.
+    rules_path = DATA_DIR / "builder-rules.yaml"
+    if rules_path.exists():
+        bundle["builder"] = yaml.safe_load(rules_path.read_text(encoding="utf-8")) or {}
+        print(f"  builder rules: {len(bundle['builder'].get('covenants') or [])} covenants")
 
     # Re-assemble groups for the tree view
     raw = yaml.safe_load((DATA_DIR / "_categories.yaml").read_text(encoding="utf-8"))

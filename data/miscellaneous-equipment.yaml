@@ -2,6 +2,8 @@
 
 - name: Rope and Hook
   name_es: Cuerda y Gancho
+  app_id: ei0
+  obols: 5
   category: Miscellaneous Equipment
   category_es: Equipo Miscelaneo
   cost: 5 obols
@@ -17,6 +19,8 @@
     '
 - name: Banner
   name_es: Estandarte
+  app_id: ei1
+  obols: 20
   category: Miscellaneous Equipment
   category_es: Equipo Miscelaneo
   cost: 20 obols
@@ -32,6 +36,8 @@
     '
 - name: Musical Instrument
   name_es: Instrumento Musical
+  app_id: ei2
+  obols: 20
   category: Miscellaneous Equipment
   category_es: Equipo Miscelaneo
   cost: 20 obols

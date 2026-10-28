@@ -1,0 +1,167 @@
+# Warband builder rules — WIP Necropolis Rules 0.9.
+#
+# NOT a card category: deliberately absent from _categories.yaml, so it makes
+# no Library tile and no card. bundle.py ships it under data.json's `builder`
+# key for the Builder (web/js/builder/). The per-item rules (cost, hands,
+# trait requirements and stat modifiers) live on the card rows themselves as
+# `obols`, `hands`, `slot`, `requires` and `modifiers`; this file holds what
+# belongs to a gathering, a covenant or a model type rather than to one card.
+#
+# References use row keys: "<category>/<slug of the English name>", e.g.
+# "melee-weapons/claws-and-fangs". A trailing "/*" means the whole category.
+#
+# `app_id` values are the Companion App's share-link IDs, read from its
+# deployed JavaScript on 2026-10-28. They are positions in the app's own
+# lists, so a new app release may renumber them.
+
+# p.17 Gathering Creation, p.65 Campaign
+gathering:
+  starting_obols: 300
+  deployment_limit: 350
+  max_deployment_limit: 500
+  leader_max_traits: 3
+  minion_max_traits: 1
+  max_equipment: 1          # p.41: each model may only have 1 piece of misc equipment
+
+# p.65: improvement limits for individual models
+improvement_caps: { ap: 1, move: 2, violence: 2, ranged: 2, hp: 5 }
+
+# p.66-68: treasures each model may carry (Beast minions carry none)
+carry_limits:
+  leader: { minor: 3, greater: 2 }
+  minion: { minor: 2, greater: 1 }
+  beast:  { minor: 0, greater: 0 }
+
+# p.29: the leader's chosen keyword
+leader_affinity_mods:
+  bone:  { violence: 1 }
+  blood: { hp: 2 }
+  plasm: { hp: -2, keywords: [Fly], forbid: [armours/heavy-armour] }
+
+# p.17-23. `keywords_any`: every model needs one of these keywords.
+# `traits`: how many models may take the covenant trait or a Wretched Undead
+# trait (Wretched Undead: 2 traits from its list, no covenant traits).
+covenants:
+  - key: covenants/embalmed-hands
+    app_id: c0
+    app_name: Embalmed Hands, Scions of the Rotten Goddess
+    keywords_any: [Blood]
+    leader_trait: covenant-leader-traits/chosen-of-the-hands
+    trait: covenant-wretched-traits/march-of-the-hands
+    traits: 1
+  - key: covenants/cairn-born
+    app_id: c1
+    app_name: Cairn-born, Faithful of the First Grandlich
+    keywords_any: [Bone]
+    leader_trait: covenant-leader-traits/osseous-sacrifice
+    trait: covenant-wretched-traits/adamant-structure
+    traits: 1
+  - key: covenants/the-crescent-of-mourn
+    app_id: c2
+    app_name: The Crescent of Mourn, Spectres of the Doomed Child
+    keywords_any: [Plasm]
+    leader_trait: covenant-leader-traits/moonlight-flit
+    trait: covenant-wretched-traits/mournful-curse
+    traits: 1
+  - key: covenants/recusant-maleficar
+    app_id: c3
+    app_name: Recusant Maleficar, Adherents of the Curse Path
+    leader_types: [leaders/lich]
+    spell_schools: [NECROMANCY]   # initial spells only; others can be gained in a campaign
+    leader_trait: covenant-leader-traits/erudite
+    trait: covenant-wretched-traits/apprentice
+    traits: 1
+  - key: wretched-undead
+    app_id: c4
+    app_name: Wretched Undead, The Lost, Abandoned and Forgotten
+    name: Wretched Undead
+    name_es: No Muertos Miserables
+    traits: 2
+  - key: covenants/crawling-dark
+    app_id: c5
+    app_name: Swarms of the Hintertombs
+    keywords_any: [Leader, Beast, Remnant]
+    leader_trait: covenant-leader-traits/crawling-lord
+    trait: covenant-wretched-traits/eternal-loyalty
+    traits: 1
+
+# p.29-30. Every leader gains Summon, chooses `spells` more, splits
+# `mana_points` between Blood/Bone/Plasm and chooses 1 Basic Leader Trait.
+leaders:
+  leaders/lich:
+    keywords: [Leader]
+    mana_points: 4
+    spells: 3
+    forbid: [armours/heavy-armour, armours/shield, armours/great-shield]
+  leaders/revenant:
+    keywords: [Leader]
+    mana_points: 3
+    spells: 1
+    max_spells: 4             # Fighter: never more than 4 spells (incl. Summon)
+    max_mana: 4               # ... and 4 mana points
+  leaders/ascended-undead:
+    keywords: [Leader, Colossal]
+    mana_points: 5
+    spells: 3
+    weapons_only: [colossal-weapons/*]
+
+# p.32-35. `affinity`: the keyword the model has, or the ones it may choose.
+# `affinity_mods`: stat changes for a chosen keyword (Husk variants come with
+# theirs already applied on the card). `forbid` / `weapons_only` / `except`:
+# gear rules, as row keys or "hands:2" for every two-handed weapon.
+minions:
+  minions/corpse-husk:
+    keywords: [Husk]
+    affinity: [blood]
+  minions/skeletal-husk:
+    keywords: [Husk]
+    affinity: [bone]
+  minions/ghast-husk:
+    keywords: [Husk, Fly]
+    affinity: [plasm]
+    forbid: [armours/heavy-armour]
+  minions/familiar:
+    keywords: [Fly, Beast, Familiar]
+    affinity: [blood, bone, plasm]
+    weapons_only: [melee-weapons/claws-and-fangs]
+    forbid: [armours/*]
+    unique: true
+  minions/aberrant-husk:
+    keywords: [Husk]
+    affinity: [blood, bone, plasm]
+    affinity_mods:
+      bone:  { violence: 1 }
+      blood: { hp: 2 }
+      plasm: { hp: -2, keywords: [Fly], forbid: [armours/heavy-armour] }
+  minions/necromantic-remnant:
+    keywords: [Beast, Husk, Remnant]
+    affinity: [blood, bone, plasm]
+    affinity_mods:
+      plasm: { hp: -1, keywords: [Fly] }
+    forbid: [hands:2]
+    except: [melee-weapons/claws-and-fangs]
+  minions/small-beast:
+    keywords: [Beast]
+    affinity: [blood, bone, plasm]
+    affinity_mods:
+      plasm: { hp: -2, keywords: [Fly] }
+    weapons_only: [melee-weapons/claws-and-fangs]
+    forbid: [armours/heavy-armour, armours/shield, armours/great-shield]
+  minions/flying-beast:
+    keywords: [Beast, Fly]
+    affinity: [blood, bone]
+    weapons_only: [melee-weapons/claws-and-fangs]
+    forbid: [armours/*]
+  minions/large-beast:
+    keywords: [Beast]
+    affinity: [blood, bone]
+    weapons_only: [melee-weapons/claws-and-fangs, melee-weapons/large-claws]
+    forbid: [armours/shield, armours/great-shield]
+    unique: true
+  minions/gigantic-horror:
+    keywords: [Colossal]
+    affinity: [blood, bone, plasm]
+    affinity_mods:
+      plasm: { hp: -2, keywords: [Fly], forbid: [armours/heavy-armour] }
+    weapons_only: [colossal-weapons/*]
+    unique: true

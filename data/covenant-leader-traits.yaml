@@ -9,6 +9,8 @@
   category_es: RASGO DE LÍDER DE PACTO
   name: Chosen of the Hands
   name_es: Elegido de las Manos
+  app_id: tc0
+  requires: { keywords: [Leader], affinity: [Blood] }
   restrictions: Embalmed Hands · Leader · Blood
   restrictions_es: Manos Embalsamadas · Líder · Sangre
   sigil: ""
@@ -25,6 +27,8 @@
   category_es: RASGO DE LÍDER DE PACTO
   name: Osseous Sacrifice
   name_es: Sacrificio Óseo
+  app_id: tc2
+  requires: { keywords: [Leader], affinity: [Bone] }
   restrictions: Cairn-born · Leader · Bone
   restrictions_es: Nacidos del Túmulo · Líder · Hueso
   sigil: ""
@@ -41,6 +45,8 @@
   category_es: RASGO DE LÍDER DE PACTO
   name: Moonlight Flit
   name_es: Revoloteo bajo la luz de la luna
+  app_id: tc4
+  requires: { keywords: [Leader], affinity: [Plasm] }
   restrictions: The Crescent of Mourn · Leader · Plasm
   restrictions_es: El Lamento de la Luna Creciente · Líder · Plasma
   sigil: ""
@@ -57,6 +63,8 @@
   category_es: RASGO DE LÍDER DE PACTO
   name: Erudite
   name_es: Erudito
+  app_id: tc6
+  requires: { keywords: [Leader] }
   restrictions: Recusant Maleficar · Leader
   restrictions_es: Recusantes Malignos · Líder
   sigil: ""
@@ -73,6 +81,8 @@
   category_es: RASGO DE LÍDER DE PACTO
   name: Crawling Lord
   name_es: Señor de la Oscuridad Reptante
+  app_id: tc8
+  requires: { keywords: [Leader] }
   restrictions: Crawling-Dark · Leader
   restrictions_es: Oscuridad Reptante · Líder
   sigil: ""

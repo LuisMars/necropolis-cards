@@ -5,6 +5,9 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Unyielding Will
   name_es: Voluntad Inquebrantable
+  app_id: tb0
+  requires: { keywords: [Leader] }
+  modifiers: { hp: 2 }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -17,6 +20,9 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Combatant
   name_es: Combatiente
+  app_id: tb1
+  requires: { keywords: [Leader] }
+  modifiers: { violence: 1 }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -29,6 +35,9 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Perceptive
   name_es: Perspicaz
+  app_id: tb2
+  requires: { keywords: [Leader] }
+  modifiers: { ranged: 1 }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -41,6 +50,9 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Celerity
   name_es: Celeridad
+  app_id: tb3
+  requires: { keywords: [Leader] }
+  modifiers: { move: 1 }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -53,6 +65,8 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Stalwart
   name_es: Firme
+  app_id: tb4
+  requires: { keywords: [Leader] }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -65,6 +79,9 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Sorcerous Talent
   name_es: Talento hechicero
+  app_id: tb5
+  requires: { keywords: [Leader] }
+  modifiers: { mana: 1 }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -77,6 +94,9 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Studious
   name_es: Estudioso
+  app_id: tb6
+  requires: { keywords: [Leader] }
+  modifiers: { spells: 1 }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -89,6 +109,8 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Regenerating Soul
   name_es: Alma regenerativa
+  app_id: tb7
+  requires: { keywords: [Leader] }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -101,6 +123,8 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Spirit Syphon
   name_es: Sifón de espíritus
+  app_id: tb8
+  requires: { keywords: [Leader] }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""
@@ -113,6 +137,9 @@
   category_es: RASGO BÁSICO DE LÍDER
   name: Miserly
   name_es: Miserable
+  app_id: tb9
+  requires: { keywords: [Leader] }
+  modifiers: { obols: 50 }
   restrictions: Leader
   restrictions_es: Líder
   sigil: ""

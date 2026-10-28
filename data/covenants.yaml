@@ -1,5 +1,6 @@
 - name: Embalmed Hands
   name_es: Manos Embalsamadas
+  app_id: c0
   category: COVENANT
   category_es: PACTO
   restrictions: Scions of the Rotten Goddess · Blood keyword only
@@ -15,6 +16,7 @@
 
 - name: Cairn-born
   name_es: Nacidos del Túmulo
+  app_id: c1
   category: COVENANT
   category_es: PACTO
   restrictions: Faithful of the First Grandlich · Bone keyword only
@@ -30,6 +32,7 @@
 
 - name: The Crescent of Mourn
   name_es: El Lamento de la Luna Creciente
+  app_id: c2
   category: COVENANT
   category_es: PACTO
   restrictions: Spectres of the Doomed Child · Plasm keyword only
@@ -45,6 +48,7 @@
 
 - name: Recusant Maleficar
   name_es: Recusantes Malignos
+  app_id: c3
   category: COVENANT
   category_es: PACTO
   restrictions: Adherents of the Curse Path · Lich leader · starts with Necromancy spells only
@@ -60,6 +64,7 @@
 
 - name: Crawling-Dark
   name_es: Oscuridad Reptante
+  app_id: c5
   category: COVENANT
   category_es: PACTO
   restrictions: Swarms of the Hintertombs · Leader, Beast, or Remnant keyword only

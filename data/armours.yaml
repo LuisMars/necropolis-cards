@@ -2,6 +2,9 @@
 
 - name: Light Armour
   name_es: Armadura Ligera
+  app_id: ea0
+  obols: 20
+  slot: body
   category: Armour
   category_es: Armadura
   cost: 20 obols
@@ -12,6 +15,9 @@
   effect: —
 - name: Heavy Armour
   name_es: Armadura Pesada
+  app_id: ea1
+  obols: 50
+  slot: body
   category: Armour
   category_es: Armadura
   cost: 50 obols
@@ -22,6 +28,9 @@
   effect: —
 - name: Shield
   name_es: Escudo
+  app_id: ea2
+  obols: 10
+  slot: shield
   category: Shield · requires 1-handed weapon
   category_es: Escudo · requiere arma a 1 mano
   cost: 10 obols
@@ -32,6 +41,9 @@
   effect: —
 - name: Great Shield
   name_es: Escudo grande
+  app_id: ea3
+  obols: 20
+  slot: shield
   category: Shield · requires 1-handed weapon
   category_es: Escudo · requiere arma a 1 mano
   cost: 20 obols
