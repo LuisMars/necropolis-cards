@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="design-v5.css">
 <link rel="stylesheet" href="design-palettes.css">
+<script src="js/design-palettes.js"></script>
   <style>
     /* Reference-page layout only. Production component rules live in design-v5.css. */
     .ds-shell{max-width:1420px;margin:auto;padding:24px 28px 100px}
@@ -92,7 +93,7 @@
     </nav>
     <label class="nc-theme-picker" for="nc-theme-select">Theme
   <select id="nc-theme-select" data-nc-palette-control aria-label="Appearance palette">
-    <option value="ink-bone">Ink &amp; Bone</option><option value="obsidian">Obsidian</option>
+    <option value="obsidian">Obsidian</option><option value="ink-bone">Ink &amp; Bone</option>
     <option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
   </select>
 </label>
@@ -292,7 +293,6 @@
     Reference only. This page does not edit saved gatherings. To apply a component, update the actual generator in the app and keep its existing rules, events and persistence. See <strong>docs/design-system/README.md</strong>.
   </footer>
 </main>
-<script src="js/design-palettes.js"></script>
 <script>
 (function(){
   var primary=document.getElementById('ds-primary');

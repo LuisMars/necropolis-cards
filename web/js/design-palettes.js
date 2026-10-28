@@ -3,10 +3,10 @@
   "use strict";
   const KEY = "necropolis-ui-palette-v56";
   const VALID = new Set(["ink-bone", "obsidian", "soft-ash", "slate"]);
-  let initial = "ink-bone";
+  let initial = "obsidian";
   try { const value = localStorage.getItem(KEY); if (VALID.has(value)) initial = value; } catch (_) {}
   const apply = (id, persist) => {
-    const value = VALID.has(id) ? id : "ink-bone";
+    const value = VALID.has(id) ? id : "obsidian";
     document.documentElement.dataset.ncPalette = value;
     document.querySelectorAll("[data-nc-palette-control]").forEach(control => {
       if (control.value !== value) control.value = value;
