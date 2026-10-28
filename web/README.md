@@ -18,7 +18,9 @@ Five tabs:
    picked or rolled on the p.42 table), leader (type, keyword, traits,
    spells, mana split) and minions (type, keyword, trait, weapons, armour,
    equipment). Costs and stats update as you go, and every rule a choice
-   breaks shows as a warning on its model rather than being blocked. From
+   breaks shows as a warning on its model rather than being blocked; the
+   warning count opens a summary of them all, grouped by model, each one
+   jumping to its model. From
    there a gathering opens in the Warband tab, queues its cards, copies its
    Companion App link, or downloads as the app's JSON or as a Builder
    backup. Saved gatherings live in the browser (localStorage).

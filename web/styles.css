@@ -432,6 +432,25 @@ textarea.json-in {
 .bd-mana label { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); }
 .bd-mana input { width: 4.2em; }
 .bd-add-model { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+.bd-chip-btn { cursor: pointer; font: inherit; font-size: 12px; }
+.bd-chip-btn:hover { background: var(--panel3); }
+.bd-sum {
+  list-style: none; margin: 0 0 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: 4px;
+}
+.bd-sum h4 { margin: 0 0 3px; font-size: 13px; color: #fff; }
+.bd-sum ul { list-style: none; margin: 0; padding: 0 0 0 10px; display: flex; flex-direction: column; gap: 2px; }
+.bd-sum li { font-size: 13px; color: var(--text); }
+.bd-sum button {
+  background: none; border: 0; padding: 0; color: var(--text); font: inherit; text-align: left; cursor: pointer;
+}
+.bd-sum button:hover { color: var(--accent); text-decoration: underline; }
+.bd-model { scroll-margin-top: 70px; }
+.bd-model.flash { animation: bd-flash 1.6s ease-out; }
+@keyframes bd-flash {
+  0%, 30% { box-shadow: 0 0 0 2px var(--warn); }
+  100% { box-shadow: 0 0 0 2px transparent; }
+}
 .bd-hint { color: var(--muted); font-size: 14px; }
 #wb-print-btn:disabled, #wb-clear-btn:disabled { opacity: 0.45; cursor: default; }
 

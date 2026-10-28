@@ -82,11 +82,12 @@ export function decodeLink(input, catalog) {
       else m.weapons.push(key);
     }
     if (!m.profile) continue;
-    // A covenant locked to one affinity sets it; so does a fixed-affinity type.
+    // A fixed-affinity type keeps its own (a Ghast Husk is always Plasm);
+    // otherwise a covenant locked to one affinity sets it.
     const fixed = catalog.profileRules(m.profile).affinity;
     const lock = (covRules?.keywords_any || []).map(k => k.toLowerCase()).filter(k => AFFINITIES.includes(k));
-    if (!m.affinity && lock.length === 1) m.affinity = lock[0];
     if (!m.affinity && fixed?.length === 1) m.affinity = fixed[0];
+    if (!m.affinity && lock.length === 1 && (fixed || AFFINITIES).includes(lock[0])) m.affinity = lock[0];
     if (!m.weapons.length) m.weapons.push(defaultWeapon(catalog, m.profile));
     g.models.push(m);
   }

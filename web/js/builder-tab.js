@@ -31,6 +31,7 @@ const $delBtn = $("bd-del");
 
 let hooks = {};
 let status = "";          // one line of feedback from the last action (HTML)
+let summaryOpen = false;  // the warning summary, opened from the count chip
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
@@ -187,6 +188,8 @@ function onClick(e) {
     case "link":       copyLink(g); break;
     case "export":     download(`${fileStem(g)}.json`, toAppJson(g, catalog())); break;
     case "backup":     download(`${fileStem(g)}-backup.json`, g); break;
+    case "summary":    summaryOpen = !summaryOpen; renderBuilder(); break;
+    case "goto":       gotoModel(uid); break;
   }
 }
 
@@ -270,7 +273,9 @@ export function renderBuilder() {
   $body.innerHTML =
     headHtml(g) +
     summaryHtml(g, ev) +
-    warningsHtml(ev.warnings.filter(w => !w.model)) +
+    (summaryOpen && ev.warnings.length
+      ? warningSummaryHtml(g, ev)
+      : warningsHtml(ev.warnings.filter(w => !w.model))) +
     g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") +
     addModelHtml(g);
 
@@ -310,7 +315,10 @@ function summaryHtml(g, ev) {
       <span class="wb-chip ${over ? "over" : "good"}">${spent}</span>
       <span class="wb-chip">${esc(L("deployment"))} <b>${ev.deploymentLimit}</b></span>
       <span class="wb-chip"><b>${g.models.length}</b> ${esc(L(g.models.length === 1 ? "model" : "models"))}</span>
-      <span class="wb-chip ${nWarn ? "over" : "good"}">${nWarn ? `<b>${nWarn}</b> ${esc(L(nWarn === 1 ? "warning" : "warnings"))}` : esc(L("noWarnings"))}</span>
+      ${nWarn
+        ? `<button type="button" class="wb-chip over bd-chip-btn" data-act="summary" aria-expanded="${summaryOpen}">` +
+          `<b>${nWarn}</b> ${esc(L(nWarn === 1 ? "warning" : "warnings"))} ${summaryOpen ? "▴" : "▾"}</button>`
+        : `<span class="wb-chip good">${esc(L("noWarnings"))}</span>`}
       <span class="spacer"></span>
       <button type="button" class="primary" data-act="roster">${esc(L("viewRoster"))}</button>
       <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>
@@ -324,6 +332,40 @@ function summaryHtml(g, ev) {
 function warningsHtml(ws) {
   if (!ws.length) return "";
   return `<ul class="bd-warn">${ws.map(w => `<li>${esc(describe(w, catalog(), lang()))}</li>`).join("")}</ul>`;
+}
+
+/**
+ * Every warning in one list: the gathering's own first, then each model's
+ * under its name. A model's entries jump to its card.
+ */
+function warningSummaryHtml(g, ev) {
+  const line = (w) => esc(describe(w, catalog(), lang()));
+  const own = ev.warnings.filter(w => !w.model);
+  const groups = [];
+  if (own.length) {
+    groups.push(`<li class="bd-sum-group"><h4>${esc(L("gathering"))}</h4><ul>` +
+      own.map(w => `<li>${line(w)}</li>`).join("") + `</ul></li>`);
+  }
+  g.models.forEach((m, i) => {
+    const ws = ev.models[i].warnings;
+    if (!ws.length) return;
+    const type = itemName(catalog(), m.profile, lang());
+    const title = m.name ? `${m.name} (${type})` : type;
+    groups.push(`<li class="bd-sum-group"><h4>${esc(title)}</h4><ul>` +
+      ws.map(w => `<li><button type="button" data-act="goto" data-uid="${esc(m.uid)}">${line(w)}</button></li>`).join("") +
+      `</ul></li>`);
+  });
+  return `<ul class="bd-sum">${groups.join("")}</ul>`;
+}
+
+/** Scroll a model's card into view and flash it. */
+function gotoModel(uid) {
+  const card = document.getElementById(`bd-model-${uid}`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: "smooth", block: "start" });
+  card.classList.remove("flash");
+  void card.offsetWidth;   // restart the animation
+  card.classList.add("flash");
 }
 
 /** "7+" for target numbers, "—" when the model has none. */
@@ -354,7 +396,7 @@ function modelHtml(g, m, e, idx) {
   ].join("");
 
   return `
-    <section class="bd-model${leader ? " leader" : ""}">
+    <section class="bd-model${leader ? " leader" : ""}" id="bd-model-${uid}">
       <div class="bd-model-head">
         <input type="text" data-act="m-name" data-uid="${uid}" data-fid="${uid}-name" value="${esc(m.name || "")}" placeholder="${esc(L("modelName"))}">
         <select data-act="m-profile" data-uid="${uid}" data-fid="${uid}-profile">

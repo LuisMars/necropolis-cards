@@ -57,6 +57,14 @@ test("covenant affinity lock fills a missing affinity", () => {
   assert.ok(g.models.every(m => m.affinity === "blood"));
 });
 
+test("a fixed-affinity model keeps its own, even against the covenant", () => {
+  // A Ghast Husk is always Plasm; in Embalmed Hands that's a covenant warning,
+  // not a Blood Ghast Husk.
+  const { gathering: g } = decodeLink("c0;pl0,tc0,tb5,sn0;pm2,ewm1;pm7,ewm8", catalog);
+  assert.equal(g.models[1].affinity, "plasm");
+  assert.equal(g.models[2].affinity, "blood");   // Flying Beast: Blood or Bone
+});
+
 test("reports IDs it doesn't know", () => {
   const { gathering: g, unknown } = decodeLink("c1;pl0,a1,zz9,tb0;pm1,ewm99", catalog);
   assert.deepEqual(unknown, ["zz9", "ewm99"]);
