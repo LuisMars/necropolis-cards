@@ -21,13 +21,26 @@ export function ensureCampaign(g, catalog = null) {
   g.lair ||= { name: "", upgrades: [] };
   g.lair.upgrades ||= [];
   g.ambitions = { active: [], progress: {}, completed: 0, greaterClaimed: 0, log: [], ...(g.ambitions || {}) };
-  g.campaign = { opponentLimit: null, freeRabbleUsed: false, ...(g.campaign || {}) };
+  g.campaign = { opponentHigher: false, freeRabbleUsed: false, transactions: [], ...(g.campaign || {}) };
+  g.campaign.transactions ||= [];
   g.history ||= [];
   // Pre-ledger saves: bare improvement numbers and maladies become entries.
   for (const m of g.models || []) migrateModel(m, catalog?.rules || {});
   for (const [i, e] of (g.ambitions.log || []).entries()) e.id ||= `a${i + 1}`;
   return g;
 }
+
+/**
+ * Record a purchase or sale. They collect here until the next battle is
+ * logged, which takes them into its entry, so every change to the
+ * treasury between two battles can be traced.
+ *   { type, item?, uid?, obols }   obols signed: - spent, + received
+ */
+export function record(g, type, { item = null, uid = null, obols = 0 } = {}) {
+  ensureCampaign(g);
+  g.campaign.transactions.push({ type, item, uid, obols: Number(obols) || 0 });
+}
+const pay = (g, n) => { g.treasury = (Number(g.treasury) || 0) + n; };
 
 /**
  * Start the campaign: the obols left from the 300 become the treasury.
@@ -47,7 +60,9 @@ export function buyUpgrade(g, key, catalog) {
   ensureCampaign(g, catalog);
   if (g.lair.upgrades.includes(key)) return false;
   g.lair.upgrades.push(key);
-  g.treasury = (Number(g.treasury) || 0) - (Number(catalog.row(key)?.obols) || 0);
+  const cost = Number(catalog.row(key)?.obols) || 0;
+  pay(g, -cost);
+  record(g, "upgrade", { item: key, obols: -cost });
   return true;
 }
 
@@ -57,7 +72,9 @@ export function refundUpgrade(g, key, catalog) {
   const i = g.lair.upgrades.indexOf(key);
   if (i < 0) return false;
   g.lair.upgrades.splice(i, 1);
-  g.treasury = (Number(g.treasury) || 0) + (Number(catalog.row(key)?.obols) || 0);
+  const cost = Number(catalog.row(key)?.obols) || 0;
+  pay(g, cost);
+  record(g, "upgrade-undo", { item: key, obols: cost });
   return true;
 }
 
@@ -209,11 +226,9 @@ export const isTreasure = (catalog, key) => treasureKind(catalog, key) != null;
 
 /* ---- sellswords (p.74) ----------------------------------------------------- */
 
-/** Is the opponent's deployment limit 100+ higher than ours? */
-export function freeSellsword(g, catalog) {
-  const opp = Number(g.campaign?.opponentLimit);
-  if (!opp) return false;
-  return opp >= evaluate(g, catalog).deploymentLimit + 100;
+/** Has the player ticked that the opponent's deployment limit is 100+ higher? */
+export function freeSellsword(g) {
+  return !!g.campaign?.opponentHigher;
 }
 
 /**
@@ -226,8 +241,10 @@ export function hireSellsword(g, key, catalog, { free = false } = {}) {
   const m = newModel(g, { profile: key, status: "reserve",
     affinity: (rules.affinity || []).length === 1 ? rules.affinity[0] : null });
   g.models.push(m);
+  const cost = free ? 0 : Number(catalog.row(key)?.obols) || 0;
   if (free) g.campaign.freeRabbleUsed = true;
-  else g.treasury = (Number(g.treasury) || 0) - (Number(catalog.row(key)?.obols) || 0);
+  pay(g, -cost);
+  record(g, free ? "hire-free" : "hire", { item: key, uid: m.uid, obols: -cost });
   return m;
 }
 
@@ -245,6 +262,7 @@ export function addBattle(g, entry, catalog) {
     result: entry.result || null,          // "win" | "loss" | "draw"
     obols: Number(entry.obols) || 0,
     notes: entry.notes || "",
+    transactions: takeTransactions(g),
   });
   g.treasury += Number(entry.obols) || 0;
 }
@@ -382,7 +400,8 @@ export function buyGear(g, catalog, uid, list, key) {
   if (list === "weapons" && m.weapons.length === 1 && /improvised-weapon$/.test(m.weapons[0]) &&
       categoryOf(key) !== "thrown-weapons") m.weapons = [];
   m[list].push(key);
-  g.treasury = (Number(g.treasury) || 0) - cost;
+  pay(g, -cost);
+  record(g, "buy", { item: key, uid, obols: -cost });
   return cost;
 }
 
@@ -392,7 +411,9 @@ export function recruit(g, catalog, key, defaultWeapon) {
   const m = newModel(g, { profile: key, weapons: [defaultWeapon],
     affinity: (rules.affinity || []).length === 1 ? rules.affinity[0] : null });
   g.models.push(m);
-  g.treasury = (Number(g.treasury) || 0) - price(catalog.row(key));
+  const cost = price(catalog.row(key));
+  pay(g, -cost);
+  record(g, "recruit", { item: key, uid: m.uid, obols: -cost });
   return m;
 }
 
@@ -406,7 +427,8 @@ export function sellGear(g, catalog, uid, list, index) {
   // A model always has at least its free Improvised Weapon.
   if (list === "weapons" && !m.weapons.length) m.weapons.push(defaultWeapon(catalog, m.profile));
   const v = sellValue(catalog, key);
-  g.treasury = (Number(g.treasury) || 0) + v;
+  pay(g, v);
+  record(g, "sell", { item: key, uid, obols: v });
   return v;
 }
 
@@ -417,7 +439,8 @@ export function sellTreasure(g, catalog, from, index) {
   if (!key) return 0;
   const b = catalog.rules.bazaar || {};
   const v = treasureKind(catalog, key) === "greater" ? b.sell_greater_treasure ?? 50 : b.sell_minor_treasure ?? 10;
-  g.treasury = (Number(g.treasury) || 0) + v;
+  pay(g, v);
+  record(g, "sell", { item: key, uid: from, obols: v });
   return v;
 }
 
@@ -425,18 +448,23 @@ export function sellTreasure(g, catalog, from, index) {
 export function soulBinder(g, catalog, uid, ref) {
   const m = g.models.find(x => x.uid === uid);
   if (!maladiesOf(m, catalog.rules).some(x => x.ref === ref)) return false;
+  const key = maladiesOf(m, catalog.rules).find(x => x.ref === ref).key;
   removeRef(m, ref);
-  g.treasury = (Number(g.treasury) || 0) - (catalog.rules.bazaar?.soul_binder ?? 50);
+  const cost = catalog.rules.bazaar?.soul_binder ?? 50;
+  pay(g, -cost);
+  record(g, "soul-binder", { item: key, uid, obols: -cost });
   return true;
 }
 
 /** Tomb Robber: once per gathering, pay 30 for the minor treasure rolled. */
-export function tombRobber(g, catalog, key, { pay = true, to = null } = {}) {
+export function tombRobber(g, catalog, key, { pay: buy = true, to = null } = {}) {
   ensureCampaign(g, catalog);
   if (g.campaign.tombRobberUsed) return false;
   g.campaign.tombRobberUsed = true;
-  if (!pay) return false;
-  g.treasury = (Number(g.treasury) || 0) - (catalog.rules.bazaar?.tomb_robber ?? 30);
+  if (!buy) return false;
+  const cost = catalog.rules.bazaar?.tomb_robber ?? 30;
+  g.treasury = (Number(g.treasury) || 0) - cost;
+  record(g, "tomb-robber", { item: key, uid: to, obols: -cost });
   giveTreasure(g, key, to);
   return true;
 }
@@ -448,7 +476,9 @@ export function buyAlchemy(g, catalog, key, to = null) {
   const a = ab(g);
   if (a.alchemyBought || !hasAlchemy(g, catalog)) return false;
   a.alchemyBought = true;
-  g.treasury = (Number(g.treasury) || 0) - price(catalog.row(key));
+  const cost = price(catalog.row(key));
+  pay(g, -cost);
+  record(g, "alchemy", { item: key, uid: to, obols: -cost });
   giveTreasure(g, key, to);
   return true;
 }
@@ -464,12 +494,20 @@ export function rollScenarioPart(catalog, part, rng = Math.random) {
   return `${part}/${slug(rows.at(d(n, rng) - 1)?.name)}`;
 }
 
+/** The purchases and sales since the last battle, handed to its log entry. */
+function takeTransactions(g) {
+  const t = g.campaign?.transactions || [];
+  if (g.campaign) g.campaign.transactions = [];
+  return t;
+}
+
 /** Finish: log the battle (its obols are already in the treasury). */
 export function finishAfterBattle(g, nextScenario = null) {
   const a = ab(g);
   g.history.push({
     date: a.battle.date, environment: a.battle.environment, mission: a.battle.mission,
     omen: a.battle.omen, result: a.battle.result, obols: a.obols, notes: a.battle.notes,
+    transactions: takeTransactions(g),
   });
   g.campaign.nextScenario = nextScenario;
   delete g.campaign.afterBattle;

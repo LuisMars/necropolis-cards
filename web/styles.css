@@ -534,6 +534,13 @@ textarea.json-in {
 .bd-plain { margin: 2px 0 6px; padding-left: 18px; font-size: 13px; }
 .bd-plain li { margin: 2px 0; }
 .bd-plain button { padding: 1px 8px; margin-left: 6px; font-size: 12px; }
+.bd-tx { list-style: none; margin: 2px 0 6px; padding: 0; font-size: 12px; }
+.bd-tx li { display: flex; gap: 6px; align-items: baseline; }
+.bd-tx li span { color: var(--muted); }
+.bd-tx li b { margin-left: auto; }
+.bd-tx b.down { color: var(--bad); }
+.bd-tx b.up { color: var(--good); }
+.bd-tx-row td { padding-top: 0 !important; border-bottom-style: dashed !important; }
 /* Roster: stats the campaign changed */
 .wb-delta { font-size: 0.55em; margin-left: 1px; vertical-align: super; }
 .wb-delta.up { color: #2e7d32; }

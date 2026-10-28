@@ -23,6 +23,8 @@ import { linkUrl, defaultWeapon } from "./builder/codec.js";
 import { categoryOf, slug, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./builder/catalog.js";
 import { describe, label, itemName } from "./builder/messages.js";
 import { campaignHtml, campaignChange, campaignClick } from "./builder-campaign.js";
+import { buyGear, sellGear, recruit, record } from "./builder/campaign.js";
+import { campaignStarted } from "./builder/rules.js";
 import { afterBattleHtml, afterBattleChange, afterBattleClick } from "./builder-afterbattle.js";
 
 const $pick   = $("bd-pick");
@@ -140,6 +142,8 @@ function changeProfile(g, m, key) {
   if (m.weapons.length === 1 && /improvised-weapon$/.test(m.weapons[0])) m.weapons = [defaultWeapon(catalog(), key)];
 }
 
+const GEAR = ["weapons", "armour", "equipment"];
+
 function addItem(m, list, key) {
   // The free Improvised Weapon is only there because a model needs a
   // weapon: a real one takes its place.
@@ -162,11 +166,22 @@ function onChange_(e) {
       case "covenant":   setCovenant(g, v); break;
       case "lair-name":  g.lair = { ...g.lair, name: v.trim() }; break;
       case "lair-pick":  if (v) g.lair = { ...g.lair, name: lairName(Number(v)) }; break;
-      case "add-model":  if (v) addModel(g, v); break;
+      case "add-model":
+        if (!v) break;
+        // In a campaign a new minion is recruited at the Bazaar price (p.72).
+        if (campaignStarted(g) && categoryOf(v) === "minions") recruit(g, catalog(), v, defaultWeapon(catalog(), v));
+        else addModel(g, v);
+        break;
       case "m-name":     m.name = v.trim(); break;
       case "m-profile":  changeProfile(g, m, v); break;
       case "m-aff":      m.affinity = v || null; break;
-      case "m-add":      if (v) addItem(m, list, v); break;
+      case "m-add":
+        if (!v) break;
+        // In a campaign gear is bought at the Bazaar price (p.72); traits
+        // and spells come from rewards, not the treasury.
+        if (campaignStarted(g) && GEAR.includes(list)) buyGear(g, catalog(), m.uid, list, v);
+        else addItem(m, list, v);
+        break;
       case "m-mana":     m.mana = { ...m.mana, [aff]: Math.max(0, parseInt(v, 10) || 0) }; break;
     }
   });
@@ -186,8 +201,19 @@ function onClick(e) {
     return;
   }
   switch (act) {
-    case "m-del-item": edit(g => findModel(g, uid)[list].splice(Number(i), 1)); break;
-    case "m-remove":   edit(g => { g.models = g.models.filter(m => m.uid !== uid); }); break;
+    case "m-del-item": edit(g => {
+                         // In a campaign weapons and armour sell for half (p.72).
+                         if (campaignStarted(g) && (list === "weapons" || list === "armour")) sellGear(g, catalog(), uid, list, i);
+                         else {
+                           const [k] = findModel(g, uid)[list].splice(Number(i), 1);
+                           if (campaignStarted(g) && list === "equipment") record(g, "discard", { item: k, uid });
+                         }
+                       }); break;
+    case "m-remove":   edit(g => {
+                         const m = findModel(g, uid);
+                         if (campaignStarted(g)) record(g, "dismiss", { item: m.profile, uid });
+                         g.models = g.models.filter(x => x.uid !== uid);
+                       }); break;
     case "m-up":
     case "m-down":     edit(g => {
                          const k = g.models.findIndex(m => m.uid === uid);
@@ -351,7 +377,8 @@ function summaryHtml(g, ev) {
       <button type="button" class="secondary" data-act="export">${esc(L("exportJson"))}</button>
       <button type="button" class="secondary" data-act="backup">${esc(L("backup"))}</button>
     </div>
-    ${status ? `<div class="bd-status">${status}</div>` : ""}`;
+    ${status ? `<div class="bd-status">${status}</div>` : ""}
+    ${ev.budget == null && view === "gathering" ? `<p class="bd-hint">${esc(L("campaignShop"))}</p>` : ""}`;
 }
 
 function warningsHtml(ws) {

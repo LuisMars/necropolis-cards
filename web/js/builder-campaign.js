@@ -49,7 +49,7 @@ export function campaignChange(act, el, g) {
   switch (act) {
     case "treasury":    g.treasury = parseInt(v, 10) || 0; return true;
     case "deploy-base": g.deploymentLimit = parseInt(v, 10) || null; return true;
-    case "opp-limit":   g.campaign.opponentLimit = parseInt(v, 10) || null; return true;
+    case "opp-higher":  g.campaign.opponentHigher = el.checked; return true;
     case "field":       g.models.find(m => m.uid === uid).status = el.checked ? "active" : "reserve"; return true;
     case "hire":        if (v) hireSellsword(g, v, catalog()); return true;
     case "amb-add":     if (v && !g.ambitions.active.includes(v)) g.ambitions.active.push(v); return true;
@@ -133,6 +133,21 @@ export function campaignHtml(g, ev) {
           upgradesHtml(g), improvementsHtml(g, ev), historyHtml(g), battleLogHtml(g)].join("");
 }
 
+/** Purchases and sales, one line each: "Bought Blade (Aberrant Husk) −10". */
+export function transactionsHtml(g, list) {
+  if (!list?.length) return "";
+  return `<ul class="bd-tx">${list.map(t => {
+    const found = t.uid ? g.models.find(x => x.uid === t.uid) : null;
+    // "Recruited Skeletal Husk" needs no "(Skeletal Husk)" after it.
+    const m = found && !(t.item === found.profile && !found.name) ? found : null;
+    const what = t.item ? (catalog().row(t.item) ? name(t.item)
+      : pickField((catalog().rules.maladies || []).find(x => x.key === t.item) || {}, "name", lang()) || t.item) : "";
+    const n = Number(t.obols) || 0;
+    return `<li><span>${esc(L(`tx-${t.type}`))}</span> ${esc(what)}${m ? ` <small>(${esc(modelTitle(m))})</small>` : ""}` +
+      `<b class="${n < 0 ? "down" : n > 0 ? "up" : ""}">${n > 0 ? "+" : ""}${n || ""}</b></li>`;
+  }).join("")}</ul>`;
+}
+
 function deploymentHtml(g, ev) {
   const lm = lairMods(g, catalog());
   const base = g.deploymentLimit ?? catalog().rules.gathering?.deployment_limit ?? 350;
@@ -160,10 +175,11 @@ function deploymentHtml(g, ev) {
         <label class="bd-num">${esc(L("deployBase"))} <input type="number" step="50" data-act="deploy-base" data-fid="c-deploy" value="${base}"></label>
         ${lm.deployment ? `<small>+${lm.deployment} ${esc(L("lairBonus"))}</small>` : ""}
         <p><span class="wb-chip ${over ? "over" : "good"}"><b>${ev.fielded}</b> / ${ev.deploymentLimit} ${esc(L("fielded"))}</span></p>
+        ${g.campaign.transactions.length ? `<h4>${esc(L("sinceLastBattle"))}</h4>${transactionsHtml(g, g.campaign.transactions)}` : ""}
       </div>
       <div>
         <h3>${esc(L("nextBattle"))}</h3>
-        <label class="bd-num">${esc(L("oppLimit"))} <input type="number" step="50" data-act="opp-limit" data-fid="c-opp" value="${g.campaign.opponentLimit ?? ""}"></label>
+        <label class="bd-check"><input type="checkbox" data-act="opp-higher" data-fid="c-opp"${g.campaign.opponentHigher ? " checked" : ""}> ${esc(L("oppHigher"))}</label>
         ${free ? `<p class="bd-good">${esc(L("freeSellsword"))}</p>${rabble}` : ""}
         <div class="bd-fields">${fieldRows}</div>
         <select data-act="hire" data-fid="c-hire"><option value="">${esc(L("hire"))}</option>${hires}</select>
@@ -393,7 +409,8 @@ function battleLogHtml(g) {
     <tr><td>${esc(e.date || "")}</td><td>${esc(e.environment ? name(e.environment) : "—")}</td>
       <td>${esc(e.mission ? name(e.mission) : "—")}</td><td>${esc(e.omen ? name(e.omen) : "—")}</td>
       <td>${esc(res(e.result))}</td><td>${e.obols || 0}</td><td>${esc(e.notes || "")}</td>
-      <td><button type="button" class="secondary" data-act="battle-del" data-i="${n}" title="${esc(L("remove"))}">✕</button></td></tr>`).join("");
+      <td><button type="button" class="secondary" data-act="battle-del" data-i="${n}" title="${esc(L("remove"))}">✕</button></td></tr>
+    ${(e.transactions || []).length ? `<tr class="bd-tx-row"><td></td><td colspan="7">${transactionsHtml(g, e.transactions)}</td></tr>` : ""}`).join("");
   return `
     <div class="bd-panel">
       <h3>${esc(L("battleLog"))}</h3>

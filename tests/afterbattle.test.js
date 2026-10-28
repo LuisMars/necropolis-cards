@@ -75,6 +75,7 @@ test("victory rewards, lair income and Purloiner add up in the treasury and the 
   assert.equal(g.treasury, 50 + 41 + 6 + 8);
   finishAfterBattle(g, { mission: "missions/the-horde" });
   assert.equal(g.history.at(-1).obols, 55);
+  assert.deepEqual(g.history.at(-1).transactions.map(t => t.type), ["upgrade"]);   // bought before the sequence
   assert.equal(g.history.at(-1).mission, "missions/relic-hunters");
   assert.equal(g.campaign.afterBattle, undefined);
   assert.equal(g.campaign.nextScenario.mission, "missions/the-horde");

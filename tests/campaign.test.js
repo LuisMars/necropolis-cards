@@ -125,8 +125,9 @@ test("treasures: rolls, carrying limits, moving", () => {
 test("sellswords: roster cost, the free Rabble, outside the deployment limit", () => {
   const g = example();
   startCampaign(g, catalog);
-  g.campaign.opponentLimit = 460;
-  assert.ok(freeSellsword(g, catalog));                // 460 ≥ 350 + 100
+  assert.ok(!freeSellsword(g));
+  g.campaign.opponentHigher = true;                    // opponent's limit 100+ higher (p.74)
+  assert.ok(freeSellsword(g));
   const rabble = hireSellsword(g, "sellswords/desperate-rabble", catalog, { free: true });
   assert.equal(g.treasury, 115);
   assert.ok(g.campaign.freeRabbleUsed);
@@ -150,4 +151,21 @@ test("battle log: obols go into the treasury and back out", () => {
   assert.equal(evaluate(g, catalog).budget, null);
   removeBattle(g, 0);
   assert.equal(g.treasury, 115);
+});
+
+test("purchases and sales are recorded, then handed to the next battle's log entry", async () => {
+  const { buyGear, sellGear, recruit, record } = await import("../web/js/builder/campaign.js");
+  const g = example();
+  startCampaign(g, catalog);                           // 115
+  buyUpgrade(g, "lair-upgrades/bell-tower", catalog);
+  buyGear(g, catalog, "m3", "armour", "armours/light-armour");
+  sellGear(g, catalog, "m3", "weapons", 0);
+  recruit(g, catalog, "minions/skeletal-husk", "melee-weapons/improvised-weapon");
+  hireSellsword(g, "sellswords/desperate-rabble", catalog, { free: true });
+  assert.deepEqual(g.campaign.transactions.map(t => [t.type, t.obols]),
+    [["upgrade", -50], ["buy", -20], ["sell", 5], ["recruit", -50], ["hire-free", 0]]);
+  assert.equal(g.treasury, 115 - 50 - 20 + 5 - 50);
+  addBattle(g, { result: "win", obols: 30 }, catalog);
+  assert.equal(g.history.at(-1).transactions.length, 5);
+  assert.deepEqual(g.campaign.transactions, []);
 });

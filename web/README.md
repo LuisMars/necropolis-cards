@@ -31,7 +31,11 @@ Five tabs:
    between models), each model's stats with every change behind them (its
    keyword, traits, lair upgrades, and a ledger of ambition rewards,
    maladies and manual changes, each undoable at its source), the history
-   of completed ambitions and maladies, and a battle log. **After the
+   of completed ambitions and maladies, and a battle log. Once the campaign
+   has started, buying gear or minions anywhere in the Builder charges the
+   treasury at Bazaar prices and removing weapons or armour sells them for
+   half (p.72); every purchase and sale is listed until the next battle is
+   logged, then kept in that battle's entry. **After the
    battle…** runs the rulebook's 7-step after-battle sequence as a wizard
    (maladies, victory rewards with lair income and Purloiner, ambitions,
    the greater treasure every 5, the Bazaar with the Alchemy Workshop, and
