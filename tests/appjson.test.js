@@ -48,3 +48,16 @@ test("unknown names are reported, not dropped silently", () => {
   const { unmatched } = fromAppJson(json, catalog);
   assert.deepEqual(unmatched, [{ where: "weapons", name: "Laser Sword" }]);
 });
+
+test("our export carries the campaign's changes for the roster, and the app's fields stay clean", async () => {
+  const C = await import("../web/js/builder/campaign.js");
+  const { gathering: g } = decodeLink(EXAMPLE_LINK, catalog);
+  C.startCampaign(g, catalog, { alreadyBuilt: true });
+  C.completeAmbition(g, "ambitions/rain-iron-sleet", catalog, "m3");
+  const json = toAppJson(g, catalog);
+  assert.deepEqual(json.gathering[2].builder.changes.ranged,
+    [{ amount: 1, type: "ambition", key: "ambitions/rain-iron-sleet", note: null }]);
+  assert.equal(json.gathering[0].builder, undefined);        // the Bone keyword is not a campaign change
+  assert.equal(json.gathering[2].profile.ranged, 6);
+  assert.equal(encodeLink(fromAppJson(json, catalog).gathering, catalog), EXAMPLE_LINK);
+});

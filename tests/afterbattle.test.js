@@ -9,6 +9,7 @@ import {
   soulBinder, tombRobber, buyAlchemy, buyPrice, rollScenarioPart, finishAfterBattle, completeAmbition,
   canRerollOmen,
 } from "../web/js/builder/campaign.js";
+import { addEntries, maladiesOf } from "../web/js/builder/ledger.js";
 
 /** The example gathering, legal and in a campaign with 100 obols. */
 function campaign() {
@@ -33,16 +34,20 @@ test("maladies change the leader, and Soul Binder takes them back", () => {
   applyMalady(g, catalog, 4, { stat: "violence" });
   assert.equal(leader(g).stats.violence, 7);                            // 6+ → 7+
   assert.equal(applyMalady(g, catalog, 1), null);                       // once per sequence
-  soulBinder(g, catalog, "m1", 0);
+  const [mal] = maladiesOf(g.models[0], catalog.rules);
+  assert.equal(mal.key, "incomplete-form");
+  assert.equal(mal.stat, "violence");
+  soulBinder(g, catalog, "m1", mal.ref);
   assert.equal(leader(g).stats.violence, 6);
+  assert.deepEqual(maladiesOf(g.models[0], catalog.rules), []);
   assert.equal(g.treasury, 50);
 });
 
 test("Frail Reformation stops at 10 HP; Perfect adds 1", () => {
   const g = campaign();
-  g.models[0].maladies = Array.from({ length: 7 }, () => ({ key: "frail" }));
+  for (let n = 0; n < 7; n++) addEntries(g.models[0], { hp: -1 }, { type: "malady", key: "frail" });
   assert.equal(leader(g).stats.hp, 10);                                 // 15 - 7, floored at 10
-  g.models[0].maladies = [];
+  g.models[0].ledger = [];
   startAfterBattle(g, { leaderShattered: true });
   applyMalady(g, catalog, 10);
   assert.equal(leader(g).stats.hp, 16);

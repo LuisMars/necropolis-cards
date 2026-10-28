@@ -28,13 +28,17 @@ Five tabs:
    deployment limit (who is fielded, sellswords hired and the free ones the
    rules allow), lair upgrades, the 4 active ambitions with their rewards
    applied, treasures (rolled or picked, carried within the limits, moved
-   between models), model improvements, and a battle log. **After the
+   between models), each model's stats with every change behind them (its
+   keyword, traits, lair upgrades, and a ledger of ambition rewards,
+   maladies and manual changes, each undoable at its source), the history
+   of completed ambitions and maladies, and a battle log. **After the
    battle…** runs the rulebook's 7-step after-battle sequence as a wizard
    (maladies, victory rewards with lair income and Purloiner, ambitions,
    the greater treasure every 5, the Bazaar with the Alchemy Workshop, and
    the next scenario), every roll with a Roll button or a typed die; it can
    be left and resumed, and finishing it writes the battle-log entry.
-3. **Warband** — the gathering as a roster: one block per model
+3. **Warband** — the gathering as a roster (for a Builder gathering, stats the
+   campaign changed are marked ▲/▼ and listed under CAMPAIGN with their source): one block per model
    with its profile stats, special rules, traits, spells, weapons, armour
    and equipment — each with the rules text and stat line off its card, and
    priced from the library — plus a per-model subtotal and the warband
@@ -147,6 +151,7 @@ web/
         ├── gathering.js    # the builder's save format
         ├── rules.js        # costs, effective stats, rule warnings
         ├── campaign.js     # campaign actions: treasury, upgrades, ambitions, treasures, log
+        ├── ledger.js       # improvement ledger: stat changes with their source
         ├── codec.js        # Companion App share links
         ├── appjson.js      # Companion App JSON export ↔ gathering
         ├── messages.js     # warnings and builder labels, English / Spanish

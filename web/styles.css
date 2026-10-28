@@ -515,6 +515,30 @@ textarea.json-in {
 }
 .bd-sell:hover { border-color: var(--accent); }
 .bd-step .bd-items { margin: 4px 0 8px; }
+/* Improvements ledger */
+.bd-ledger { border-top: 1px solid var(--border); padding: 8px 0; }
+.bd-ledger h4 { margin: 0 0 4px; font-size: 13px; color: #fff; }
+.bd-ledger .bd-table th:first-child { width: 6em; }
+.bd-ledger .bd-table td:nth-child(2), .bd-ledger .bd-table td:last-child { width: 4em; }
+.bd-ledger tr.over td:last-child b { color: var(--bad); }
+.bd-src {
+  display: inline-flex; align-items: center; gap: 4px; margin: 1px 4px 1px 0;
+  border: 1px solid var(--border); border-radius: 10px; padding: 0 8px; font-size: 12px;
+}
+.bd-src.up { color: var(--good); border-color: color-mix(in srgb, var(--good) 45%, transparent); }
+.bd-src.down { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+.bd-src.t-manual { border-style: dashed; }
+.bd-src small { color: var(--muted); }
+.bd-src button { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0 2px; }
+.bd-src button:hover { color: var(--bad); }
+.bd-plain { margin: 2px 0 6px; padding-left: 18px; font-size: 13px; }
+.bd-plain li { margin: 2px 0; }
+.bd-plain button { padding: 1px 8px; margin-left: 6px; font-size: 12px; }
+/* Roster: stats the campaign changed */
+.wb-delta { font-size: 0.55em; margin-left: 1px; vertical-align: super; }
+.wb-delta.up { color: #2e7d32; }
+.wb-delta.down { color: #b23a2a; }
+
 
 
 @keyframes bd-flash {

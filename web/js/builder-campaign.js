@@ -18,8 +18,9 @@ import { label, itemName } from "./builder/messages.js";
 import {
   ensureCampaign, startCampaign, buyUpgrade, refundUpgrade, tickAmbition, completeAmbition,
   greaterOwed, rewardTargets, rollTreasure, treasureTable, giveTreasure, moveTreasure,
-  freeSellsword, hireSellsword, addBattle, removeBattle,
+  freeSellsword, hireSellsword, addBattle, removeBattle, undoAmbition, addManualEntry, removeLedgerEntry,
 } from "./builder/campaign.js";
+import { maladiesOf } from "./builder/ledger.js";
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
@@ -44,7 +45,7 @@ const rewardPick = {};
 export function campaignChange(act, el, g) {
   const v = el.value;
   const { uid, from, i, key, stat } = el.dataset;
-  ensureCampaign(g);
+  ensureCampaign(g, catalog());
   switch (act) {
     case "treasury":    g.treasury = parseInt(v, 10) || 0; return true;
     case "deploy-base": g.deploymentLimit = parseInt(v, 10) || null; return true;
@@ -56,11 +57,6 @@ export function campaignChange(act, el, g) {
     case "t-move":      if (v !== "") moveTreasure(g, from || null, Number(i), v === "stash" ? null : v); return true;
     case "t-add":       if (v) giveTreasure(g, v, null); return true;
     case "t-pick":      if (v && pending) pending = { ...pending, choices: [v] }; return true;
-    case "imp": {
-      const m = g.models.find(x => x.uid === uid);
-      m.improvements = { ...(m.improvements || {}), [stat]: parseInt(v, 10) || 0 };
-      return true;
-    }
   }
   return false;
 }
@@ -68,7 +64,7 @@ export function campaignChange(act, el, g) {
 /** Handle a click; returns true when it was a Campaign one. */
 export function campaignClick(act, el, g) {
   const { uid, key, i, step, from } = el.dataset;
-  ensureCampaign(g);
+  ensureCampaign(g, catalog());
   switch (act) {
     case "start":          startCampaign(g, catalog()); return true;
     case "start-built":    startCampaign(g, catalog(), { alreadyBuilt: true }); return true;
@@ -107,6 +103,15 @@ export function campaignClick(act, el, g) {
       return true;
     }
     case "battle-del":     removeBattle(g, Number(i)); return true;
+    case "led-add": {
+      const amt = parseInt(document.getElementById(`led-amt-${uid}`)?.value, 10);
+      if (amt) addManualEntry(g, uid, document.getElementById(`led-stat-${uid}`)?.value,
+                              amt, (document.getElementById(`led-note-${uid}`)?.value || "").trim());
+      return true;
+    }
+    case "led-del":        removeLedgerEntry(g, uid, el.dataset.id); return true;
+    case "amb-undo":       undoAmbition(g, el.dataset.id, catalog()); return true;
+    case "amb-activate":   if (!g.ambitions.active.includes(key)) g.ambitions.active.push(key); return true;
   }
   return false;
 }
@@ -114,7 +119,7 @@ export function campaignClick(act, el, g) {
 /* ---- rendering ------------------------------------------------------------- */
 
 export function campaignHtml(g, ev) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog());
   if (!campaignStarted(g)) {
     const left = (ev.budget ?? 0) - ev.total;
     return `
@@ -125,7 +130,7 @@ export function campaignHtml(g, ev) {
   }
   const open = `<div class="bd-inline bd-ab-open"><button type="button" class="primary" data-act="ab-open">${esc(L("afterBattle"))}</button></div>`;
   return [open, deploymentHtml(g, ev), pendingHtml(g), ambitionsHtml(g), treasuresHtml(g),
-          upgradesHtml(g), improvementsHtml(g, ev), battleLogHtml(g)].join("");
+          upgradesHtml(g), improvementsHtml(g, ev), historyHtml(g), battleLogHtml(g)].join("");
 }
 
 function deploymentHtml(g, ev) {
@@ -282,20 +287,101 @@ export function upgradesHtml(g) {
   return `<div class="bd-panel"><h3>${esc(L("lairUpgrades"))}</h3><div class="bd-upgrades">${items}</div></div>`;
 }
 
+/** Who or what a stat change comes from, in words. */
+function sourceLabel(src) {
+  switch (src.type) {
+    case "affinity": return `${L(src.key)} (${L("affinity")})`;
+    case "manual":   return src.note || L("manualEntry");
+    case "trait": case "lair": case "ambition": return name(src.key);
+    case "malady": {
+      const def = (catalog().rules.maladies || []).find(m => m.key === src.key);
+      return def ? pickField(def, "name", lang()) : src.key;
+    }
+    default: return src.key || src.type;
+  }
+}
+const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
+
+/**
+ * Per model: each stat's base, every change behind its value and the result
+ * (W5-4). Manual entries can be removed here; an ambition's come off with
+ * its Undo in the history, a malady's with the Soul Binder.
+ */
 function improvementsHtml(g, ev) {
-  const stats = ["ap", "move", "violence", "ranged", "hp"];
-  const head = `<tr><th></th>${stats.map(s => `<th>${esc(L(s))}</th>`).join("")}<th>${esc(L("mana"))}</th><th>${esc(L("spells"))}</th></tr>`;
-  const body = g.models.map((m, i) => {
-    if (ev.models[i].isSellsword) return "";
-    const leader = ev.models[i].isLeader;
-    const cell = (s) => `<td><input type="number" data-act="imp" data-uid="${esc(m.uid)}" data-stat="${s}" data-fid="${esc(m.uid)}-imp-${s}" value="${Number(m.improvements?.[s]) || 0}"></td>`;
-    return `<tr><td>${esc(modelTitle(m))}</td>${stats.map(cell).join("")}${leader ? cell("mana") + cell("spells") : "<td></td><td></td>"}</tr>`;
+  const shown = (st, v) => (v == null ? "—" : (st === "violence" || st === "ranged") ? `${v}+` : String(v));
+  const cards = g.models.map((m, i) => {
+    const e = ev.models[i];
+    if (e.isSellsword) return "";
+    const stats = ["ap", "move", "violence", "ranged", "hp", ...(e.isLeader ? ["mana", "spells"] : [])];
+    const final = { ...e.stats, mana: e.mana, spells: e.spellsAllowed };
+    const capped = new Set(e.warnings.filter(w => w.code === "improvement-cap").map(w => w.params.stat));
+    const rowsHtml = stats.map(st => {
+      const chips = (e.sources[st] || []).map(src => {
+        const cls = src.amount > 0 ? "up" : "down";
+        const when = src.battle ? ` · ${esc(L("battle"))} ${src.battle}` : "";
+        const del = src.type === "manual"
+          ? `<button type="button" data-act="led-del" data-uid="${esc(m.uid)}" data-id="${esc(src.id)}" title="${esc(L("remove"))}">✕</button>` : "";
+        return `<span class="bd-src ${cls} t-${src.type}">${signed(src.amount)} ${esc(sourceLabel(src))}<small>${when}</small>${del}</span>`;
+      }).join("");
+      const base = st === "mana" || st === "spells" ? "" : shown(st, e.base[st]);
+      return `<tr${capped.has(st) ? ' class="over"' : ""}><th>${esc(L(st))}</th><td>${base}</td>
+        <td>${chips || "<small>—</small>"}</td><td><b>${shown(st, final[st])}</b></td></tr>`;
+    }).join("");
+    const uid = esc(m.uid);
+    const statOpts = stats.map(st => `<option value="${st}">${esc(L(st))}</option>`).join("");
+    return `
+      <div class="bd-ledger">
+        <h4>${esc(modelTitle(m))}</h4>
+        <table class="bd-table"><tr><th></th><th>${esc(L("base"))}</th><th>${esc(L("changes"))}</th><th>${esc(L("total"))}</th></tr>${rowsHtml}</table>
+        <div class="bd-inline">
+          <select id="led-stat-${uid}">${statOpts}</select>
+          <input type="number" id="led-amt-${uid}" value="1" class="bd-die">
+          <input type="text" id="led-note-${uid}" placeholder="${esc(L("reason"))}">
+          <button type="button" class="secondary" data-act="led-add" data-uid="${uid}">${esc(L("addChange"))}</button>
+        </div>
+      </div>`;
   }).join("");
   return `
     <div class="bd-panel">
       <h3>${esc(L("improvements"))}</h3>
       <p class="bd-hint">${esc(L("improvementsHint"))}</p>
-      <div class="bd-table-wrap"><table class="bd-table">${head}${body}</table></div>
+      ${cards}
+    </div>`;
+}
+
+/**
+ * Completed ambitions (with Undo), maladies carried, and the progress kept
+ * on ambitions that aren't active (W5-5).
+ */
+function historyHtml(g) {
+  const log = [...g.ambitions.log].reverse().map(e => {
+    const to = e.to ? g.models.find(m => m.uid === e.to) : null;
+    const target = to ? modelTitle(to)
+      : e.applied?.models?.length > 1 ? L("allModels")
+      : e.applied?.deployment ? `+${e.applied.deployment} ${L("deployment")}`
+      : e.applied?.bonus_traits ? L("bonusTrait") : "";
+    return `<tr><td>${esc(e.date || "")}</td><td>${e.battle ? `${esc(L("battle"))} ${e.battle}` : ""}</td>
+      <td>${esc(name(e.ambition))}</td><td>${esc(target)}</td>
+      <td>${e.id ? `<button type="button" class="secondary" data-act="amb-undo" data-id="${esc(e.id)}">${esc(L("refund"))}</button>` : ""}</td></tr>`;
+  }).join("");
+  const maladies = g.models.flatMap(m => maladiesOf(m, catalog().rules).map(x => {
+    const def = (catalog().rules.maladies || []).find(d => d.key === x.key) || {};
+    return `<li>${esc(modelTitle(m))}: <b>${esc(pickField(def, "name", lang()) || x.key)}</b>${x.stat ? ` (${esc(L(x.stat))})` : ""}` +
+      `${x.date ? ` · ${esc(x.date)}` : ""}${x.battle ? ` · ${esc(L("battle"))} ${x.battle}` : ""}</li>`;
+  })).join("");
+  const inactive = Object.entries(g.ambitions.progress || {})
+    .filter(([k, n]) => n > 0 && !g.ambitions.active.includes(k))
+    .map(([k, n]) => `<li>${esc(name(k))} · ${n} / ${Number(catalog().row(k)?.goal) || 1}
+      <button type="button" class="secondary" data-act="amb-activate" data-key="${esc(k)}">${esc(L("makeActive"))}</button></li>`).join("");
+  return `
+    <div class="bd-panel">
+      <h3>${esc(L("history"))}</h3>
+      <h4>${esc(L("completedAmbitions"))}</h4>
+      ${log ? `<div class="bd-table-wrap"><table class="bd-table">${log}</table></div>` : `<small>—</small>`}
+      <h4>${esc(L("maladies"))}</h4>
+      ${maladies ? `<ul class="bd-plain">${maladies}</ul>` : `<small>${esc(L("noMaladies"))}</small>`}
+      <h4>${esc(L("inactiveProgress"))}</h4>
+      ${inactive ? `<ul class="bd-plain">${inactive}</ul>` : `<small>—</small>`}
     </div>`;
 }
 

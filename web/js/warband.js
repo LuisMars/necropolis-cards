@@ -217,6 +217,8 @@ function buildMember(entry, lang) {
     spellSlots: profile.startingAdditionalSpells ?? profile.maxSpells,
     special: profileSpecials(profile, lang),
     traits, spells, weapons, armour, equipment,
+    // From the Builder: what the campaign changed (ambitions, maladies, …).
+    campaign: entry.builder || null,
     profileCost,
     total: profileCost + gearCost,
   };
@@ -522,11 +524,33 @@ function buildHeaderBlock(roster, lang) {
   return el;
 }
 
-function statCell(label, value, glyph = "") {
+function statCell(label, value, glyph = "", delta = 0) {
   const v = value == null || value === "" ? "—" : value;
-  return `<span class="wb-stat"><b>${escapeHtml(String(v))}</b>` +
+  // ▲/▼: the campaign changed this stat (listed under CAMPAIGN below).
+  const mark = delta > 0 ? `<sup class="wb-delta up">▲</sup>` : delta < 0 ? `<sup class="wb-delta down">▼</sup>` : "";
+  return `<span class="wb-stat"><b>${escapeHtml(String(v))}${mark}</b>` +
          `<i>${glyph ? icon(glyph) : ""}${escapeHtml(label)}</i></span>`;
 }
+
+/** Net campaign change to a stat (Builder rosters only). */
+const delta = (m, stat) => (m.campaign?.changes?.[stat] || []).reduce((n, c) => n + c.amount, 0);
+
+/** "Rain Iron Sleet", "Incomplete Form (malady)", the note on a manual change. */
+function changeSource(c, lang) {
+  if (c.type === "malady") {
+    const def = (state.catalog?.rules?.maladies || []).find(x => x.key === c.key);
+    return `${def ? pickField(def, "name", lang) : c.key} (${t("malady", lang)})`;
+  }
+  if (c.type === "manual") return c.note || t("manual", lang);
+  const row = state.catalog?.row(c.key);
+  return row ? (pickField(row, "name", lang) || row.name) : (c.key || "");
+}
+
+const STAT_NAMES = {
+  ap: ["AP", "PA"], move: ["Move", "Mov"], violence: ["Violence", "Violencia"], ranged: ["Ranged", "A Dist."],
+  hp: ["HP", "HP"], mana: ["Mana", "Maná"], spells: ["Spells", "Hechizos"],
+};
+const statName = (stat, lang) => (STAT_NAMES[stat] || [stat])[lang === "es" ? 1 : 0];
 
 /** Violence / Ranged print as a target number; 0 means the model can't. */
 function target(n) {
@@ -542,15 +566,15 @@ function buildMemberBlock(m, lang) {
   // the gear below is priced line by line, and the footer adds it all up.
   const stats = [
     statCell(t("cost", lang), m.profileCost, "obol"),
-    statCell(t("apAbbr", lang), m.stats.ap, "bolt"),
-    statCell(lang === "es" ? "Mov" : "Move", m.stats.m),
-    statCell(lang === "es" ? "Violencia" : "Violence", target(m.stats.viol)),
-    statCell(lang === "es" ? "A Dist." : "Ranged", target(m.stats.rngd)),
-    statCell("HP", m.stats.hp, "heart"),
+    statCell(t("apAbbr", lang), m.stats.ap, "bolt", delta(m, "ap")),
+    statCell(lang === "es" ? "Mov" : "Move", m.stats.m, "", delta(m, "move")),
+    statCell(lang === "es" ? "Violencia" : "Violence", target(m.stats.viol), "", delta(m, "violence")),
+    statCell(lang === "es" ? "A Dist." : "Ranged", target(m.stats.rngd), "", delta(m, "ranged")),
+    statCell("HP", m.stats.hp, "heart", delta(m, "hp")),
   ];
-  if (m.mana != null) stats.push(statCell(lang === "es" ? "Maná" : "Mana", m.mana, "drop"));
+  if (m.mana != null) stats.push(statCell(lang === "es" ? "Maná" : "Mana", m.mana, "drop", delta(m, "mana")));
   if (m.spellSlots != null) {
-    stats.push(statCell(t("spellSlots", lang), `+${m.spellSlots}`, "star"));
+    stats.push(statCell(t("spellSlots", lang), `+${m.spellSlots}`, "star", delta(m, "spells")));
   }
 
   // The banner carries the player's model name and the gothic line below it
@@ -564,6 +588,12 @@ function buildMemberBlock(m, lang) {
   const sections = [
     // A few special rules are pure restrictions with no name of their own —
     // their effect line becomes the heading rather than leaving a blank one.
+    // What the campaign changed, one line per change, with its source.
+    m.campaign ? section(t("campaign", lang), Object.entries(m.campaign.changes || {}).flatMap(([stat, list]) =>
+      list.map(c => ({
+        name: `${statName(stat, lang)} ${c.amount > 0 ? "+" : ""}${c.amount}`,
+        body: changeSource(c, lang),
+      }))), lang) : "",
     section(t("specialRules", lang), m.special.map(s => ({
       name: s.name || s.effect,
       body: s.name ? s.effect : "",

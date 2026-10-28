@@ -14,6 +14,10 @@ import { categoryOf, TRAIT_CATEGORIES } from "./catalog.js";
 import { newGathering, newModel } from "./gathering.js";
 import { evaluate, AFFINITIES } from "./rules.js";
 import { defaultWeapon } from "./codec.js";
+import { maladiesOf } from "./ledger.js";
+
+/** Sources a campaign adds (the card's keyword and traits are already in its stats). */
+const CAMPAIGN_SOURCES = ["ambition", "malady", "manual", "lair"];
 
 const LISTS = {
   profile:   ["leaders", "minions"],
@@ -152,6 +156,16 @@ export function toAppJson(gathering, catalog) {
       for (const k of ["traits", "spells", "weapons", "armour", "miscEquipment"]) {
         if (!entry[k].length) delete entry[k];
       }
+      // Our addition, which the app ignores: what the campaign changed and
+      // why, for the Warband roster to mark and list.
+      const changes = {};
+      for (const [stat, list] of Object.entries(e.sources || {})) {
+        const c = list.filter(x => CAMPAIGN_SOURCES.includes(x.type))
+          .map(x => ({ amount: x.amount, type: x.type, key: x.key || null, note: x.note || null }));
+        if (c.length) changes[stat] = c;
+      }
+      const maladies = maladiesOf(m, catalog.rules).map(x => ({ key: x.key, stat: x.stat }));
+      if (Object.keys(changes).length || maladies.length) entry.builder = { changes, maladies };
       return entry;
     }),
   };

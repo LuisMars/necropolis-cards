@@ -11,6 +11,7 @@
  */
 
 import { categoryOf, matches, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./catalog.js";
+import { ledgerOf } from "./ledger.js";
 
 export const AFFINITIES = ["blood", "bone", "plasm"];
 const STATS = ["ap", "move", "violence", "ranged", "hp"];
@@ -57,8 +58,9 @@ export function treasureKind(catalog, key) {
 
 /**
  * Evaluate one model.
- * @returns {{uid, key, isLeader, affinity, keywords, stats, mana, spellsAllowed,
- *            cost, warnings}}
+ * @returns {{uid, key, isLeader, affinity, keywords, stats, base, sources, mana,
+ *            spellsAllowed, cost, warnings}}  `sources` lists, per stat, every
+ *            change behind its value: {amount, type, key?, id?, ref?, battle?}.
  */
 export function evaluateModel(model, catalog, gathering = {}) {
   const warnings = [];
@@ -73,7 +75,7 @@ export function evaluateModel(model, catalog, gathering = {}) {
   if (!row) {
     warn("unknown-item", { item: key });
     return { uid: model.uid, key, isLeader, isSellsword, affinity: null, keywords: [], stats: {},
-             mana: 0, spellsAllowed: 0, cost: 0, warnings };
+             base: {}, sources: {}, mana: 0, spellsAllowed: 0, cost: 0, warnings };
   }
 
   // Affinity: leaders choose any of the three; minions what their rules allow.
@@ -95,18 +97,30 @@ export function evaluateModel(model, catalog, gathering = {}) {
     traitRows.push({ key: t, row: tr });
   }
   const traitMods = addMods(...traitRows.map(t => t.row.modifiers));
-  const imp = model.improvements || {};
 
-  // Reconstitution maladies (p.66): a stat worse by 1, or -1 max HP that
-  // stops at 10. Soul Binder removes them (and so their effect).
-  const malMods = {};
-  let frail = 0;
-  for (const mal of model.maladies || []) {
-    const def = (rules.maladies || []).find(x => x.key === mal.key);
-    if (!def) { warn("unknown-item", { item: mal.key }); continue; }
-    if (def.modifiers?.hp) frail -= def.modifiers.hp;
-    if (mal.stat) malMods[mal.stat] = (malMods[mal.stat] || 0) - 1;
+  // Every change behind each stat, so the Builder can show where a number
+  // comes from: the keyword, traits, lair upgrades (leaders' spells and
+  // mana) and the campaign ledger (ambitions, maladies, manual entries).
+  const sources = {};
+  const add = (stat, amount, src) => {
+    if (typeof amount !== "number" || !amount) return;
+    (sources[stat] ||= []).push({ amount, ...src });
+  };
+  for (const [st, v] of Object.entries(affMods)) add(st, v, { type: "affinity", key: affinity });
+  for (const t of traitRows) for (const [st, v] of Object.entries(t.row.modifiers || {})) add(st, v, { type: "trait", key: t.key });
+  if (isLeader) {
+    for (const k of gathering.lair?.upgrades || []) {
+      const lm = catalog.row(k)?.modifiers || {};
+      add("spells", lm.spells, { type: "lair", key: k });
+      add("mana", lm.mana, { type: "lair", key: k });
+    }
   }
+  const ledger = ledgerOf(model, rules);
+  for (const e of ledger) {
+    add(e.stat, e.amount, { type: e.source?.type || "manual", key: e.source?.key, note: e.source?.note,
+                            id: e.id, ref: e.source?.ref, battle: e.battle });
+  }
+  const total = (st) => (sources[st] || []).reduce((n, x) => n + x.amount, 0);
 
   // Keywords: the type's own, its affinity, and any a modifier grants (Fly).
   const keywords = [...new Set([
@@ -123,23 +137,40 @@ export function evaluateModel(model, catalog, gathering = {}) {
     if (!kwOk || !affOk || !leaderOk) warn("trait-requirement", { item: t.key });
   }
 
-  // Stats: card base + affinity + traits + campaign improvements (capped).
+  // Stats: card base + every source above.
   const s = row.stats || {};
   const base = { ap: num(s.AP), move: num(s.M), violence: num(s.VIOL), ranged: num(s.RNGD), hp: num(s.HP) };
-  const mod = addMods(affMods, traitMods, imp, malMods);
+  const stats = {
+    ap: base.ap + total("ap"),
+    move: base.move + total("move"),
+    // Violence and Ranged are target numbers: improving by 1 lowers the target.
+    violence: base.violence == null ? null : base.violence - total("violence"),
+    ranged: base.ranged == null ? null : base.ranged - total("ranged"),
+    hp: base.hp + total("hp"),
+  };
+  // Frail Reformation (p.66): -1 max HP, but never below 10.
+  const frail = ledger.filter(e => e.source?.type === "malady" && e.source.key === "frail" && e.stat === "hp")
+                      .reduce((n, e) => n - e.amount, 0);
+  if (frail) stats.hp = Math.max(Math.min(stats.hp + frail, 10), stats.hp);
+
+  // Improvement limits (p.65): what the campaign adds to a stat (ambitions,
+  // Perfect Reconstitution, manual entries) caps at AP +1, Move/Violence/
+  // Ranged +2, HP +5. The warning names the entry that went past it.
   const caps = rules.improvement_caps || {};
   for (const k of STATS) {
-    if (caps[k] != null && (imp[k] || 0) > caps[k]) warn("improvement-cap", { params: { stat: k, max: caps[k] } });
+    if (caps[k] == null) continue;
+    let sum = 0;
+    for (const e of ledger) {
+      if (e.stat !== k || e.amount <= 0) continue;
+      sum += e.amount;
+      if (sum > caps[k]) {
+        warn("improvement-cap", { item: e.source?.key || null, params: { stat: k, max: caps[k], source: e.source?.type } });
+        break;
+      }
+    }
   }
-  const stats = {
-    ap: base.ap + (mod.ap || 0),
-    move: base.move + (mod.move || 0),
-    // Violence and Ranged are target numbers: improving by 1 lowers the target.
-    violence: base.violence == null ? null : base.violence - (mod.violence || 0),
-    ranged: base.ranged == null ? null : base.ranged - (mod.ranged || 0),
-    hp: base.hp + (mod.hp || 0),
-  };
-  if (frail) stats.hp = Math.max(Math.min(stats.hp, 10), stats.hp - frail);
+  const imp = { spells: ledger.filter(e => e.stat === "spells").reduce((n, e) => n + e.amount, 0),
+                mana: ledger.filter(e => e.stat === "mana").reduce((n, e) => n + e.amount, 0) };
 
   // Gear: forbidden items, whitelists, hands, one body armour / shield / misc item.
   const forbid = [...(pr.forbid || []), ...(affMods.forbid || [])];
@@ -240,7 +271,7 @@ export function evaluateModel(model, catalog, gathering = {}) {
   const cost = (num(row.obols) || 0) +
     gearOf(model).reduce((n, g) => n + (num(catalog.row(g)?.obols) || 0), 0);
 
-  return { uid: model.uid, key, isLeader, isSellsword, affinity, keywords, stats, mana, spellsAllowed, cost, warnings };
+  return { uid: model.uid, key, isLeader, isSellsword, affinity, keywords, stats, base, sources, mana, spellsAllowed, cost, warnings };
 }
 
 /**

@@ -25,6 +25,7 @@ import {
   finishAfterBattle, greaterOwed, rollTreasure, treasureTable,
 } from "./builder/campaign.js";
 import { ambitionsHtml, pendingHtml, upgradesHtml, setPending } from "./builder-campaign.js";
+import { maladiesOf } from "./builder/ledger.js";
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
@@ -53,7 +54,7 @@ export function afterBattleChange(act, el, g) {
 }
 
 export function afterBattleClick(act, el, g) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog());
   if (act === "ab-open") { startAfterBattle(g, {}); return true; }
   const a = g.campaign.afterBattle;
   if (!a) return false;
@@ -90,7 +91,7 @@ export function afterBattleClick(act, el, g) {
     case "ab-recruit": if (val("ab-recruit-key")) recruit(g, catalog(), val("ab-recruit-key"), defaultWeapon(catalog(), val("ab-recruit-key"))); return true;
     case "ab-sell":    sellGear(g, catalog(), uid, list, i); return true;
     case "ab-sell-t":  sellTreasure(g, catalog(), el.dataset.from || null, i); return true;
-    case "ab-soul":    soulBinder(g, catalog(), uid, i); return true;
+    case "ab-soul":    soulBinder(g, catalog(), uid, el.dataset.ref); return true;
     case "ab-tomb-roll": a.tombRoll = rollTreasure(catalog(), "minor")[0]; return true;
     case "ab-tomb-take": if (a.tombRoll) tombRobber(g, catalog(), a.tombRoll, { pay: true, to: val("ab-tomb-to") || null }); return true;
     case "ab-tomb-decline": tombRobber(g, catalog(), a.tombRoll, { pay: false }); return true;
@@ -259,10 +260,10 @@ function bazaarStep(g, a) {
       <button type="button" class="bd-sell" data-act="ab-sell-t" data-from="${esc(from || "")}" data-i="${n}">${esc(L("sell"))} ${tVal(k)}</button></span>`));
 
   // Soul Binder: the leader's maladies.
-  const souls = g.models.flatMap(m => (m.maladies || []).map((mal, n) => {
+  const souls = g.models.flatMap(m => maladiesOf(m, catalog().rules).map(mal => {
     const def = (catalog().rules.maladies || []).find(x => x.key === mal.key) || {};
     return `<span class="bd-item">${esc(modelTitle(m))}: ${esc(pickField(def, "name", lang()) || mal.key)}${mal.stat ? ` (${esc(L(mal.stat))})` : ""}
-      <button type="button" class="bd-sell" data-act="ab-soul" data-uid="${esc(m.uid)}" data-i="${n}">${esc(L("remove"))} · ${b.soul_binder}</button></span>`;
+      <button type="button" class="bd-sell" data-act="ab-soul" data-uid="${esc(m.uid)}" data-ref="${esc(mal.ref)}">${esc(L("remove"))} · ${b.soul_binder}</button></span>`;
   }));
 
   // Tomb Robber: once per gathering.

@@ -11,17 +11,21 @@ import { categoryOf, slug } from "./catalog.js";
 import { evaluate, treasureKind } from "./rules.js";
 import { newModel } from "./gathering.js";
 import { defaultWeapon } from "./codec.js";
+import { addEntries, removeRef, removeEntry, migrateModel, maladyEntries, maladiesOf } from "./ledger.js";
 
 export const d = (sides, rng = Math.random) => 1 + Math.floor(rng() * sides);
 
 /** Fill in campaign fields older saves don't have. */
-export function ensureCampaign(g) {
+export function ensureCampaign(g, catalog = null) {
   g.stash ||= [];
   g.lair ||= { name: "", upgrades: [] };
   g.lair.upgrades ||= [];
   g.ambitions = { active: [], progress: {}, completed: 0, greaterClaimed: 0, log: [], ...(g.ambitions || {}) };
   g.campaign = { opponentLimit: null, freeRabbleUsed: false, ...(g.campaign || {}) };
   g.history ||= [];
+  // Pre-ledger saves: bare improvement numbers and maladies become entries.
+  for (const m of g.models || []) migrateModel(m, catalog?.rules || {});
+  for (const [i, e] of (g.ambitions.log || []).entries()) e.id ||= `a${i + 1}`;
   return g;
 }
 
@@ -31,7 +35,7 @@ export function ensureCampaign(g) {
  * we can't know, so `alreadyBuilt` starts it at 0 for the player to set.
  */
 export function startCampaign(g, catalog, { alreadyBuilt = false } = {}) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog);
   const ev = evaluate(g, catalog);
   g.treasury = alreadyBuilt ? 0 : (ev.budget ?? 0) - ev.total;
   return g.treasury;
@@ -40,7 +44,7 @@ export function startCampaign(g, catalog, { alreadyBuilt = false } = {}) {
 /* ---- lair upgrades (p.71): 50 obols, once each ----------------------------- */
 
 export function buyUpgrade(g, key, catalog) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog);
   if (g.lair.upgrades.includes(key)) return false;
   g.lair.upgrades.push(key);
   g.treasury = (Number(g.treasury) || 0) - (Number(catalog.row(key)?.obols) || 0);
@@ -49,7 +53,7 @@ export function buyUpgrade(g, key, catalog) {
 
 /** Undo a purchase (a mis-click): the obols go back. */
 export function refundUpgrade(g, key, catalog) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog);
   const i = g.lair.upgrades.indexOf(key);
   if (i < 0) return false;
   g.lair.upgrades.splice(i, 1);
@@ -60,10 +64,27 @@ export function refundUpgrade(g, key, catalog) {
 /* ---- ambitions (p.67-68) --------------------------------------------------- */
 
 const isLeader = (m) => categoryOf(m.profile) === "leaders";
-const addTo = (m, imps) => {
-  m.improvements ||= {};
-  for (const [k, v] of Object.entries(imps || {})) m.improvements[k] = (m.improvements[k] || 0) + v;
-};
+/** Which battle and date a change belongs to: the one being closed, if any. */
+function when(g) {
+  const ab = g.campaign?.afterBattle;
+  return { battle: (g.history || []).length + (ab ? 1 : 0),
+           date: ab?.battle?.date || new Date().toISOString().slice(0, 10) };
+}
+function nextLogId(g) {
+  const used = new Set((g.ambitions?.log || []).map(e => e.id));
+  let n = used.size + 1;
+  while (used.has(`a${n}`)) n++;
+  return `a${n}`;
+}
+
+/** A manual change to a model's stat, with the reason for it. */
+export function addManualEntry(g, uid, stat, amount, note = "") {
+  const m = g.models.find(x => x.uid === uid);
+  return addEntries(m, { [stat]: Number(amount) }, { type: "manual", note }, when(g));
+}
+export function removeLedgerEntry(g, uid, id) {
+  removeEntry(g.models.find(x => x.uid === uid), id);
+}
 
 /** Models a "model of your choice" reward may go to. */
 export function rewardTargets(g, catalog, key) {
@@ -76,7 +97,7 @@ export function rewardTargets(g, catalog, key) {
  * @returns {boolean} true when this step completed it
  */
 export function tickAmbition(g, key, catalog, step = 1) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog);
   const goal = Number(catalog.row(key)?.goal) || 1;
   const now = Math.max(0, (g.ambitions.progress[key] || 0) + step);
   g.ambitions.progress[key] = Math.min(now, goal);
@@ -89,34 +110,63 @@ export function tickAmbition(g, key, catalog, step = 1) {
  * @returns {{treasure?: "minor"}}  a treasure still to roll, if the reward is one
  */
 export function completeAmbition(g, key, catalog, uid = null) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog);
   const eff = catalog.row(key)?.reward_effect || {};
+  const id = nextLogId(g);
+  const meta = { ...when(g), ref: id };
+  const src = { type: "ambition", key };
+  const applied = { models: [] };
   let to = null;
+  const give = (m) => { addEntries(m, eff.improvements, src, meta); applied.models.push(m.uid); };
   switch (eff.target) {
     case "all":
-      for (const m of g.models) if (categoryOf(m.profile) !== "sellswords") addTo(m, eff.improvements);
+      for (const m of g.models) if (categoryOf(m.profile) !== "sellswords") give(m);
       break;
     case "leader": {
       const l = g.models.find(isLeader);
-      if (l) { addTo(l, eff.improvements); to = l.uid; }
+      if (l) { give(l); to = l.uid; }
       break;
     }
     case "choose": {
       const m = rewardTargets(g, catalog, key).find(x => x.uid === uid);
       if (!m) throw new Error("Choose a model for this reward");
-      addTo(m, eff.improvements);
+      give(m);
       to = m.uid;
       break;
     }
     case "gathering":
-      if (eff.deployment) g.deploymentLimit = (g.deploymentLimit ?? catalog.rules.gathering?.deployment_limit ?? 350) + eff.deployment;
-      if (eff.bonus_traits) g.bonusTraits = (g.bonusTraits || 0) + eff.bonus_traits;
+      if (eff.deployment) {
+        g.deploymentLimit = (g.deploymentLimit ?? catalog.rules.gathering?.deployment_limit ?? 350) + eff.deployment;
+        applied.deployment = eff.deployment;
+      }
+      if (eff.bonus_traits) {
+        g.bonusTraits = (g.bonusTraits || 0) + eff.bonus_traits;
+        applied.bonus_traits = eff.bonus_traits;
+      }
       break;
   }
   g.ambitions.progress[key] = 0;
   g.ambitions.completed += 1;
-  g.ambitions.log.push({ ambition: key, to });
+  g.ambitions.log.push({ id, ambition: key, to, ...when(g), applied });
   return eff.target === "treasure" ? { treasure: eff.treasure || "minor" } : {};
+}
+
+/**
+ * Undo a completed ambition (a mis-click): its entries come off, its
+ * deployment and bonus trait go back, and its progress returns to the goal.
+ * A treasure it gave stays where it is.
+ */
+export function undoAmbition(g, logId, catalog) {
+  ensureCampaign(g, catalog);
+  const i = g.ambitions.log.findIndex(e => e.id === logId);
+  if (i < 0) return false;
+  const [e] = g.ambitions.log.splice(i, 1);
+  for (const m of g.models) removeRef(m, logId);
+  if (e.applied?.deployment) g.deploymentLimit = (g.deploymentLimit ?? 350) - e.applied.deployment;
+  if (e.applied?.bonus_traits) g.bonusTraits = Math.max(0, (g.bonusTraits || 0) - e.applied.bonus_traits);
+  g.ambitions.completed = Math.max(0, g.ambitions.completed - 1);
+  g.ambitions.progress[e.ambition] = Number(catalog.row(e.ambition)?.goal) || 1;
+  return true;
 }
 
 /** Greater treasures earned (1 per 5 completed ambitions) and not yet taken. */
@@ -171,7 +221,7 @@ export function freeSellsword(g, catalog) {
  * (the Desperate Rabble, the first time the gathering faces such an opponent).
  */
 export function hireSellsword(g, key, catalog, { free = false } = {}) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog);
   const rules = catalog.profileRules(key);
   const m = newModel(g, { profile: key, status: "reserve",
     affinity: (rules.affinity || []).length === 1 ? rules.affinity[0] : null });
@@ -185,7 +235,7 @@ export function hireSellsword(g, key, catalog, { free = false } = {}) {
 
 /** Log a battle; the obols it brought in go into the treasury. */
 export function addBattle(g, entry, catalog) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog);
   if (g.treasury == null) startCampaign(g, catalog);   // before the first entry ends the build budget
   g.history.push({
     date: entry.date || new Date().toISOString().slice(0, 10),
@@ -262,17 +312,15 @@ export function applyMalady(g, catalog, roll, { stat = null, treasure = null } =
   const def = maladyFor(catalog, roll);
   const leader = leaderOf(g);
   if (!def || !leader) return null;
-  if (def.stat_by) {
-    if (!["move", "violence", "ranged"].includes(stat)) throw new Error("Choose Move, Violence or Ranged");
-    (leader.maladies ||= []).push({ key: def.key, stat });
-  } else if (def.modifiers) {
-    (leader.maladies ||= []).push({ key: def.key });
-  } else if (def.improvements) {
-    addTo(leader, def.improvements);
+  let ref = null;
+  if (def.stat_by && !["move", "violence", "ranged"].includes(stat)) throw new Error("Choose Move, Violence or Ranged");
+  const changes = Object.fromEntries(maladyEntries(catalog.rules, def.key, stat).map(e => [e.stat, e.amount]));
+  if (Object.keys(changes).length) {
+    ref = addEntries(leader, changes, { type: "malady", key: def.key }, when(g));
   } else if (def.lose_minor_treasure && treasure != null) {
-    leader.treasures.splice(Number(treasure), 1);
+    a.done.lostTreasure = leader.treasures.splice(Number(treasure), 1)[0] || null;
   }
-  a.done.maladies = { roll: Number(roll), key: def.key, stat };
+  a.done.maladies = { roll: Number(roll), key: def.key, stat, ref };
   return def;
 }
 
@@ -374,17 +422,17 @@ export function sellTreasure(g, catalog, from, index) {
 }
 
 /** Soul Binder: 50 obols removes a malady, and with it its effect. */
-export function soulBinder(g, catalog, uid, index) {
+export function soulBinder(g, catalog, uid, ref) {
   const m = g.models.find(x => x.uid === uid);
-  const [mal] = (m.maladies || []).splice(Number(index), 1);
-  if (!mal) return false;
+  if (!maladiesOf(m, catalog.rules).some(x => x.ref === ref)) return false;
+  removeRef(m, ref);
   g.treasury = (Number(g.treasury) || 0) - (catalog.rules.bazaar?.soul_binder ?? 50);
   return true;
 }
 
 /** Tomb Robber: once per gathering, pay 30 for the minor treasure rolled. */
 export function tombRobber(g, catalog, key, { pay = true, to = null } = {}) {
-  ensureCampaign(g);
+  ensureCampaign(g, catalog);
   if (g.campaign.tombRobberUsed) return false;
   g.campaign.tombRobberUsed = true;
   if (!pay) return false;
