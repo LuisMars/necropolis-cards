@@ -150,6 +150,34 @@ function specialIndex(catalog) {
   return idx;
 }
 
+/** Numbers in a rule text, unsigned ("-2 HP" → "2"). */
+const numbersIn = (s) => new Set(String(s || "").match(/\d+/g) || []);
+
+/**
+ * A profile's own wording of a shared rule, when it disagrees with the card.
+ * One card can serve several profiles with different values: Plasm Warrior's
+ * card is the Necromantic Remnant's "-1 HP", while the Small Beast, Aberrant
+ * Husk and Gigantic Horror lose 2 (pp.32-35). The profile's paragraph wins
+ * when it holds a number the card's text doesn't; otherwise the card does.
+ * @param {object} row  the profile's data row (leaders / minions)
+ * @param {string} name  the rule's English name ("Plasm Warrior")
+ * @param {object} card  the rule's special-rules row
+ * @returns {{en: string, es: string}|null}  the paragraph's text after its name
+ */
+export function ownRuleText(row, name, card) {
+  if (!row || !name || !card) return null;
+  const paras = (v) => String(v || "").split(/\n+/).map(x => x.trim()).filter(Boolean);
+  const split = (p) => /^([^.:]+)[.:]\s*(.*)$/s.exec(p);
+  const en = paras(row.special_rules);
+  const i = en.findIndex(p => normName(split(p)?.[1] || "") === normName(name));
+  if (i < 0) return null;
+  const own = split(en[i])[2];
+  const cardNums = numbersIn(card.effect);
+  if (![...numbersIn(own)].some(n => !cardNums.has(n))) return null;
+  const es = split(paras(row.special_rules_es)[i] || "")?.[2] || "";
+  return { en: own, es: es || own };
+}
+
 /**
  * A profile's special rules in the app's `profile.special` shape.
  * @param {string|null} affinity  the model's chosen affinity ("bone"), if any
@@ -173,8 +201,10 @@ export function profileSpecial(catalog, profileKey, affinity = null) {
     if (card || gloss) {
       const ruleName = card?.name || gloss.en;
       // The card's text, else this profile's own (the glossary's "Unique"
-      // effect is the Familiar's).
-      if (applies(ruleName)) out.push({ name: ruleName, effect: (card && text(card, "effect")) || m[2] });
+      // effect is the Familiar's). A profile whose values differ from the
+      // card's (Plasm Warrior -2 HP) keeps its own.
+      const own = card && ownRuleText(row, ruleName, card);
+      if (applies(ruleName)) out.push({ name: ruleName, effect: own?.en || (card && text(card, "effect")) || m[2] });
     } else if (ownPhrases.length) {
       // An unnamed restriction: the app's own wording, which the glossary keys.
       out.push(...ownPhrases.map(effect => ({ effect })));

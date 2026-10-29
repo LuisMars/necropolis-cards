@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { bundle, catalog, EXAMPLE_EXPORT, EXAMPLE_LINK } from "./helpers.js";
-import { fromAppJson, toAppJson, profileSpecial } from "../web/js/builder/appjson.js";
+import { fromAppJson, toAppJson, profileSpecial, ownRuleText } from "../web/js/builder/appjson.js";
 import { decodeLink } from "../web/js/builder/codec.js";
 import { normName } from "../web/js/matching.js";
 
@@ -64,4 +64,35 @@ test("affinity rules follow the chosen affinity", () => {
   assert.deepEqual(names("leaders/revenant", "blood"), ["Ancient Skill", "Fighter", "Blood Leader"]);
   // No affinity chosen yet: all three, as the roster lists them then.
   assert.deepEqual(names("leaders/lich", null), ["Caster", "Blood Leader", "Bone Leader", "Plasm Leader"]);
+});
+
+test("Plasm Warrior: profiles that lose 2 HP keep their own text; the Remnant keeps the card's -1", () => {
+  const plasm = (key) => profileSpecial(catalog, key, "plasm").find(s => s.name === "Plasm Warrior")?.effect;
+  for (const key of ["minions/small-beast", "minions/aberrant-husk", "minions/gigantic-horror"]) {
+    assert.match(plasm(key), /-2 HP/, key);
+  }
+  assert.match(plasm("minions/necromantic-remnant"), /-1 HP/);
+  // The roster, in both languages, from a payload built here.
+  const payload = { covenant: "", gathering: ["minions/small-beast", "minions/aberrant-husk",
+    "minions/gigantic-horror", "minions/necromantic-remnant"].map(key => {
+    const row = catalog.row(key);
+    return { profile: { name: row.name, affinity: "Plasm", keywords: ["Plasm"],
+                        special: profileSpecial(catalog, key, "plasm") } };
+  }) };
+  const plasmLine = (lang) => lines(payload, lang).map(ls => ls.find(l => /^(Plasm Warrior|Guerrero de Plasma) \|/.test(l)));
+  const en = plasmLine("en"), es = plasmLine("es");
+  for (const i of [0, 1, 2]) {
+    assert.match(en[i], /-2 HP/);
+    assert.match(es[i], /^Guerrero de Plasma \| gana Vuelo.*-2 HP/);   // the profile's Spanish paragraph
+  }
+  assert.match(en[3], /-1 HP/);
+  assert.match(es[3], /^Guerrero de Plasma \| Si esta miniatura/);   // the card's Spanish, as before
+});
+
+test("the roster still prints the card's text when a profile's own paragraph only restates it", () => {
+  // Revenant's Ancient Skill and Fighter, Ascended Undead's Threatening Aura:
+  // no number the card lacks, so the card wins.
+  assert.equal(ownRuleText(catalog.row("leaders/revenant"), "Ancient Skill", catalog.row("special-rules/ancient-skill")), null);
+  assert.equal(ownRuleText(catalog.row("minions/necromantic-remnant"), "Plasm Warrior", catalog.row("special-rules/plasm-warrior")), null);
+  assert.equal(ownRuleText(catalog.row("minions/corpse-husk"), "Blood Warrior", catalog.row("special-rules/blood-warrior")), null);
 });

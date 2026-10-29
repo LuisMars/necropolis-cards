@@ -19,6 +19,7 @@ import { $, escapeHtml } from "./util.js";
 import { findCard, keyHintFromSource, normName } from "./matching.js";
 import { icon } from "./icons.js";
 import { pickField, t, LABELS } from "./i18n.js";
+import { ownRuleText } from "./builder/appjson.js";
 
 const $summary   = $("wb-summary");
 const $pagesWrap = $("wb-pages");
@@ -200,7 +201,7 @@ function buildMember(entry, lang) {
     },
     mana: profile.mana,
     spellSlots: profile.startingAdditionalSpells ?? profile.maxSpells,
-    special: profileSpecials(profile, lang),
+    special: profileSpecials(profile, lang, row),
     traits, spells, weapons, armour, equipment,
     // From the Builder: what the campaign changed (ambitions, maladies, …).
     campaign: entry.builder || null,
@@ -255,13 +256,13 @@ function resolveItem(entry, hint, lang) {
  * plus the unconditional ones. Mirrors the app's own display filter, which
  * also drops an unconditional rule that carries no effect text.
  */
-function profileSpecials(profile, lang) {
+function profileSpecials(profile, lang, row = null) {
   const affinity = chosenAffinity(profile);
   const out = [];
   for (const sp of (profile.special || [])) {
     const cond = conditionAffinity(sp);
     if (cond && affinity && cond !== affinity) continue;
-    const resolved = resolveSpecial(sp, lang);
+    const resolved = resolveSpecial(sp, lang, row);
     if (!cond && !resolved.effect) continue;
     out.push({ ...resolved, applied: !!(cond && affinity) });
   }
@@ -272,14 +273,17 @@ function profileSpecials(profile, lang) {
  * A profile's baked-in special rule, in the selected language. Sources, in
  * order: the rule's own card, the glossary by name, the glossary by effect
  * text (for the rules the app leaves unnamed), and finally the payload as
- * imported.
+ * imported. A profile whose own paragraph gives other values than the
+ * shared card (Plasm Warrior: -2 HP, not the Remnant's -1) keeps its own.
  */
-function resolveSpecial(sp, lang) {
+function resolveSpecial(sp, lang, row = null) {
   const hit = findCard(sp?.name, "special-rule");
   if (hit.kind !== "unmatched") {
+    const own = ownRuleText(row, hit.row.name, hit.row);
     return {
       name: pickField(hit.row, "name", lang) || sp.name || "",
-      effect: pickField(hit.row, "effect", lang) || sp?.effect || "",
+      effect: (own && (lang === "es" ? own.es : own.en)) ||
+              pickField(hit.row, "effect", lang) || sp?.effect || "",
     };
   }
 

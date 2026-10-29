@@ -84,7 +84,8 @@ export function renderCardSvg(q) {
   if (headerOverride) {
     tpl = tpl.replace(
       /(<text\s+class="banner-title"[^>]*>)[^<]+(<\/text>)/,
-      `$1${escapeXml(headerOverride)}$2`
+      // A replacer function: a "$" in the name must stay literal.
+      (m, open, close) => open + escapeXml(headerOverride) + close
     );
   }
 
