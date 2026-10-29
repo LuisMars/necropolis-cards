@@ -10,6 +10,11 @@ import { icon } from "./lucide.js";
 import { state, saveQueue, printedCount, addPrinted, cardId } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { renderCardSvg } from "./templates.js";
+import { label as msg, plural, categoryTitle } from "./builder/messages.js";
+import { pickField } from "./i18n.js";
+
+const lang = () => state.lang || "en";
+const L = (k) => msg(k, lang());
 
 const $queueList   = $("queue-list");
 const $sheetsWrap  = $("sheets-wrap");
@@ -32,7 +37,7 @@ export function initPrint({ onChange } = {}) {
   $markPrinted.addEventListener("click", markRunPrinted);
   $clearBtn.addEventListener("click", () => {
     if (!state.queue.length) return;
-    if (!confirm(`Clear all ${state.queue.length} card${state.queue.length === 1 ? "" : "s"} from the queue?`)) return;
+    if (!confirm(plural("confirmClear", state.queue.length, lang()))) return;
     state.queue = [];
     saveQueue();
     renderPrint();
@@ -92,14 +97,14 @@ function renderQueue() {
     empty.className = "empty-msg";
     empty.style.padding = "20px";
     empty.style.border = "none";
-    empty.textContent = "Queue is empty. Add cards from the Library, or from a gathering's Add cards to queue.";
+    empty.textContent = L("queueIsEmpty");
     $queueList.appendChild(empty);
     return;
   }
   state.queue.forEach((q, i) => {
     const cat = state.bundle.categories[q.key];
     const ov = q.override || {};
-    const label = ov.header || ov.name || q.row.name || "(unnamed)";
+    const label = ov.header || ov.name || pickField(q.row, "name", lang()) || q.row.name || L("unnamed");
     const expanded = state.expanded === i;
 
     const wrap = document.createElement("div");
@@ -108,12 +113,12 @@ function renderQueue() {
     const item = document.createElement("div");
     item.className = "queue-item";
     item.innerHTML = `
-      <span class="cat">${escapeHtml(cat ? cat.title : q.key)}</span>
-      <span class="name" contenteditable="true" spellcheck="false" title="Click to rename">${escapeHtml(label)}</span>
-      <button title="Edit fields" aria-label="Edit fields" aria-expanded="${expanded}" class="edit-btn">${icon(expanded ? "chevron-up" : "chevron-down")}</button>
-      <button title="Move up" aria-label="Move up">${icon("arrow-up")}</button>
-      <button title="Move down" aria-label="Move down">${icon("arrow-down")}</button>
-      <button title="Remove" aria-label="Remove">${icon("x")}</button>`;
+      <span class="cat">${escapeHtml(cat ? categoryTitle("cat", q.key, cat.title, lang()) : q.key)}</span>
+      <span class="name" contenteditable="true" spellcheck="false" title="${escapeHtml(L("clickRename"))}">${escapeHtml(label)}</span>
+      <button title="${escapeHtml(L("editFields"))}" aria-label="${escapeHtml(L("editFields"))}" aria-expanded="${expanded}" class="edit-btn">${icon(expanded ? "chevron-up" : "chevron-down")}</button>
+      <button title="${escapeHtml(L("moveUp"))}" aria-label="${escapeHtml(L("moveUp"))}">${icon("arrow-up")}</button>
+      <button title="${escapeHtml(L("moveDown"))}" aria-label="${escapeHtml(L("moveDown"))}">${icon("arrow-down")}</button>
+      <button title="${escapeHtml(L("remove"))}" aria-label="${escapeHtml(L("remove"))}">${icon("x")}</button>`;
     const nameSpan = item.querySelector(".name");
     const edBtn = item.querySelector(".edit-btn");
     const [, up, dn, rm] = item.querySelectorAll("button");
@@ -169,7 +174,7 @@ function renderEditPanel(i) {
   for (const key of fields) {
     const row = document.createElement("div");
     row.className = "queue-edit-row";
-    const labelTxt = key.replace(/_/g, " ");
+    const labelTxt = msg(`field-${key}`, lang()).replace(/^field-/, "").replace(/_/g, " ");
     const value = (q.override && q.override[key] != null)
       ? q.override[key]
       : (q.row[key] ?? "");
@@ -191,8 +196,8 @@ function renderEditPanel(i) {
     const row = document.createElement("div");
     row.className = "queue-edit-row";
     row.innerHTML = `
-      <label>banner</label>
-      <input type="text" data-key="header" placeholder="(uses default banner)" value="${escapeHtml(headerVal)}">`;
+      <label>${escapeHtml(L("bannerField"))}</label>
+      <input type="text" data-key="header" placeholder="${escapeHtml(L("bannerDefault"))}" value="${escapeHtml(headerVal)}">`;
     const input = row.querySelector("[data-key]");
     input.addEventListener("input", () => commitField(i, "header", input.value));
     panel.insertBefore(row, panel.firstChild);
@@ -220,7 +225,7 @@ function renderQueueLabel(i) {
   if (!wrap) return;
   const q = state.queue[i];
   const ov = q.override || {};
-  const label = ov.header || ov.name || q.row.name || "(unnamed)";
+  const label = ov.header || ov.name || pickField(q.row, "name", lang()) || q.row.name || L("unnamed");
   const nameSpan = wrap.querySelector(".queue-item .name");
   if (nameSpan && nameSpan !== document.activeElement) nameSpan.textContent = label;
 }
@@ -260,20 +265,18 @@ function renderSheets() {
   $markPrinted.disabled = list.length === 0;
 
   if (!list.length) {
-    $sheetCount.textContent = "0 sheets";
+    $sheetCount.textContent = plural("sheetsN", 0, lang());
     const e = document.createElement("div");
     e.className = "empty-msg";
-    e.textContent = !state.queue.length
-      ? "Print preview will appear here once you queue cards."
-      : "Nothing left to print — every queued card is already in your printed inventory.";
+    e.textContent = L(!state.queue.length ? "previewEmpty" : "nothingLeft");
     $sheetsWrap.appendChild(e);
     return;
   }
   const totals = sheetCount(list.length);
   $sheetCount.textContent =
-    `${totals} sheet${totals === 1 ? "" : "s"} · ${list.length} card${list.length === 1 ? "" : "s"}`
-    + (needMode ? ` still needed (of ${state.queue.length} queued)` : "")
-    + ($backs.checked ? " (fronts + backs)" : "");
+    `${plural("sheetsN", totals, lang())} · ${plural("cardsN", list.length, lang())}`
+    + (needMode ? ` ${plural("stillNeededOf", list.length, lang(), { q: state.queue.length })}` : "")
+    + ($backs.checked ? ` ${L("frontsBacks")}` : "");
   renderSheetsInto($sheetsWrap, list);
 }
 

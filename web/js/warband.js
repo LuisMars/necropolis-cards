@@ -380,9 +380,7 @@ function obols(n, lang) {
 function renderSummary(roster) {
   const lang = state.lang || "en";
   if (!roster) {
-    $summary.innerHTML =
-      `<span class="wb-empty">No gathering open — start one, or bring one in with ` +
-      `<strong>Import</strong>, and its roster will show up here.</span>`;
+    $summary.innerHTML = `<span class="wb-empty">${t("noGathering", lang)}</span>`;
     return;
   }
   const chips = [
@@ -444,7 +442,7 @@ function renderPages(roster) {
   if (!roster || !roster.members.length) {
     const e = document.createElement("div");
     e.className = "empty-msg";
-    e.textContent = "The roster sheet will appear here once the gathering has models.";
+    e.textContent = t("noModelsYet", state.lang || "en");
     $pagesWrap.appendChild(e);
     return;
   }

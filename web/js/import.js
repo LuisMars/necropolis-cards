@@ -29,7 +29,10 @@ import { isLink, decodeLink, encodeLink } from "./builder/codec.js";
 import { fromAppJson, toAppJson } from "./builder/appjson.js";
 import { FORMAT } from "./builder/gathering.js";
 import { store } from "./gatherings.js";
-import { label } from "./builder/messages.js";
+import { label, plural, fill, categoryTitle } from "./builder/messages.js";
+import { pickField } from "./i18n.js";
+
+const L = (k, vars) => fill(label(k, state.lang || "en"), vars);
 
 /** Open or close the panel; the toggle button says which it is. */
 function showPanel(open) {
@@ -67,7 +70,7 @@ export function initImport({ onChange, onImported, openQueue, onPanel }) {
 function showQueued(n) {
   const lang = state.lang || "en";
   $status.hidden = !n;
-  $status.innerHTML = n ? `${n} ${escapeHtml(label("cardsAdded", lang))} ` +
+  $status.innerHTML = n ? `${escapeHtml(plural("cardsAddedN", n, lang))} ` +
     `<button type="button" class="link">${escapeHtml(label("openQueue", lang))}</button>` : "";
 }
 
@@ -82,21 +85,21 @@ function importJson(text, { queue = true } = {}) {
     // A link only names IDs: build the gathering, then the same JSON the
     // app would export for it (plus names and totals) for the roster.
     const { gathering, unknown } = decodeLink(text, state.catalog);
-    if (!gathering.models.length) { alert("That link has no models in it."); return { matches: [], notes }; }
-    for (const id of unknown) notes.push(`Unknown Companion App ID: ${id}`);
+    if (!gathering.models.length) { alert(L("linkNoModels")); return { matches: [], notes }; }
+    for (const id of unknown) notes.push(L("unknownAppId", { id }));
     data = toAppJson(gathering, state.catalog);
     keepGathering(gathering, notes);
   } else {
     try { data = JSON.parse(text); }
-    catch (e) { alert("Invalid JSON: " + e.message); return { matches: [], notes }; }
+    catch (e) { alert(L("badJson", { error: e.message })); return { matches: [], notes }; }
     if (data?.format === FORMAT) {
       // A Builder backup: restore it as it was (same id), and show its roster.
       store.save(data);
-      notes.unshift(`Restored the Builder backup "${data.name || "Untitled gathering"}".`);
+      notes.unshift(L("backupRestored", { name: data.name || L("untitled") }));
       data = toAppJson(data, state.catalog);
     } else {
       const { gathering, unmatched } = fromAppJson(data, state.catalog);
-      for (const u of unmatched) notes.push(`No builder match for ${u.where}: ${u.name}`);
+      for (const u of unmatched) notes.push(L("noBuilderMatch", { where: u.where, name: u.name }));
       if (gathering.models.length) keepGathering(gathering, notes);
     }
   }
@@ -204,12 +207,12 @@ function keepGathering(gathering, notes) {
   const twin = store.list().find(g => fingerprint(g) === fp);
   if (twin) {
     store.save(twin);   // makes it the current gathering
-    notes.unshift(`Already saved as "${twin.name || "Untitled gathering"}"; opened it.`);
+    notes.unshift(L("alreadySaved", { name: twin.name || L("untitled") }));
     return;
   }
   store.save(gathering);
   const n = gathering.models.length;
-  notes.unshift(`Saved as a builder gathering (${n} ${n === 1 ? "model" : "models"}).`);
+  notes.unshift(plural("savedGathering", n, state.lang || "en"));
 }
 
 /**
@@ -262,7 +265,7 @@ function renderMatches(matches, notes = []) {
   for (const note of notes) {
     const row = document.createElement("div");
     row.className = "match-row";
-    row.innerHTML = `<span class="badge">BUILDER</span><span class="source">${escapeHtml(note)}</span>`;
+    row.innerHTML = `<span class="badge">${escapeHtml(L("badgeBuilder"))}</span><span class="source">${escapeHtml(note)}</span>`;
     $matchList.appendChild(row);
   }
   if (!matches.length) return;
@@ -271,29 +274,31 @@ function renderMatches(matches, notes = []) {
   for (const m of matches) counts[m.target.kind]++;
   const summary = document.createElement("div");
   summary.className = "match-row";
-  summary.innerHTML = `<span class="badge">SUMMARY</span>
-    <span class="source">
-      <strong style="color:var(--good)">${counts.matched}</strong> matched ·
-      <strong style="color:var(--warn)">${counts.fuzzy}</strong> fuzzy ·
-      <strong style="color:var(--bad)">${counts.unmatched}</strong> unmatched
-    </span>`;
+  summary.innerHTML = `<span class="badge">${escapeHtml(L("badgeSummary"))}</span>
+    <span class="source">${fill(escapeHtml(L("matchCounts")), {
+      matched: `<strong style="color:var(--good)">${counts.matched}</strong>`,
+      close:   `<strong style="color:var(--warn)">${counts.fuzzy}</strong>`,
+      none:    `<strong style="color:var(--bad)">${counts.unmatched}</strong>`,
+    })}</span>`;
   $matchList.appendChild(summary);
 
   // The rows themselves fold away: the gathering opens right below.
   const fold = document.createElement("details");
   fold.className = "match-fold";
-  fold.innerHTML = `<summary>Show each card's match (${matches.length})</summary>`;
+  fold.innerHTML = `<summary>${escapeHtml(L("showMatches", { n: matches.length }))}</summary>`;
   $matchList.appendChild(fold);
 
   for (const m of matches) {
     const row = document.createElement("div");
     row.className = "match-row " + m.target.kind;
-    let target = "no match in library";
-    if (m.target.kind === "matched") target = `${m.target.row.name} (${m.target.key})`;
-    else if (m.target.kind === "fuzzy") target = `${m.target.row.name} (${m.target.key}) — fuzzy`;
+    const lang = state.lang || "en";
+    const card = () => `${pickField(m.target.row, "name", lang) || m.target.row.name} (${categoryTitle("cat", m.target.key, m.target.key, lang)})`;
+    let target = L("notInLibrary");
+    if (m.target.kind === "matched") target = card();
+    else if (m.target.kind === "fuzzy") target = `${card()}, ${L("closeMatch")}`;
     row.innerHTML = `
-      <span class="badge">${m.sourceType.toUpperCase()}</span>
-      <span class="source">${escapeHtml(m.source || "(empty)")}</span>
+      <span class="badge">${escapeHtml(label(`src-${m.sourceType}`, state.lang || "en").replace(/^src-/, "").toUpperCase())}</span>
+      <span class="source">${escapeHtml(m.source || L("empty_"))}</span>
       <span class="arrow">→</span>
       <span class="target">${escapeHtml(target)}</span>`;
     fold.appendChild(row);

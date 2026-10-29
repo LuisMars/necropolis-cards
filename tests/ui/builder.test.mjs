@@ -390,7 +390,7 @@ test("campaign gear: buy, keep in the stash, take back free, sell for half", asy
   // Taking the Blade off asks: sell, or keep it in the stash.
   const blade = (await modelOf(page, "m3")).weapons.indexOf("melee-weapons/blade");
   await page.click(`#bd-model-m3 [data-act="m-del-item"][data-list="weapons"][data-i="${blade}"]`);
-  assert.match(await text(page, "#bd-picker-title"), /Take Blade from Aberrant Husk/);
+  assert.match(await text(page, "#bd-picker-title"), /Remove Blade from Aberrant Husk/);
   await page.click('[data-pk="rm"][data-how="stash"]');
   await page.waitForTimeout(150);
   assert.equal(await treasury(), 90);
