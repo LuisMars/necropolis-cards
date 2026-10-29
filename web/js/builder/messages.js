@@ -342,6 +342,8 @@ const UI = {
   violence:       ["Violence", "Violencia"],
   ranged:         ["Ranged", "A Dist."],
   hp:             ["HP", "HP"],
+  // Errors campaign.js throws (`err.code`), for the UI to show.
+  invalidDie:     ["Enter each die as a whole number from 1 to 10.", "Introduce cada dado como un número entero del 1 al 10."],
 };
 
 /** A row key's card name in the given language. */

@@ -7,7 +7,7 @@
  * split, campaign state) is part of the format itself.
  *
  *   { format, version, id, name, covenant, lair, treasury, deploymentLimit,
- *     bonusTraits, models: [Model], stash, gearStash, ambitions, campaign, history }
+ *     bonusTraits, uidSeq, models: [Model], stash, gearStash, ambitions, campaign, history }
  *   `treasury` is null until the campaign starts; from then on it replaces
  *   the 300-obol build budget.
  *   Model = { uid, name, profile, affinity, mana, traits, spells, weapons,
@@ -32,7 +32,7 @@ export function newGathering(fields = {}) {
     stash: [],               // treasures no model is carrying
     gearStash: [],           // gear no model is carrying: { key, list } (an app convenience)
     ambitions: { active: [], progress: {}, completed: 0, greaterClaimed: 0, log: [] },
-    campaign: { opponentLimit: null, freeRabbleUsed: false },
+    campaign: { opponentHigher: false, freeRabbleUsed: false },
     history: [],
     ...fields,
   };
@@ -58,12 +58,26 @@ export function newModel(gathering, fields = {}) {
   };
 }
 
-/** "m1", "m2", … — the first number no model in `gathering` uses yet. */
+/**
+ * "m1", "m2", … — a uid never used before in `gathering`, so a removed
+ * model's uid is not handed to a new one: the battle log, the ambitions log
+ * and the transactions keep pointing at the model they were written for.
+ * `gathering.uidSeq` remembers the highest number handed out; saves from
+ * before it existed are scanned for every uid they still mention. Existing
+ * uids are never changed.
+ */
 export function nextUid(gathering) {
-  const used = new Set((gathering.models || []).map(m => m.uid));
-  let n = 1;
-  while (used.has(`m${n}`)) n++;
-  return `m${n}`;
+  let n = Number(gathering.uidSeq) || 0;
+  const see = (s) => { const m = /^m(\d+)$/.exec(s); if (m) n = Math.max(n, Number(m[1])); };
+  for (const m of gathering.models || []) see(String(m.uid));
+  const walk = (v) => {
+    if (typeof v === "string") see(v);
+    else if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) { see(k); walk(x); }
+  };
+  walk([gathering.history, gathering.ambitions?.log, gathering.campaign]);
+  gathering.uidSeq = n + 1;
+  return `m${n + 1}`;
 }
 
 function newId() {

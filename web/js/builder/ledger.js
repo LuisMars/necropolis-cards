@@ -15,8 +15,6 @@
  * `maladies` list; `ledgerOf` reads them as manual and malady entries.
  */
 
-export const LEDGER_STATS = ["ap", "move", "violence", "ranged", "hp", "mana", "spells"];
-
 /** The model's ledger, converting a pre-ledger save on the fly (no mutation). */
 export function ledgerOf(model, rules = {}) {
   if (Array.isArray(model.ledger)) return model.ledger;

@@ -15,6 +15,12 @@ import { addEntries, removeRef, removeEntry, migrateModel, maladyEntries, maladi
 
 export const d = (sides, rng = Math.random) => 1 + Math.floor(rng() * sides);
 
+/** Today's date in the player's own time zone, "YYYY-MM-DD" (toISOString would give UTC's). */
+export function today(now = new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+}
+
 /** Fill in campaign fields older saves don't have. */
 export function ensureCampaign(g, catalog = null) {
   g.stash ||= [];
@@ -55,6 +61,19 @@ export function startCampaign(g, catalog, { alreadyBuilt = false } = {}) {
   return g.treasury;
 }
 
+/**
+ * Set the deployment limit's base from a typed value. Blank goes back to
+ * the rulebook default (null); 0 is a number like any other, not a blank.
+ * Anything that isn't a whole number leaves it as it was.
+ */
+export function setDeploymentBase(g, value) {
+  const s = String(value ?? "").trim();
+  if (s === "") { g.deploymentLimit = null; return null; }
+  const n = Number(s);
+  if (Number.isInteger(n) && n >= 0) g.deploymentLimit = n;
+  return g.deploymentLimit;
+}
+
 /* ---- lair upgrades (p.71): 50 obols, once each ----------------------------- */
 
 export function buyUpgrade(g, key, catalog) {
@@ -87,7 +106,7 @@ const leaderOf = (g) => (g.models || []).find(isLeader);
 function when(g) {
   const ab = g.campaign?.afterBattle;
   return { battle: (g.history || []).length + (ab ? 1 : 0),
-           date: ab?.battle?.date || new Date().toISOString().slice(0, 10) };
+           date: ab?.battle?.date || today() };
 }
 function nextLogId(g) {
   const used = new Set((g.ambitions?.log || []).map(e => e.id));
@@ -214,7 +233,7 @@ export function undoAmbition(g, logId, catalog) {
   if (i < 0) return false;
   const [e] = g.ambitions.log.splice(i, 1);
   for (const m of g.models) removeRef(m, logId);
-  if (e.applied?.deployment) g.deploymentLimit = (g.deploymentLimit ?? 350) - e.applied.deployment;
+  if (e.applied?.deployment) g.deploymentLimit = (g.deploymentLimit ?? catalog.rules.gathering?.deployment_limit ?? 350) - e.applied.deployment;
   if (e.applied?.bonus_traits) g.bonusTraits = Math.max(0, (g.bonusTraits || 0) - e.applied.bonus_traits);
   if (e.applied?.treasure) {
     const { key, to } = e.applied.treasure;
@@ -270,8 +289,6 @@ export function moveTreasure(g, from, index, to) {
   return key;
 }
 
-export const isTreasure = (catalog, key) => treasureKind(catalog, key) != null;
-
 /* ---- sellswords (p.74) ----------------------------------------------------- */
 
 /** Has the player ticked that the opponent's deployment limit is 100+ higher? */
@@ -303,7 +320,7 @@ export function addBattle(g, entry, catalog) {
   ensureCampaign(g, catalog);
   if (g.treasury == null) startCampaign(g, catalog);   // before the first entry ends the build budget
   g.history.push({
-    date: entry.date || new Date().toISOString().slice(0, 10),
+    date: entry.date || today(),
     environment: entry.environment || null,
     mission: entry.mission || null,
     omen: entry.omen || null,
@@ -340,7 +357,7 @@ export function startAfterBattle(g, battle) {
   g.campaign.afterBattle = {
     step: 0,
     battle: {
-      date: battle.date || new Date().toISOString().slice(0, 10),
+      date: battle.date || today(),
       environment: battle.environment ?? next.environment ?? null,
       mission: battle.mission ?? next.mission ?? null,
       omen: battle.omen ?? next.omen ?? null,
@@ -389,15 +406,33 @@ export function applyMalady(g, catalog, roll, { stat = null, treasure = null } =
   return def;
 }
 
+/**
+ * A typed-in d10: a whole number from 1 to 10. Anything else (blank, 0,
+ * 11, 4.5, "x") throws an error with `code: "invalidDie"` (messages.js has
+ * its text) and nothing is recorded, so the step can be applied again.
+ */
+export function d10(v) {
+  const s = String(v ?? "").trim();
+  const n = /^\d+$/.test(s) ? Number(s) : NaN;
+  if (!(n >= 1 && n <= 10)) {
+    const err = new Error(`Enter each die as a whole number from 1 to 10 (got "${s}")`);
+    err.code = "invalidDie";
+    throw err;
+  }
+  return n;
+}
+
 /** Step 2: victory rewards (30/20 + 2d10, and 2/1 minor treasure rolls). */
 export function applyVictoryRewards(g, catalog, dice) {
   const a = ab(g);
   if (a.done.rewards) return 0;
   const r = catalog.rules.victory_rewards?.[a.battle.result === "loss" ? "loss" : "win"] || { obols: 0, treasures: 0 };
-  const n = r.obols + dice.reduce((s, x) => s + Number(x || 0), 0);
+  const rolled = (dice || []).map(d10);
+  if (r.dice != null && rolled.length !== r.dice) d10(null);
+  const n = r.obols + rolled.reduce((s, x) => s + x, 0);
   gain(g, n);
   a.treasuresLeft += r.treasures;
-  a.done.rewards = { dice: dice.map(Number), obols: n };
+  a.done.rewards = { dice: rolled, obols: n };
   return n;
 }
 
@@ -409,17 +444,21 @@ export function applyLairIncome(g, catalog, key, roll) {
   const a = ab(g);
   a.done.income ||= {};
   if (a.done.income[key] != null || !incomeUpgrades(g, catalog).includes(key)) return 0;
-  gain(g, Number(roll) || 0);
-  a.done.income[key] = Number(roll) || 0;
-  return a.done.income[key];
+  const n = d10(roll);
+  gain(g, n);
+  a.done.income[key] = n;
+  return n;
 }
 
-/** Purloiner (p.25): roll a d10; if ≤ the model's Move, gain d10 obols. */
+/**
+ * Purloiner (p.25): roll a d10; if ≤ the model's Move, gain d10 obols.
+ * The second die is only needed (and only checked) when the first passes.
+ */
 export function applyPurloiner(g, uid, move, roll, obols) {
   const a = ab(g);
   a.done.purloiner ||= {};
   if (a.done.purloiner[uid] != null) return 0;
-  const n = Number(roll) <= Number(move) ? Number(obols) || 0 : 0;
+  const n = d10(roll) <= Number(move) ? d10(obols) : 0;
   gain(g, n);
   a.done.purloiner[uid] = n;
   return n;

@@ -21,6 +21,7 @@ import {
   greaterOwed, rewardTargets, rollTreasure, treasureTable, giveTreasure, moveTreasure,
   freeSellsword, hireSellsword, addBattle, removeBattle, undoAmbition, addManualEntry, removeLedgerEntry,
   takeGear, sellStashedGear, discardStashedGear, sellValue, spellTargets,
+  setDeploymentBase, today,
 } from "./builder/campaign.js";
 import { maladiesOf } from "./builder/ledger.js";
 
@@ -50,7 +51,7 @@ export function campaignChange(act, el, g) {
   ensureCampaign(g, catalog());
   switch (act) {
     case "treasury":    g.treasury = parseInt(v, 10) || 0; return true;
-    case "deploy-base": g.deploymentLimit = parseInt(v, 10) || null; return true;
+    case "deploy-base": setDeploymentBase(g, v); return true;
     case "opp-higher":  g.campaign.opponentHigher = el.checked; return true;
     case "field":       g.models.find(m => m.uid === uid).status = el.checked ? "active" : "reserve"; return true;
     case "hire":        if (v) hireSellsword(g, v, catalog()); return true;
@@ -507,7 +508,7 @@ function battleLogHtml(g) {
       </table></div>
       <h4>${esc(L("logNew"))}</h4>
       <div class="bd-form bd-log-form">
-        <label>${esc(L("date"))} <input type="date" id="bl-date" value="${new Date().toISOString().slice(0, 10)}"></label>
+        <label>${esc(L("date"))} <input type="date" id="bl-date" value="${today()}"></label>
         <label>${esc(L("environment"))} <select id="bl-env">${opt("environments", true)}</select></label>
         <label>${esc(L("mission"))} <select id="bl-mission">${opt("missions", true)}</select></label>
         <label>${esc(L("omen"))} <select id="bl-omen">${opt("dread-omens", true)}</select></label>
