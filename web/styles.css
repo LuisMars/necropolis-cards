@@ -173,7 +173,7 @@ button.primary {
   background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent);
   padding: 8px 18px; border-radius: 3px; cursor: pointer; font-size: 16px; font-weight: 600;
 }
-button.primary:hover { background: #fff8e8; }
+button.primary:hover { background: var(--nc-bone, #fff8e8); }
 button.secondary {
   background: none; color: var(--text); border: 1px solid var(--border);
   padding: 7px 14px; border-radius: 3px; cursor: pointer; font-size: 15px;
@@ -270,7 +270,7 @@ textarea.json-in {
 .lib-tile .printed-lbl { font-size: 11px; color: var(--muted); }
 .lib-tile .need {
   margin-left: auto; font-size: 11px; font-weight: 600;
-  color: #1a1a1f; background: var(--warn); padding: 2px 8px; border-radius: 10px;
+  color: var(--nc-on-primary, #1a1a1f); background: var(--warn); padding: 2px 8px; border-radius: 10px;
 }
 .lib-tile .need.done { background: var(--good); }
 
@@ -301,7 +301,7 @@ textarea.json-in {
 }
 .queue-item {
   display: flex; align-items: center; gap: 8px; padding: 10px 12px;
-  border-bottom: 1px solid #2a2a30; font-size: 16px;
+  border-bottom: 1px solid var(--nc-line-soft, #2a2a30); font-size: 16px;
 }
 .queue-item:last-child { border-bottom: none; }
 .queue-item .cat { font-family: var(--caps); font-size: 14px; color: var(--muted); width: 120px; flex-shrink: 0; }
@@ -316,7 +316,7 @@ textarea.json-in {
 /* Per-card edit panel — appears under a queue item when its ▾ is toggled. */
 .queue-item-wrap { display: flex; flex-direction: column; }
 .queue-edit {
-  background: var(--panel2); border-bottom: 1px solid #2a2a30;
+  background: var(--panel2); border-bottom: 1px solid var(--nc-line-soft, #2a2a30);
   padding: 10px 14px 14px;
   display: flex; flex-direction: column; gap: 6px;
 }
@@ -363,7 +363,7 @@ textarea.json-in {
  * (default). The SVG viewBox is also cropped to trim, so on-screen
  * preview matches the printed result 1:1.
  */
-.sheets-wrap { background: #1a1a1f; padding: 16px 0; }
+.sheets-wrap { background: var(--nc-desk, #1a1a1f); padding: 16px 0; }
 .sheet {
   width: 210mm; height: 297mm; background: #ffffff; color: #000;
   margin: 0 auto 12mm; padding: 0;
@@ -643,7 +643,7 @@ button.link.danger:hover, button.secondary.danger:hover { color: var(--bad); }
 .bd-hint { color: var(--muted); font-size: 14px; }
 
 /* --- roster pages --- */
-.wb-pages { background: #1a1a1f; padding: 16px 0; }
+.wb-pages { background: var(--nc-desk, #1a1a1f); padding: 16px 0; }
 .wb-page {
   width: 210mm; height: 297mm; background: #fff; color: #000;
   margin: 0 auto 12mm; padding: 12mm;
