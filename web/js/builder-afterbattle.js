@@ -252,8 +252,9 @@ function bazaarStep(g, a) {
   const models = g.models.map(m => [m.uid, modelTitle(m)]);
 
   // Markets: buy gear, recruit, sell gear and treasures.
-  const gear = [["weapons", ["melee-weapons", "ranged-weapons", "thrown-weapons", "colossal-weapons"]],
-                ["armour", ["armours"]], ["equipment", ["miscellaneous-equipment"]]]
+  // Thrown weapons are Miscellaneous Equipment (p.41).
+  const gear = [["weapons", ["melee-weapons", "ranged-weapons", "colossal-weapons"]],
+                ["armour", ["armours"]], ["equipment", ["miscellaneous-equipment", "thrown-weapons"]]]
     .flatMap(([lst, cats]) => cats.flatMap(cat => rows(cat)
       .filter(([k]) => buyPrice(g, catalog(), k) > 0)       // nothing to buy in a free Improvised Weapon
       .map(([k, r]) => [`${lst}|${k}`, `${pickField(r, "name", lang())} · ${buyPrice(g, catalog(), k)}`])));

@@ -12,7 +12,9 @@
  *   a model has no weapon. We do the same both ways.
  * - Its decoder reads thrown weapons (ewt) and misc equipment (ei) but its
  *   encoder never writes them, so they are lost when shared from the app.
- *   We write them; the app reads them fine.
+ *   We write them; the app reads them fine. Thrown weapons go in the
+ *   model's `equipment`: the rulebook lists them under Miscellaneous
+ *   Equipment (p.41), and the app's JSON export files them there too.
  */
 
 import { categoryOf, TRAIT_CATEGORIES } from "./catalog.js";
@@ -78,7 +80,8 @@ export function decodeLink(input, catalog) {
       else if (TRAIT_CATEGORIES.includes(cat)) m.traits.push(key);
       else if (cat === "spells") m.spells.push(key);
       else if (cat === "armours") m.armour.push(key);
-      else if (cat === "miscellaneous-equipment") m.equipment.push(key);
+      // Thrown weapons are Miscellaneous Equipment in the rulebook (p.41).
+      else if (cat === "miscellaneous-equipment" || cat === "thrown-weapons") m.equipment.push(key);
       else m.weapons.push(key);
     }
     if (!m.profile) continue;
@@ -106,7 +109,11 @@ export function encodeLink(gathering, catalog) {
     const weapons = m.weapons || [];
     const lone = weapons.length === 1 && isFree(catalog, weapons[0]);
     if (!lone) codes.push(...weapons.map(id));
-    codes.push(...(m.armour || []).map(id), ...(m.equipment || []).map(id));
+    // Thrown weapons right after the weapons, as the app orders its IDs.
+    const thrown = (k) => categoryOf(k) === "thrown-weapons";
+    const equipment = m.equipment || [];
+    codes.push(...equipment.filter(thrown).map(id));
+    codes.push(...(m.armour || []).map(id), ...equipment.filter(k => !thrown(k)).map(id));
     codes.push(...(m.spells || []).map(id));
     out += ";" + codes.filter(Boolean).join(",");
   }

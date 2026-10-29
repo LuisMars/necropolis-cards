@@ -128,3 +128,37 @@ test("a banner override with $ patterns prints as typed", async () => {
   const plain = renderCardSvg({ key, row, override: { header: "Darth Vader" } });
   assert.match(plain, />Darth Vader<\/text>/);
 });
+
+/* code-js #18 and rules-gear: thrown weapons are Miscellaneous Equipment (p.41). */
+
+test("thrown weapons land in equipment from app JSON, whichever list they came in", async () => {
+  const { fromAppJson } = await import("../web/js/builder/appjson.js");
+  const { EXAMPLE_EXPORT } = await import("./helpers.js");
+  const json = structuredClone(EXAMPLE_EXPORT);
+  json.gathering[1].weapons.push({ name: "Wardart" });
+  json.gathering[2].miscEquipment = [{ name: "Throwing Axe or Mallet" }];
+  const { gathering: g, unmatched } = fromAppJson(json, catalog);
+  assert.deepEqual(unmatched, []);
+  assert.ok(!g.models[1].weapons.includes("thrown-weapons/wardart"));
+  assert.deepEqual(g.models[1].equipment, ["thrown-weapons/wardart"]);
+  assert.deepEqual(g.models[2].equipment, ["thrown-weapons/throwing-axe-or-mallet"]);
+});
+
+test("a thrown weapon counts against the one piece of Miscellaneous Equipment", () => {
+  const g = newGathering({ covenant: "wretched-undead" });
+  g.models.push(newModel(g, { profile: "minions/corpse-husk", weapons: ["melee-weapons/blade"],
+    equipment: ["thrown-weapons/wardart", "miscellaneous-equipment/banner"] }));
+  const w = evaluate(g, catalog).warnings.filter(x => x.code === "too-much-equipment");
+  assert.equal(w.length, 1);
+  assert.equal(w[0].params.count, 2);
+  // An older save that filed it under weapons is counted the same way, and
+  // it still takes no hand next to a two-handed weapon.
+  g.models[0] = { ...g.models[0], weapons: ["melee-weapons/heavy-polearm", "thrown-weapons/wardart"],
+                  equipment: ["miscellaneous-equipment/banner"] };
+  const codes = evaluate(g, catalog).warnings.map(x => x.code);
+  assert.ok(codes.includes("too-much-equipment"));
+  assert.ok(!codes.includes("too-many-hands"));
+  // One thrown weapon alone is fine.
+  g.models[0] = { ...g.models[0], weapons: ["melee-weapons/blade"], equipment: ["thrown-weapons/wardart"] };
+  assert.ok(!evaluate(g, catalog).warnings.some(x => x.code === "too-much-equipment"));
+});

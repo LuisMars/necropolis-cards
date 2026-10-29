@@ -187,13 +187,16 @@ export function evaluateModel(model, catalog, gathering = {}) {
       if (pr.weapons_only && !pr.weapons_only.some(sel => matches(catalog, g, sel))) {
         warn("weapon-not-allowed", { item: g });
       }
-      // Thrown weapons are stowed, not held (the Companion App files them
-      // under equipment too), so they don't take a hand.
+      // Thrown weapons are Miscellaneous Equipment (p.41, which prints no
+      // handedness for them; the Companion App files them under equipment
+      // too), so they don't take a hand.
       if (cat !== "thrown-weapons") hands += Number(gr.hands) || 0;
     }
     if (gr.slot === "body") bodies++;
     if (gr.slot === "shield") { shields++; hands++; }
-    if (cat === "miscellaneous-equipment") misc++;
+    // p.41: "Each model may only have 1 piece of Miscellaneous Equipment",
+    // and the Wardart and Throwing Axe are printed under that heading.
+    if (cat === "miscellaneous-equipment" || cat === "thrown-weapons") misc++;
   }
   if (hands > 2) warn("too-many-hands", { params: { hands } });
   if (bodies > 1) warn("multiple-armour");

@@ -64,9 +64,10 @@ export function addGroups(list, leader) {
       }
       return [...groups.values()];
     }
-    case "weapons":   return cats(WEAPON_CATEGORIES);
+    // Thrown weapons are Miscellaneous Equipment (p.41), as import files them.
+    case "weapons":   return cats(WEAPON_CATEGORIES.filter(c => c !== "thrown-weapons"));
     case "armour":    return [{ id: "armours", title: null, rows: catRows("armours") }];
-    case "equipment": return [{ id: "miscellaneous-equipment", title: null, rows: catRows("miscellaneous-equipment") }];
+    case "equipment": return cats(["miscellaneous-equipment", "thrown-weapons"]);
   }
   return [];
 }

@@ -47,8 +47,9 @@ test("thrown weapons and misc equipment survive a round trip", () => {
   const { gathering: g, unknown } = decodeLink(link, catalog);
   assert.deepEqual(unknown, []);
   assert.equal(g.covenant, "wretched-undead");
-  assert.deepEqual(g.models[0].weapons, ["melee-weapons/blade", "thrown-weapons/wardart"]);
-  assert.deepEqual(g.models[0].equipment, ["miscellaneous-equipment/banner"]);
+  // Thrown weapons are Miscellaneous Equipment (p.41).
+  assert.deepEqual(g.models[0].weapons, ["melee-weapons/blade"]);
+  assert.deepEqual(g.models[0].equipment, ["thrown-weapons/wardart", "miscellaneous-equipment/banner"]);
   assert.equal(encodeLink(g, catalog), link);
 });
 

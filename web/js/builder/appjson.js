@@ -23,6 +23,8 @@ const LISTS = {
   profile:   ["leaders", "minions"],
   traits:    TRAIT_CATEGORIES,
   spells:    ["spells"],
+  // Thrown weapons are Miscellaneous Equipment (p.41): read from either
+  // list, they are filed under `equipment` (see `take` below).
   weapons:   ["melee-weapons", "ranged-weapons", "thrown-weapons"],
   colossal:  ["colossal-weapons"],
   armour:    ["armours"],
@@ -75,7 +77,8 @@ export function fromAppJson(json, catalog) {
       for (const it of list || []) {
         const name = it?.name ?? it;
         const key = lookup(catalog, cats, name);
-        if (key) m[where].push(key); else unmatched.push({ where, name });
+        if (key) m[categoryOf(key) === "thrown-weapons" ? "equipment" : where].push(key);
+        else unmatched.push({ where, name });
       }
     };
     take("traits", entry.traits, LISTS.traits);
