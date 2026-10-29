@@ -6,6 +6,7 @@
  * page-break-after handles multi-page output cleanly.
  */
 
+import { icon } from "./lucide.js";
 import { state, saveQueue, printedCount, addPrinted, cardId } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { renderCardSvg } from "./templates.js";
@@ -43,10 +44,15 @@ export function initPrint({ onChange } = {}) {
  * is the whole queue; on, it drops the first `printed` copies of each card
  * identity, leaving max(0, queued − printed) — i.e. just the shortfall. */
 export function printList() {
-  if (!$needToggle.checked) return state.queue.slice();
+  return $needToggle.checked ? stillNeeded(state.queue) : state.queue.slice();
+}
+
+/** Drop the copies of each card already in the printed inventory: the
+ *  "only what I still need" rule, for any list of cards. */
+export function stillNeeded(list) {
   const seen = Object.create(null);
   const out = [];
-  for (const q of state.queue) {
+  for (const q of list) {
     const id = cardId(q.key, q.row?.name);
     const nth = (seen[id] = (seen[id] || 0) + 1);
     if (nth > printedCount(q.key, q.row?.name)) out.push(q);
@@ -104,10 +110,10 @@ function renderQueue() {
     item.innerHTML = `
       <span class="cat">${escapeHtml(cat ? cat.title : q.key)}</span>
       <span class="name" contenteditable="true" spellcheck="false" title="Click to rename">${escapeHtml(label)}</span>
-      <button title="Edit fields" aria-label="Edit fields" aria-expanded="${expanded}" class="edit-btn">${expanded ? "▴" : "▾"}</button>
-      <button title="Move up" aria-label="Move up">↑</button>
-      <button title="Move down" aria-label="Move down">↓</button>
-      <button title="Remove" aria-label="Remove">✕</button>`;
+      <button title="Edit fields" aria-label="Edit fields" aria-expanded="${expanded}" class="edit-btn">${icon(expanded ? "chevron-up" : "chevron-down")}</button>
+      <button title="Move up" aria-label="Move up">${icon("arrow-up")}</button>
+      <button title="Move down" aria-label="Move down">${icon("arrow-down")}</button>
+      <button title="Remove" aria-label="Remove">${icon("x")}</button>`;
     const nameSpan = item.querySelector(".name");
     const edBtn = item.querySelector(".edit-btn");
     const [, up, dn, rm] = item.querySelectorAll("button");
@@ -249,8 +255,6 @@ function remove(i) {
 
 function renderSheets() {
   $sheetsWrap.innerHTML = "";
-  const cutGap = $bleed.checked;          // checkbox now toggles the cut gap
-  const withBacks = $backs.checked;
   const list = printList();
   const needMode = $needToggle.checked;
   $markPrinted.disabled = list.length === 0;
@@ -265,12 +269,29 @@ function renderSheets() {
     $sheetsWrap.appendChild(e);
     return;
   }
-  const fronts  = Math.ceil(list.length / CARDS_PER_SHEET);
-  const totals  = withBacks ? fronts * 2 : fronts;
+  const totals = sheetCount(list.length);
   $sheetCount.textContent =
     `${totals} sheet${totals === 1 ? "" : "s"} · ${list.length} card${list.length === 1 ? "" : "s"}`
     + (needMode ? ` still needed (of ${state.queue.length} queued)` : "")
-    + (withBacks ? " (fronts + backs)" : "");
+    + ($backs.checked ? " (fronts + backs)" : "");
+  renderSheetsInto($sheetsWrap, list);
+}
+
+/** A4 sheets for `list` with the queue's layout options (cut gap, backs). */
+export const sheetCount = (n) => Math.ceil(n / CARDS_PER_SHEET) * ($backs.checked ? 2 : 1);
+
+/**
+ * Lay `list` (queue entries: {key, row, override}) out on A4 sheets in
+ * `wrap`, nine to a sheet, with the print toolbar's cut gap and card backs.
+ * The print queue and the Roster view's Cards part both use it, so the same
+ * cards make the same sheets.
+ */
+export function renderSheetsInto(wrap, list) {
+  const cutGap = $bleed.checked;          // checkbox now toggles the cut gap
+  const withBacks = $backs.checked;
+  const fronts  = Math.ceil(list.length / CARDS_PER_SHEET);
+  const totals  = withBacks ? fronts * 2 : fronts;
+  const $sheetsWrap = wrap;
 
   for (let s = 0; s < fronts; s++) {
     // Fronts sheet — 9 cards from the effective print list.

@@ -33,11 +33,7 @@
     border-color:var(--nc-control-line);
     color:var(--nc-bone);
   }
-  #bd-body select,.bd-toolbar select,.lib-toolbar select,header.app .lang-picker select,.print-toolbar select{
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23eeeae2' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 6 8 10.5 12.5 6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-size:15px 15px;background-position:right 15px center;
-    padding-right:49px;
-  }
+  #bd-body select,.bd-toolbar select,.lib-toolbar select,header.app .lang-picker select,.print-toolbar select{padding-right:49px}
   #bd-body .bd-model,#bd-body .bd-panel,.bd-model,.bd-panel{
     background:var(--nc-surface);border-color:var(--nc-line-soft);
     box-shadow:none;
@@ -49,10 +45,6 @@
   #bd-body .bd-list,#bd-body .bd-step{border-color:var(--nc-line-soft)}
   #bd-body .bd-affinity-option span{background:var(--nc-raised);border-color:var(--nc-line-soft);color:var(--nc-secondary)}
   #bd-body .bd-affinity-option input:checked+span{background:var(--nc-primary);color:var(--nc-on-primary);border-color:var(--nc-bone)}
-  #bd-body .bd-summary .wb-chip.good{background:var(--nc-success-bg);color:var(--nc-success);border-color:var(--nc-success)}
-  #bd-body .bd-summary .wb-chip.over{background:var(--nc-error-bg);color:var(--nc-error);border-color:var(--nc-error)}
-  #bd-body .bd-warn li{background:var(--nc-warning-bg);color:var(--nc-warning);border-color:var(--nc-warning);border-left:3px solid var(--nc-warning)}
-  #bd-body .bd-upgrade.owned{border-color:var(--nc-success)}
   #bd-body .bd-amb.done .bd-prog,.bd-good{color:var(--nc-success)}
   #bd-body .bd-choice,.bd-item,.bd-tag{background:var(--nc-raised);border-color:var(--nc-line-soft);color:var(--nc-bone)}
   .lib-tile{background:var(--nc-surface);border-color:var(--nc-line-soft)}
@@ -73,22 +65,28 @@
   .nc-theme-picker select{
     appearance:none;-webkit-appearance:none;min-height:40px;max-width:195px;
     background-color:var(--nc-control-bg);
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23eeeae2' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 6 8 10.5 12.5 6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-size:15px 15px;background-position:right 14px center;
+    background-image:
+      linear-gradient(45deg,transparent 50%,currentColor 50%),
+      linear-gradient(135deg,currentColor 50%,transparent 50%);
+    background-position:calc(100% - 21px) 50%,calc(100% - 16px) 50%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
     border:1px solid var(--nc-control-line);border-radius:3px;
     padding:7px 42px 7px 11px;color:var(--nc-bone);
     font:16px 'Alegreya',Georgia,serif;cursor:pointer;
   }
+  .nc-theme-picker .nc-select{max-width:195px}
   @media(max-width:800px){
     .nc-theme-picker{order:2}
-    .nc-theme-picker select{max-width:170px}
+    .nc-theme-picker :is(select,.nc-select){max-width:170px}
   }
   @media(max-width:500px){
     .nc-theme-picker{font-size:12px;gap:5px}
-    .nc-theme-picker select{max-width:137px;font-size:14px;padding-left:8px;padding-right:36px}
+    .nc-theme-picker :is(select,.nc-select){max-width:137px}
+    .nc-theme-picker select:not(.nc-select-src){font-size:14px;padding-left:8px;padding-right:36px}
   }
   /* In the header's Settings menu the picker is a stacked label and field. */
   .nav-settings-panel .nc-theme-picker{display:flex;flex-direction:column;align-items:stretch;gap:4px;font-size:14px}
-  .nav-settings-panel .nc-theme-picker select{max-width:none;min-height:44px;font-size:16px;padding-left:11px;padding-right:42px}
+  .nav-settings-panel .nc-theme-picker :is(select,.nc-select){max-width:none}
+  .nav-settings-panel .nc-theme-picker select:not(.nc-select-src){min-height:44px;font-size:16px;padding-left:11px;padding-right:42px}
 }
 /* Do not add @media print rules here. Printed SVG cards always retain source colors. */

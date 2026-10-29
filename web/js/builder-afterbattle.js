@@ -11,6 +11,7 @@
  * Campaign view's panels.
  */
 
+import { icon } from "./lucide.js";
 import { state } from "./state.js";
 import { escapeHtml } from "./util.js";
 import { pickField } from "./i18n.js";
@@ -117,7 +118,7 @@ export function afterBattleClick(act, el, g) {
 const dieInput = (id, value, n = 1) =>
   `<input type="number" min="1" max="10" id="${id}" value="${value ?? ""}" class="bd-die" placeholder="d10" aria-label="${esc(L("die"))} ${n}">`;
 const rollBtn = (act, attrs = "") =>
-  `<button type="button" class="secondary" data-act="${act}"${attrs}>🎲 ${esc(L("roll"))}</button>`;
+  `<button type="button" class="secondary" data-act="${act}"${attrs}>${icon("dices")} ${esc(L("roll"))}</button>`;
 
 export function afterBattleHtml(g, ev) {
   const a = g.campaign.afterBattle;
@@ -177,7 +178,7 @@ function maladiesStep(g, a) {
   const done = a.done.maladies;
   if (done) {
     const def = maladyFor(catalog(), done.roll);
-    return `${head}<p class="bd-good">✓ ${esc(L("applied"))}: ${done.roll} · <b>${esc(pickField(def, "name", lang()))}</b>${done.stat ? ` (${esc(L(done.stat))})` : ""}</p>
+    return `${head}<p class="bd-good">${icon("check")} ${esc(L("applied"))}: ${done.roll} · <b>${esc(pickField(def, "name", lang()))}</b>${done.stat ? ` (${esc(L(done.stat))})` : ""}</p>
       <p>${esc(pickField(def, "effect", lang()))}</p>${hp}`;
   }
   const def = a.maladyRoll ? maladyFor(catalog(), a.maladyRoll) : null;
@@ -205,7 +206,7 @@ function rewardsStep(g, a) {
   const done = a.done.rewards;
   const dice = a.rewardDice || done?.dice || [];
   const main = done
-    ? `<p class="bd-good">✓ +${done.obols} ${esc(L("obolsAdded"))} (${r.obols} + ${done.dice.join(" + ")})</p>`
+    ? `<p class="bd-good">${icon("check")} +${done.obols} ${esc(L("obolsAdded"))} (${r.obols} + ${done.dice.join(" + ")})</p>`
     : `<p>${esc(L(a.battle.result === "loss" ? "loss" : "win"))}: ${r.obols} + 2d10</p>
        <div class="bd-inline">${rollBtn("ab-roll-rewards")} ${esc(L("orType"))} ${dieInput("ab-d1", dice[0])} ${dieInput("ab-d2", dice[1], 2)}
          <button type="button" class="secondary" data-act="ab-apply-rewards">${esc(L("apply"))}</button></div>`;
@@ -213,12 +214,12 @@ function rewardsStep(g, a) {
   // roll; a second Roll button here would quietly re-roll it.
   const treasures = done && a.treasuresLeft > 0 && !pendingTreasure()
     ? `<div class="bd-inline"><b>${a.treasuresLeft}</b> ${esc(L("treasureRolls"))}
-         <button type="button" class="secondary" data-act="ab-roll-treasure">🎲 ${esc(L("rollTreasure"))}</button></div>` : "";
+         <button type="button" class="secondary" data-act="ab-roll-treasure">${icon("dices")} ${esc(L("rollTreasure"))}</button></div>` : "";
 
   const income = incomeUpgrades(g, catalog()).map(k => {
     const got = a.done.income?.[k];
     return `<div class="bd-inline">${esc(name(k))}: ${got != null
-      ? `<span class="bd-good">✓ +${got}</span>`
+      ? `<span class="bd-good">${icon("check")} +${got}</span>`
       : `${rollBtn("ab-income-roll", ` data-key="${esc(k)}"`)} ${dieInput(`ab-inc-${k}`, a.incomeRolls?.[k])}
          <button type="button" class="secondary" data-act="ab-income" data-key="${esc(k)}">${esc(L("apply"))}</button>`}</div>`;
   }).join("");
@@ -226,7 +227,7 @@ function rewardsStep(g, a) {
     const got = a.done.purloiner?.[m.uid];
     const r2 = a.purlRolls?.[m.uid] || [];
     return `<div class="bd-inline">${esc(modelTitle(m))}: ${got != null
-      ? `<span class="bd-good">✓ +${got}</span>`
+      ? `<span class="bd-good">${icon("check")} +${got}</span>`
       : `${rollBtn("ab-purl-roll", ` data-uid="${esc(m.uid)}"`)} ${dieInput(`ab-pr1-${m.uid}`, r2[0])} ${dieInput(`ab-pr2-${m.uid}`, r2[1], 2)}
          <small>${esc(L("ifUnderMove"))}</small>
          <button type="button" class="secondary" data-act="ab-purl" data-uid="${esc(m.uid)}">${esc(L("apply"))}</button>`}</div>`;

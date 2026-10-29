@@ -342,6 +342,8 @@ function itemMeta(key, row, entry, lang) {
     if (f("category")) bits.push(escapeHtml(f("category")));
   } else if (tpl === "spell") {
     if (f("school"))  bits.push(escapeHtml(f("school")));
+    // An ambition's reward (Master Abyssal Artillery, p.67), from the export.
+    if (Number(entry?.channelBonus) > 0) bits.push(escapeHtml(`+${Number(entry.channelBonus)} ${t("channelling", lang)}`));
     if (f("ap"))      nums.push(stat("bolt", f("ap")));
     if (f("channel")) nums.push(plain(f("channel")));
   } else {

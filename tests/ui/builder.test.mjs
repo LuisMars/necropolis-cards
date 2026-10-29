@@ -58,13 +58,20 @@ async function importLink(page) {
   await page.click("#load-warband-btn");
   await page.waitForTimeout(300);
 }
+/** Add an item through a list's "+ Add …" picker, then close it. */
+async function pick(page, uid, list, value) {
+  await page.click(`[data-act="m-pick"][data-uid="${uid}"][data-list="${list}"]`);
+  await page.click(`dialog.bd-picker[open] .bd-picker-row[data-value="${value}"]`);
+  await page.waitForTimeout(150);
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
+}
 const text = async (page, sel) => ((await page.textContent(sel)) || "").replace(/\s+/g, " ").trim();
 
 test("an imported link shows its models, cost and warnings", async () => {
   const { page, errors } = await open();
   await importLink(page);
   assert.equal(await page.locator(".bd-model").count(), 6);
-  const side = await text(page, ".bd-side");
+  const side = await text(page, ".bd-ghead");
   assert.match(side, /345 of 300/);
   assert.match(side, /345 obols spent of the 300 for the first build/);
   assert.match(await text(page, "#bd-model-m1 .bd-warn"), /Mana points split: 0 of 4/);
@@ -86,8 +93,7 @@ test("drafts: changes wait for Save, Discard puts them back", async () => {
   await importLink(page);
   assert.equal(await page.isVisible(".bd-draft"), false);         // an import is saved already
 
-  await page.selectOption('[data-act="m-add"][data-uid="m3"]', "armour|armours/heavy-armour");
-  await page.waitForTimeout(100);
+  await pick(page, "m3", "armour", "armour|armours/heavy-armour");
   assert.ok(await page.isVisible(".bd-draft"));
   assert.match(await text(page, "#bd-model-m3 .bd-lists"), /Heavy Armour/);
   await page.click('[data-act="discard"]');
@@ -101,7 +107,7 @@ test("drafts: changes wait for Save, Discard puts them back", async () => {
   await page.reload();
   await ready(page);
   await go(page, "gatherings");
-  assert.equal(await text(page, ".bd-gname"), "The Faithful of Bone");
+  assert.equal(await page.inputValue(".bd-gname"), "The Faithful of Bone");
   assert.equal(await page.isVisible(".bd-draft"), false);
 });
 
@@ -140,7 +146,20 @@ test("after-battle sequence: rewards and the log entry", async () => {
   await page.click('[data-act="ab-apply-rewards"]');
   await page.waitForTimeout(100);
   assert.match(await text(page, ".bd-step"), /\+27 obols added \(20 \+ 3 \+ 4\)/);
-  for (let i = 0; i < 5; i++) await page.click('[data-act="ab-step"][data-by="1"]');
+  // Every step of the seven: its crumb is current and it has something to do.
+  const crumbs = await page.locator(".bd-crumbs li button").allTextContents();
+  assert.equal(crumbs.length, 8);                              // Battle + the seven steps (p.65)
+  for (let step = 3; step <= 7; step++) {
+    await page.click('[data-act="ab-step"][data-by="1"]');
+    assert.equal(await text(page, '.bd-crumbs [aria-current="step"]'), crumbs[step].trim());
+    assert.ok((await text(page, ".bd-step")).length > 10, `step ${step} is empty`);
+  }
+  assert.ok(await page.isVisible('[data-act="ab-finish"]'));   // the last step finishes
+  for (let step = 7; step > 0; step--) {                        // and Back walks them all again
+    await page.click('[data-act="ab-step"][data-by="-1"]');
+    assert.equal(await text(page, '.bd-crumbs [aria-current="step"]'), crumbs[step - 1].trim());
+  }
+  for (let step = 0; step < 7; step++) await page.click('[data-act="ab-step"][data-by="1"]');
   await page.click('[data-act="ab-finish"]');
   await page.waitForTimeout(100);
   assert.equal(await page.isVisible(".bd-wizard"), false);
@@ -274,10 +293,17 @@ test("the Settings menu works from the keyboard", async () => {
   await page.focus("#nav-settings > summary");
   await page.keyboard.press("Enter");
   assert.equal(await isOpen(), true);
+  // Language and Theme are themed dropdowns: focus lands on their triggers.
+  const focusedSelect = () => page.evaluate(() => document.activeElement.closest(".nc-select")?.querySelector("select")?.id);
   await page.keyboard.press("Tab");
-  assert.equal(await page.evaluate(() => document.activeElement.id), "lang-select");
+  assert.equal(await focusedSelect(), "lang-select");
   await page.keyboard.press("Tab");
-  assert.equal(await page.evaluate(() => document.activeElement.id), "nc-theme-select");
+  assert.equal(await focusedSelect(), "nc-theme-select");
+  // Choosing from the list (a portal in <body>) keeps Settings open.
+  await page.keyboard.press("ArrowDown");
+  await page.click('.nc-select-pop .nc-select-option:has-text("Slate")');
+  assert.equal(await isOpen(), true);
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.ncPalette), "slate");
   await page.keyboard.press("Escape");
   assert.equal(await isOpen(), false);
   assert.ok(await page.evaluate(() => document.activeElement.matches("#nav-settings > summary")));
@@ -293,4 +319,164 @@ test("the Settings menu works from the keyboard", async () => {
   // A click outside closes it.
   await page.mouse.click(600, 600);
   assert.equal(await isOpen(), false);
+});
+
+/* ---- the "+ Add" picker, the gear stash, treasures and ambitions -------- */
+
+/** The working copy (draft, or the saved gathering) from the browser. */
+const working = (page) => page.evaluate(() => {
+  const saved = JSON.parse(localStorage.getItem("necropolis-builder-gatherings-v1"));
+  const id = saved.current;
+  const drafts = JSON.parse(localStorage.getItem("necropolis-builder-drafts-v1") || "{}");
+  return drafts[id] || saved.items?.[id] || saved.gatherings?.[id] || Object.values(saved).find(v => v?.id === id);
+});
+const modelOf = async (page, uid) => (await working(page)).models.find(m => m.uid === uid);
+
+test("each list has its own Add button, and the picker explains what breaks a rule", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  const lists = (uid) => page.$$eval(`#bd-model-${uid} [data-act="m-pick"]`, bs => bs.map(b => b.dataset.list));
+  assert.deepEqual(await lists("m1"), ["traits", "spells", "weapons", "armour", "equipment"]);   // the leader
+  assert.deepEqual(await lists("m3"), ["traits", "weapons", "armour", "equipment"]);             // a minion
+  assert.equal(await page.locator('#bd-model-m3 .bd-none').count(), 3);                          // traits, armour, equipment
+
+  // Search, arrows and Enter add; the dialog stays open for more.
+  await page.click('[data-act="m-pick"][data-uid="m3"][data-list="armour"]');
+  assert.equal(await text(page, "#bd-picker-title"), "Add armour to Aberrant Husk");
+  assert.ok(await page.evaluate(() => document.activeElement.matches(".bd-picker-search")));
+  await page.keyboard.type("HEAVY");
+  assert.deepEqual(await page.locator(".bd-picker-row .bd-pk-name").allTextContents(), ["Heavy Armour"]);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.match(await text(page, ".bd-picker-status"), /Added Heavy Armour/);
+  assert.ok(await page.isVisible("dialog.bd-picker[open]"));
+  // A second suit of armour breaks a rule: the row says why, and still adds.
+  await page.fill(".bd-picker-search", "");
+  const why = page.locator('.bd-picker-row[data-value="armour|armours/light-armour"] .bd-pk-why');
+  assert.equal(await why.getAttribute("data-reason"), "Only one suit of armour.");
+  assert.equal(await page.locator('.bd-picker-row[data-value="armour|armours/shield"] .bd-pk-why').count(), 0);
+  await page.keyboard.press("Escape");
+  assert.equal(await page.isVisible("dialog.bd-picker[open]"), false);
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.fid), "m3-add-armour");   // focus back
+  assert.deepEqual((await modelOf(page, "m3")).armour, ["armours/heavy-armour"]);
+
+  // Weapons are grouped, with chips to show one kind.
+  await page.click('[data-act="m-pick"][data-uid="m3"][data-list="weapons"]');
+  await page.click('[data-pk="chip"][data-chip="ranged-weapons"]');
+  const names = await page.locator(".bd-picker-row .bd-pk-name").allTextContents();
+  assert.deepEqual(names, ["Sling", "Bow", "Crossbow"]);
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
+  assert.deepEqual(errors, []);
+});
+
+test("campaign gear: buy, keep in the stash, take back free, sell for half", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.fill('[data-act="treasury"]', "100");
+  await page.press('[data-act="treasury"]', "Tab");
+  await page.click('[data-act="view"][data-view="gathering"]');
+  const treasury = async () => Number((await working(page)).treasury);
+
+  // Buying from the Markets costs its price.
+  await page.click('[data-act="m-pick"][data-uid="m3"][data-list="weapons"]');
+  assert.equal(await text(page, ".bd-picker-sec-title"), "Buy at the Markets");
+  await page.click('.bd-picker-row[data-value="weapons|melee-weapons/axe"]');
+  await page.waitForTimeout(150);
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
+  assert.equal(await treasury(), 90);
+
+  // Taking the Blade off asks: sell, or keep it in the stash.
+  const blade = (await modelOf(page, "m3")).weapons.indexOf("melee-weapons/blade");
+  await page.click(`#bd-model-m3 [data-act="m-del-item"][data-list="weapons"][data-i="${blade}"]`);
+  assert.match(await text(page, "#bd-picker-title"), /Take Blade from Aberrant Husk/);
+  await page.click('[data-pk="rm"][data-how="stash"]');
+  await page.waitForTimeout(150);
+  assert.equal(await treasury(), 90);
+  assert.deepEqual((await working(page)).gearStash, [{ key: "melee-weapons/blade", list: "weapons" }]);
+
+  // Another model takes it from the stash, free.
+  await page.click('[data-act="m-pick"][data-uid="m4"][data-list="weapons"]');
+  assert.deepEqual(await page.locator(".bd-picker-sec-title").allTextContents(), ["From the stash (free)", "Buy at the Markets"]);
+  await page.click('.bd-picker-row[data-value="stash|0"]');
+  await page.waitForTimeout(150);
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
+  assert.ok((await modelOf(page, "m4")).weapons.includes("melee-weapons/blade"));
+  assert.deepEqual((await working(page)).gearStash, []);
+  assert.equal(await treasury(), 90);
+
+  // Selling the Axe brings back half its price (p.72).
+  const axe = (await modelOf(page, "m3")).weapons.indexOf("melee-weapons/axe");
+  await page.click(`#bd-model-m3 [data-act="m-del-item"][data-list="weapons"][data-i="${axe}"]`);
+  await page.click('[data-pk="rm"][data-how="sell"]');
+  await page.waitForTimeout(150);
+  assert.equal(await treasury(), 95);
+  assert.deepEqual(errors, []);
+});
+
+test("a greater treasure rolled by hand doesn't use up one owed from ambitions", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  const claimed = async () => (await working(page)).ambitions?.greaterClaimed || 0;
+  const before = await claimed();
+  await page.click('[data-act="t-roll"][data-kind="greater"][data-manual]');
+  await page.selectOption("#t-to-0", "m1");                      // give it to the leader
+  const key = await page.getAttribute('[data-act="t-take"][data-take="0"]', "data-key");
+  assert.match(key, /^greater-treasures\//);
+  await page.click('[data-act="t-take"][data-take="0"]');
+  await page.waitForTimeout(150);
+  assert.ok((await modelOf(page, "m1")).treasures.includes(key));
+  assert.equal(await claimed(), before);
+  assert.equal(await page.locator(".bd-owed").count(), 0);       // nothing owed, nothing claimed
+  assert.deepEqual(errors, []);
+});
+
+test("Master Abyssal Artillery gives a chosen spell +1 channelling", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  const key = "ambitions/master-abyssal-artillery";
+  await page.selectOption('[data-act="amb-add"]', key);
+  for (let i = 0; i < 3; i++) await page.click(`[data-act="amb-tick"][data-key="${key}"][data-step="1"]`);
+  assert.ok(await page.isDisabled(`[data-act="amb-complete"][data-key="${key}"]`));     // a spell first
+  const spells = await page.$$eval(`[data-act="amb-target"][data-key="${key}"] option`, os => os.map(o => o.value).filter(Boolean));
+  assert.ok(spells.includes("spells/wither"));
+  await page.selectOption(`[data-act="amb-target"][data-key="${key}"]`, "spells/wither");
+  await page.click(`[data-act="amb-complete"][data-key="${key}"]`);
+  await page.click('[data-act="view"][data-view="gathering"]');
+  const chip = page.locator('#bd-model-m1 .bd-item', { hasText: "Wither" });
+  assert.match(await chip.textContent(), /\+1 channelling/);
+  assert.deepEqual(errors, []);
+});
+
+test("the app's own interface uses icons, not emoji", async () => {
+  const { page } = await open();
+  await importLink(page);
+  const scan = () => page.evaluate(() => {
+    // Pictographs and dingbats; typographic arrows in prose (→) are fine,
+    // and the cards and the roster sheet keep their own glyphs.
+    const re = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2190}\u{2191}\u{2193}-\u{21FF}\u{25A0}-\u{25FF}]/u;
+    const out = [];
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n; (n = walk.nextNode());) {
+      if (n.parentElement.closest(".sheet, .wb-page, svg, script, style")) continue;
+      if (re.test(n.nodeValue)) out.push(n.nodeValue.trim().slice(0, 40));
+    }
+    return out;
+  });
+  assert.deepEqual(await scan(), []);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  assert.deepEqual(await scan(), []);
+  await page.click('[data-act="ab-open"]');
+  for (let i = 0; i < 7; i++) {
+    assert.deepEqual(await scan(), [], `after-battle step ${i}`);
+    await page.click('[data-act="ab-step"][data-by="1"]');
+  }
+  await go(page, "cards");
+  assert.deepEqual(await scan(), []);
 });

@@ -9,6 +9,7 @@
  * of its own — only the treasure a reward or a roll has left to give out.
  */
 
+import { icon } from "./lucide.js";
 import { state } from "./state.js";
 import { escapeHtml } from "./util.js";
 import { pickField } from "./i18n.js";
@@ -19,6 +20,7 @@ import {
   ensureCampaign, startCampaign, buyUpgrade, refundUpgrade, tickAmbition, completeAmbition,
   greaterOwed, rewardTargets, rollTreasure, treasureTable, giveTreasure, moveTreasure,
   freeSellsword, hireSellsword, addBattle, removeBattle, undoAmbition, addManualEntry, removeLedgerEntry,
+  takeGear, sellStashedGear, discardStashedGear, sellValue, spellTargets,
 } from "./builder/campaign.js";
 import { maladiesOf } from "./builder/ledger.js";
 
@@ -57,6 +59,7 @@ export function campaignChange(act, el, g) {
     case "t-move":      if (v !== "") moveTreasure(g, from || null, Number(i), v === "stash" ? null : v); return true;
     case "t-add":       if (v) giveTreasure(g, v, null); return true;
     case "t-pick":      if (v && pending) pending = { ...pending, choices: [v] }; return true;
+    case "g-give":      if (v) takeGear(g, v, Number(i)); return true;
   }
   return false;
 }
@@ -74,12 +77,20 @@ export function campaignClick(act, el, g) {
     case "amb-tick":       tickAmbition(g, key, catalog(), Number(step)); return true;
     case "amb-drop":       g.ambitions.active = g.ambitions.active.filter(k => k !== key); return true;
     case "amb-complete": {
-      const r = completeAmbition(g, key, catalog(), rewardPick[key] || null);
+      const spellReward = catalog().row(key)?.reward_effect?.target === "spell";
+      const r = completeAmbition(g, key, catalog(), spellReward ? { spell: rewardPick[key] } : rewardPick[key] || null);
       if (r.treasure) pending = { kind: r.treasure, ambition: r.ambition };
       return true;
     }
-    case "t-roll":         pending = { kind: el.dataset.kind, greater: el.dataset.kind === "greater",
-                                       choices: rollTreasure(catalog(), el.dataset.kind) }; return true;
+    case "t-roll": {
+      // A roll from the Treasures panel (data-manual) is a treasure from a
+      // scenario or a house rule: it never counts as a greater treasure
+      // claimed from ambitions. A re-roll in the pending strip keeps what
+      // the pending treasure was for.
+      const keep = el.dataset.manual ? {} : (pending || { greater: el.dataset.kind === "greater" });
+      pending = { ...keep, kind: el.dataset.kind, choices: rollTreasure(catalog(), el.dataset.kind) };
+      return true;
+    }
     case "t-claim-greater": pending = { kind: "greater", greater: true }; return true;
     case "t-take": {
       const to = document.getElementById(`t-to-${el.dataset.take}`)?.value || null;
@@ -89,6 +100,8 @@ export function campaignClick(act, el, g) {
       return true;
     }
     case "t-cancel":       pending = null; return true;
+    case "g-sell":         sellStashedGear(g, catalog(), Number(i)); return true;
+    case "g-discard":      discardStashedGear(g, Number(i)); return true;
     case "t-del": {
       const list = from ? g.models.find(m => m.uid === from).treasures : g.stash;
       list.splice(Number(i), 1);
@@ -241,9 +254,9 @@ export function pendingHtml(g) {
     <div class="bd-panel bd-callout">
       <h3>${esc(L("treasureToTake"))} (${esc(L(kind === "greater" ? "greaterT" : "minorT"))})</h3>
       <div class="bd-inline">
-        <button type="button" class="secondary" data-act="t-roll" data-kind="${kind}">🎲 ${esc(L(kind === "greater" ? "rollGreater" : "rollMinor"))}</button>
+        <button type="button" class="secondary" data-act="t-roll" data-kind="${kind}">${icon("dices")} ${esc(L(kind === "greater" ? "rollGreater" : "rollMinor"))}</button>
         <select data-act="t-pick" data-fid="c-tpick"><option value="">${esc(L("pickTreasure"))}</option>${table}</select>
-        <button type="button" class="secondary" data-act="t-cancel" aria-label="${esc(L("cancel"))}" title="${esc(L("cancel"))}">✕</button>
+        <button type="button" class="secondary" data-act="t-cancel" aria-label="${esc(L("cancel"))}" title="${esc(L("cancel"))}">${icon("x")}</button>
       </div>
       ${choices ? `<div class="bd-choices">${choices}</div>` : ""}
     </div>`;
@@ -257,12 +270,19 @@ export function ambitionsHtml(g) {
     const prog = a.progress[key] || 0;
     const eff = r.reward_effect || {};
     const done = prog >= goal;
-    const targets = eff.target === "choose" ? rewardTargets(g, catalog(), key) : [];
-    const pick = targets.length ? `<select data-act="amb-target" data-key="${esc(key)}" data-fid="c-amb-${esc(key)}">
-        <option value="">${esc(L("chooseModel_"))}</option>
-        ${targets.map(m => `<option value="${esc(m.uid)}"${rewardPick[key] === m.uid ? " selected" : ""}>${esc(modelTitle(m))}</option>`).join("")}
+    // A model for "choose" rewards; one of the leader's spells for "spell"
+    // (Master Abyssal Artillery, p.67). Either goes to completeAmbition.
+    const chooses = eff.target === "choose" || eff.target === "spell";
+    const targets = eff.target === "choose"
+      ? rewardTargets(g, catalog(), key).map(m => [m.uid, modelTitle(m)])
+      : eff.target === "spell"
+        ? spellTargets(g, catalog(), key).map(s => [s, name(s)])
+        : [];
+    const pick = chooses ? `<select data-act="amb-target" data-key="${esc(key)}" data-fid="c-amb-${esc(key)}">
+        <option value="">${esc(L(eff.target === "spell" ? "chooseSpell" : "chooseModel_"))}</option>
+        ${targets.map(([v, t]) => `<option value="${esc(v)}"${rewardPick[key] === v ? " selected" : ""}>${esc(t)}</option>`).join("")}
       </select>` : "";
-    const canComplete = done && (eff.target !== "choose" || rewardPick[key]);
+    const canComplete = done && (!chooses || rewardPick[key]);
     return `
       <div class="bd-amb${done ? " done" : ""}">
         <div class="bd-amb-head">
@@ -271,7 +291,7 @@ export function ambitionsHtml(g) {
           <button type="button" class="secondary" data-act="amb-tick" data-key="${esc(key)}" data-step="-1">−</button>
           <span class="bd-prog">${prog} / ${goal}</span>
           <button type="button" class="secondary" data-act="amb-tick" data-key="${esc(key)}" data-step="1">+</button>
-          <button type="button" class="secondary" data-act="amb-drop" data-key="${esc(key)}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">✕</button>
+          <button type="button" class="secondary" data-act="amb-drop" data-key="${esc(key)}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button>
         </div>
         <div class="bd-amb-text">${esc(pickField(r, "condition", lang()) || "")} → ${esc(pickField(r, "reward", lang()) || "")}</div>
         ${done ? `<div class="bd-inline">${pick}<button type="button" class="secondary" data-act="amb-complete" data-key="${esc(key)}"${canComplete ? "" : " disabled"}>${esc(L("complete"))}</button></div>` : ""}
@@ -302,7 +322,7 @@ function treasuresHtml(g) {
     const kind = treasureKind(catalog(), key);
     return `<span class="bd-item">${esc(name(key))} <small>${esc(L(kind === "greater" ? "greaterT" : "minorT"))}</small>
       <select data-act="t-move" data-from="${esc(from || "")}" data-i="${idx}" aria-label="${esc(L("moveTo"))}">${dests(from)}</select>
-      <button type="button" data-act="t-del" data-from="${esc(from || "")}" data-i="${idx}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">✕</button></span>`;
+      <button type="button" data-act="t-del" data-from="${esc(from || "")}" data-i="${idx}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button></span>`;
   };
   const holders = [
     [L("stash"), null, g.stash],
@@ -312,6 +332,21 @@ function treasuresHtml(g) {
     `<optgroup label="${esc(catalog().bundle.categories[cat]?.title || cat)}">` +
     rows(cat).map(([k, r]) => `<option value="${esc(k)}">${esc(pickField(r, "name", lang()))}</option>`).join("") + `</optgroup>`).join("");
   const shownHolders = holders.filter(([, , list]) => list.length);
+  // The gear stash (not in the rulebook; see builder/campaign.js).
+  const givers = (n, list) => `<select data-act="g-give" data-i="${n}" data-list="${list}" data-fid="c-gg-${n}" aria-label="${esc(L("giveTo"))}">` +
+    `<option value="">${esc(L("giveTo"))}…</option>` +
+    g.models.filter(m => !m.profile.startsWith("sellswords/")).map(m => `<option value="${esc(m.uid)}">${esc(modelTitle(m))}</option>`).join("") + `</select>`;
+  const gear = (g.gearStash || []).map((e, n) => {
+    const sells = e.list === "weapons" || e.list === "armour";
+    return `<span class="bd-item">${esc(name(e.key))} <small>${esc(L(e.list))}</small>
+      ${givers(n, e.list)}
+      ${sells ? `<button type="button" class="bd-sell" data-act="g-sell" data-i="${n}">${esc(L("sell"))} +${sellValue(catalog(), e.key)}</button>` : ""}
+      <button type="button" data-act="g-discard" data-i="${n}" title="${esc(L("discard"))}" aria-label="${esc(L("discard"))} ${esc(name(e.key))}">${icon("x")}</button></span>`;
+  }).join("");
+  const gearHtml = `
+      <div class="bd-list bd-gear-stash"><h4>${esc(L("gearStash"))}</h4>
+        <p class="bd-hint">${esc(L("gearStashHint"))}</p>
+        <div class="bd-items">${gear || `<span class="bd-none">${esc(L("gearStashEmpty"))}</span>`}</div></div>`;
   return `
     <div class="bd-panel">
       <h3>${esc(L("treasures"))}</h3>
@@ -321,8 +356,12 @@ function treasuresHtml(g) {
         : `<p class="bd-hint">${esc(L("noTreasures"))}</p>`}
       <div class="bd-inline">
         <select data-act="t-add" data-fid="c-tadd"><option value="">${esc(L("addTreasure"))}</option>${all}</select>
-        <button type="button" class="secondary" data-act="t-roll" data-kind="minor">🎲 ${esc(L("rollMinor"))}</button>
+        <button type="button" class="secondary" data-act="t-roll" data-kind="minor" data-manual="1">${icon("dices")} ${esc(L("rollMinorTreasure"))}</button>
+        <button type="button" class="secondary" data-act="t-roll" data-kind="greater" data-manual="1">${icon("dices")} ${esc(L("rollGreaterTreasure"))}</button>
       </div>
+      ${greaterOwed(g) > 0 ? `<p class="bd-hint bd-owed">${esc(L("greaterOwedNote").replace("{n}", greaterOwed(g)))}
+        <button type="button" class="link" data-act="t-claim-greater">${esc(L("claimIt"))}</button></p>` : ""}
+      ${gearHtml}
     </div>`;
 }
 
@@ -333,7 +372,7 @@ export function upgradesHtml(g) {
       <div><b>${esc(pickField(r, "name", lang()))}</b> <small>${r.obols}</small></div>
       <div class="bd-amb-text">${esc(String(pickField(r, "effect", lang()) || "").trim())}</div>
       ${owned.has(k)
-        ? `<div class="bd-upgrade-act"><span class="bd-good">✓ ${esc(L("owned"))}</span> <button type="button" class="link" data-act="upgrade-refund" data-key="${esc(k)}">${esc(L("refundUpgrade"))}</button></div>`
+        ? `<div class="bd-upgrade-act"><span class="bd-good">${icon("check")} ${esc(L("owned"))}</span> <button type="button" class="link" data-act="upgrade-refund" data-key="${esc(k)}">${esc(L("refundUpgrade"))}</button></div>`
         : `<button type="button" class="secondary" data-act="upgrade-buy" data-key="${esc(k)}">${esc(L("buy"))} · ${r.obols}</button>`}
     </div>`).join("");
   return `<div class="bd-panel"><h3>${esc(L("lairUpgrades"))}</h3><div class="bd-upgrades">${items}</div></div>`;
@@ -379,7 +418,7 @@ function improvementsHtml(g, ev) {
         const cls = src.amount > 0 ? "up" : "down";
         const when = src.battle ? ` <small>${esc(L("battle"))} ${src.battle}</small>` : "";
         const del = src.type === "manual"
-          ? `<button type="button" data-act="led-del" data-uid="${esc(m.uid)}" data-id="${esc(src.id)}" aria-label="${esc(L("remove"))}">✕</button>` : "";
+          ? `<button type="button" data-act="led-del" data-uid="${esc(m.uid)}" data-id="${esc(src.id)}" aria-label="${esc(L("remove"))}">${icon("x")}</button>` : "";
         return `<span class="bd-src ${cls} t-${src.type}">${signed(src.amount)} ${esc(sourceLabel(src))}${when}${del}</span>`;
       }).join("");
       const base = st === "mana" || st === "spells" ? "" : shown(st, e.base[st]);
@@ -456,7 +495,7 @@ function battleLogHtml(g) {
     <tr><td>${esc(e.date || "")}</td><td>${esc(e.environment ? name(e.environment) : "—")}</td>
       <td>${esc(e.mission ? name(e.mission) : "—")}</td><td>${esc(e.omen ? name(e.omen) : "—")}</td>
       <td>${esc(res(e.result))}</td><td>${e.obols || 0}</td><td>${esc(e.notes || "")}</td>
-      <td><button type="button" class="secondary" data-act="battle-del" data-i="${n}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">✕</button></td></tr>
+      <td><button type="button" class="secondary" data-act="battle-del" data-i="${n}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button></td></tr>
     ${(e.transactions || []).length ? `<tr class="bd-tx-row"><td></td><td colspan="7">${transactionsHtml(g, e.transactions)}</td></tr>` : ""}`).join("");
   return `
     <div class="bd-panel">

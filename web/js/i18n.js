@@ -129,6 +129,7 @@ export const ROSTER = {
   damageAbbr:    { en: "D",              es: "Dñ" },
   apAbbr:        { en: "AP",             es: "PA" },
   channelAbbr:   { en: "CH",             es: "Can" },
+  channelling:   { en: "channelling",    es: "a canalizar" },
   page:          { en: "Page",           es: "Página" },
   of:            { en: "of",             es: "de" },
 };

@@ -58,14 +58,14 @@
     background:var(--nc-surface);border:1px solid var(--nc-line);border-radius:3px;
     min-width:230px;box-sizing:border-box;
   }
-  .nav-settings-panel select{width:100%;max-width:none}
+  .nav-settings-panel :is(select,.nc-select){width:100%;max-width:none}
   header.app .lang-picker {color:var(--nc-secondary);font-family:'Alegreya SC',Georgia,serif;font-size:14px;font-weight:700}
   button.primary,header.app button.print-btn{
-    color:var(--nc-on-primary);background:var(--nc-primary);border:1px solid #eae4d8;
+    color:var(--nc-on-primary);background:var(--nc-primary);border:1px solid var(--nc-primary);
     min-height:42px;border-radius:3px;font-family:'Alegreya SC',Georgia,serif;
     font-size:16px;font-weight:700;padding:8px 16px;
   }
-  button.primary:hover,header.app button.print-btn:hover{background:#f5ede0}
+  button.primary:hover,header.app button.print-btn:hover{background:var(--nc-bone)}
   button.secondary{
     color:var(--nc-bone);background:var(--nc-raised);border:1px solid var(--nc-line);
     border-radius:3px;min-height:42px;font-family:'Alegreya SC',Georgia,serif;
@@ -74,7 +74,7 @@
   button.secondary:hover{background:var(--nc-hover)}
   button:disabled{opacity:.45;cursor:not-allowed}
   :is(button,input,select,textarea,[role="button"]):focus-visible{
-    outline:2px solid #f0dfbb;outline-offset:2px;
+    outline:2px solid var(--nc-bone);outline-offset:2px;
   }
   main{max-width:1520px;padding:20px 24px}
   /* Native selects keep their keyboard/AT behavior.
@@ -83,20 +83,25 @@
   header.app .lang-picker select,.print-toolbar select{
     -webkit-appearance:none;appearance:none;min-height:44px;
     padding:9px 49px 9px 13px;color:var(--nc-bone);
-    background-color:#35312b;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23eae4d8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 6 8 10.5 12.5 6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 15px center;background-size:15px 15px;
+    background-color:var(--nc-control-bg,var(--nc-raised));
+    /* Chevron in currentColor (as select.css draws it), so every palette,
+       light included, gets a visible one: two half-filled squares. */
+    background-image:
+      linear-gradient(45deg,transparent 50%,currentColor 50%),
+      linear-gradient(135deg,currentColor 50%,transparent 50%);
+    background-position:calc(100% - 22px) 50%,calc(100% - 17px) 50%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
     border:1px solid var(--nc-line);border-radius:3px;
     font-family:'Alegreya',Georgia,serif;font-size:16px;text-overflow:ellipsis;
   }
   #bd-body input[type="text"],#bd-body input[type="number"],#bd-body input[type="date"],
   #bd-body input[type="search"],.bd-toolbar input,.lib-toolbar input[type="text"],
   textarea.json-in,.lib-inv-paste textarea{
-    color:var(--nc-bone);background:#35312b;border:1px solid var(--nc-line);
+    color:var(--nc-bone);background:var(--nc-control-bg,var(--nc-raised));border:1px solid var(--nc-control-line,var(--nc-line));
     border-radius:3px;min-height:44px;padding:9px 12px;
     font:16px/1.35 'Alegreya',Georgia,serif;
   }
-  #bd-body input:focus,#bd-body select:focus{border-color:#eae4d8}
+  #bd-body input:focus,#bd-body select:focus{border-color:var(--nc-bone)}
   #bd-body label,.bd-head label,.bd-form label{color:var(--nc-secondary)}
   :is(.bd-list h4,.bd-panel h3,.bd-sum h4,.bd-step h4,.bd-ledger h4,.bd-model .bd-type){
     font-family:'Alegreya SC',Georgia,serif;letter-spacing:.035em;
@@ -118,12 +123,14 @@
   }
   .bd-item small{color:var(--nc-secondary)}
   .bd-item button{min-width:30px;min-height:30px;color:var(--nc-secondary)}
+  /* View switches (Gathering / Campaign / Roster, Library / Print queue):
+     a light row of words; the open one is raised with a border, as the
+     header's destinations are. No box around the row, no underline. */
   .bd-views{
-    display:inline-flex;gap:3px;padding:4px;
-    background:var(--nc-chrome);border:1px solid var(--nc-line-soft);border-radius:4px;
-    margin:9px 0 17px;
+    display:inline-flex;gap:4px;padding:0;background:none;border:0;
+    margin:4px 0 16px;
   }
-  .bd-views button{min-height:38px;min-width:106px;border-radius:2px;box-shadow:none}
+  .bd-views button{min-height:38px;min-width:0;padding:6px 14px;border-radius:3px;box-shadow:none}
   .bd-views button[aria-pressed="true"]{
     background:var(--nc-raised);color:var(--nc-bone);border:1px solid var(--nc-line);
     box-shadow:none;
@@ -157,28 +164,37 @@
     position:relative;z-index:1;
   }
   .bd-affinity-option input:focus-visible+span{
-    outline:2px solid #f0dfbb;outline-offset:2px;z-index:2;position:relative;
+    outline:2px solid var(--nc-bone);outline-offset:2px;z-index:2;position:relative;
   }
   .bd-affinity-option:hover span{border-color:var(--nc-line)}
   .bd-summary{gap:8px}
   .wb-chip{border:1px solid var(--nc-line-soft);border-radius:3px;background:var(--nc-raised);color:var(--nc-bone);padding:6px 10px}
-  .wb-chip.good{color:var(--nc-success);border-color:#4f7960}
-  .wb-chip.over{color:var(--nc-error);border-color:#8c4a44}
+  .wb-chip.good{color:var(--nc-success);background:var(--nc-success-bg);border-color:var(--nc-success)}
+  .wb-chip.over{color:var(--nc-error);background:var(--nc-error-bg);border-color:var(--nc-error)}
   .wb-chip.accent{background:var(--nc-raised);color:var(--nc-bone);border-color:var(--nc-line)}
-  .bd-warn{gap:5px}
-  .bd-warn li{
-    background:var(--nc-warning-bg);color:#f6d6a5;border:1px solid #8f6742;
-    border-left:3px solid var(--nc-warning);border-radius:3px;padding:8px 11px;
+  /* Warnings: one panel per group, the items plain lines inside it. Text in
+     bone, the sign in amber: never colour alone (README). The same panel
+     marks the draft bar and the full warning summary. */
+  .bd-warn,.bd-sum,.bd-draft{
+    background:var(--nc-warning-bg);border:0;border-left:3px solid var(--nc-warning);border-radius:3px;
+    --nc-warn-line:color-mix(in srgb,var(--nc-warning) 28%,var(--nc-line-soft));
   }
+  .bd-warn{list-style:none;margin:10px 0;padding:2px 0;display:flex;flex-direction:column;gap:0}
+  .bd-warn li{
+    display:flex;align-items:flex-start;gap:8px;margin:0;padding:7px 12px;
+    color:var(--nc-bone);background:none;border:0;font-size:15px;line-height:1.4;
+  }
+  .bd-warn li + li{border-top:1px solid var(--nc-warn-line)}
+  .bd-warn li > .nc-icon,.bd-draft p > .nc-icon{color:var(--nc-warning);margin-top:.12em}
+  .bd-draft p{color:var(--nc-bone)}
   .bd-good,.bd-src.up,.bd-tx b.up{color:var(--nc-success)}
   .bd-warn-line{color:var(--nc-warning)}
   .bd-src.down,.bd-tx b.down{color:var(--nc-error)}
-  .bd-sum{background:var(--nc-surface);border-color:var(--nc-warning)}
+  .bd-sum .bd-sum-group + .bd-sum-group{border-top:1px solid var(--nc-warn-line);padding-top:10px}
   .bd-sum button{color:var(--nc-bone)}
-  .bd-sum button:hover{color:var(--nc-warning)}
+  .bd-sum button:hover{text-decoration:underline;text-decoration-color:var(--nc-warning)}
   .bd-status{color:var(--nc-success)}
   .bd-upgrade{background:var(--nc-raised);border-color:var(--nc-line-soft)}
-  .bd-upgrade.owned{border-color:var(--nc-success)}
   .bd-crumbs button{min-height:36px}
   .lib-toolbar{gap:10px}
   .lib-grid{gap:10px}
@@ -189,10 +205,10 @@
   .lib-tile .cat{background:var(--nc-raised);color:var(--nc-secondary);font-family:'Alegreya SC',Georgia,serif;font-size:12px}
   .lib-tile .in-queue{background:var(--nc-primary);color:var(--nc-on-primary)}
   .lib-tile .add{color:var(--nc-success)}
-  .lib-tile.has-printed{border-color:#679b7a}
+  .lib-tile.has-printed{border-color:var(--nc-success)}
   .lib-tile .printed-ctl button{min-width:34px;min-height:34px;border-radius:3px;color:var(--nc-bone);background:var(--nc-raised);border-color:var(--nc-line)}
-  .lib-tile .need{background:var(--nc-warning);color:#211a13;border-radius:3px}
-  .lib-tile .need.done{background:var(--nc-success);color:#131d16}
+  .lib-tile .need{background:var(--nc-warning);color:var(--nc-on-primary);border-radius:3px}
+  .lib-tile .need.done{background:var(--nc-success);color:var(--nc-on-primary)}
   .match-row.matched{border-left-color:var(--nc-success)}
   .match-row.fuzzy{border-left-color:var(--nc-warning)}
   .match-row.unmatched{border-left-color:var(--nc-error)}
@@ -203,7 +219,8 @@
 
   /* Legibility pass: existing builder CSS uses 12–13px !important on some
      action controls. The integrated app must override those, not only the demo. */
-  #bd-body .bd-items select {
+  .bd-items .nc-select-trigger{font-size:15px}
+  #bd-body .bd-items select:not(.nc-select-src) {
     font-size:15px !important; min-height:44px !important;
     padding:9px 49px 9px 13px !important; max-width:100%;
   }
@@ -215,7 +232,6 @@
   #bd-body .bd-amb-text,#bd-body .bd-src small,#bd-body .bd-tx,
   #bd-body .bd-field-row,#bd-body .bd-hint {font-size:15px;color:var(--nc-secondary)}
   #bd-body .bd-amb-head,#bd-body .bd-model-head {color:var(--nc-bone)}
-  #bd-body .bd-warn li {font-size:15px}
   .lib-tile .preview {font-size:14px}
   .lib-tile .printed-lbl,.lib-tile .need {font-size:13px}
   /* Stat block uses actual semantic dl/dt/dd markup from builder-tab.js. */
@@ -239,29 +255,25 @@
     font-variant-numeric:tabular-nums;
   }
   #bd-body .bd-model {
-    background:var(--nc-surface);border-color:#716759;
-    box-shadow:0 1px 0 #1c1a17,inset 0 1px 0 #61584a;
+    background:var(--nc-surface);border-color:var(--nc-line-soft);
+    box-shadow:none;
   }
-  #bd-body .bd-panel{background:var(--nc-surface);border-color:#716759}
+  #bd-body .bd-panel{background:var(--nc-surface);border-color:var(--nc-line-soft)}
   #bd-body .bd-list {border-color:var(--nc-line-soft)}
   #bd-body .bd-affinity-option span{background:var(--nc-raised)}
   #bd-body .bd-affinity-option input:checked+span {background:var(--nc-primary)}
-  #bd-body .bd-summary .wb-chip.good{color:#b3e5c7;border-color:#629e7b;background:#2b4134}
-  #bd-body .bd-summary .wb-chip.over {color:#ffc4bd;border-color:#b86a62;background:#4b302c}
-  #bd-body .bd-warn li{color:#f9ddae;background:#4a3726;border-color:#bf9152;border-left-color:var(--nc-warning)}
-  #bd-body .bd-upgrade.owned{border-color:#629e7b}
   #bd-body .bd-callout{border-left-color:var(--nc-primary)}
   #bd-body .bd-prog{color:var(--nc-bone)}
   #bd-body .bd-amb.done .bd-prog{color:var(--nc-success)}
   #bd-body .bd-choice {background:var(--nc-raised);border-color:var(--nc-line-soft)}
   #bd-body .bd-step {border-color:var(--nc-line-soft)}
-  .lib-tile {background:var(--nc-surface);border-color:#716759}
-  .lib-tile:hover{background:var(--nc-raised);border-color:#a59a88}
-  .lib-tile.has-printed{border-color:#629e7b}
+  .lib-tile {background:var(--nc-surface);border-color:var(--nc-line-soft)}
+  .lib-tile:hover{background:var(--nc-raised);border-color:var(--nc-line)}
+  .lib-tile.has-printed{border-color:var(--nc-success)}
   .lib-tile .tile-head{gap:10px}
   .lib-tile .printed-ctl button{min-width:36px;min-height:36px}
   .lib-tile .printed-n{color:var(--nc-bone)}
-  .lib-tile .need.done {background:var(--nc-success);color:#131d16}
+  .lib-tile .need.done {background:var(--nc-success);color:var(--nc-on-primary)}
   .match-row.matched{border-left-color:var(--nc-success)}
   .match-row.fuzzy{border-left-color:var(--nc-warning)}
   .match-row.unmatched{border-left-color:var(--nc-error)}
@@ -318,7 +330,6 @@
   .print-toolbar label{gap:8px;white-space:nowrap;min-height:32px}
 
   /* Builder layout: the main column may shrink below its widest table. */
-  .bd-layout{grid-template-columns:minmax(0,1fr) 320px}
   .bd-main{min-width:0}
   .bd-status{overflow-wrap:anywhere}
   #bd-body input.bd-link{display:block;width:100%;box-sizing:border-box;min-height:40px;font-size:14px}
@@ -328,15 +339,6 @@
   .bd-model-cost{padding-top:9px}
   .bd-model-type{margin-top:10px}
 
-  /* Ledger: the lair picker gets a full row so its text isn't cut off. */
-  .bd-side-head{display:flex;align-items:flex-start;gap:10px;justify-content:space-between}
-  .bd-side-head{margin-bottom:14px}
-  .bd-side-head .bd-gname{flex:1;min-width:0;margin:0}
-  .bd-side-toggle{display:none}
-  .bd-lair-tools{gap:6px;margin-top:0}
-  #bd-body .bd-lair-tools select{flex:1 1 100%;font-size:15px !important}
-  .bd-side button.link{padding-left:0;padding-right:0}
-  .bd-actions .bd-share summary{min-height:32px;display:flex;align-items:center;gap:6px}
 
   /* Campaign: who fights next battle — costs readable, aligned in a column. */
   .bd-fielded{max-width:52ch;gap:2px}
@@ -359,7 +361,7 @@
 
   /* Battle log: the new entry is a labelled form under the table. */
   .bd-log-form{margin-top:4px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
-  #bd-body .bd-log-form :is(input,select){width:100%;max-width:none;box-sizing:border-box}
+  #bd-body .bd-log-form :is(input,select,.nc-select){width:100%;max-width:none;box-sizing:border-box}
   .bd-log-form .bd-log-notes{grid-column:1 / -1}
   .bd-table td button.secondary{min-height:36px;min-width:36px;padding:4px 8px}
 
@@ -377,21 +379,8 @@
   .bd-sell{min-height:28px;font-size:15px;color:var(--nc-secondary)}
   .bd-sell:hover{color:var(--nc-bone)}
 
-  /* Narrow screens: the ledger leads with its figures; details fold away. */
-  @media (max-width:1080px){
-    .bd-layout{grid-template-columns:minmax(0,1fr)}
-    .bd-side-toggle{display:inline-flex;align-items:center;flex:none;min-height:40px}
-    .bd-side:not(.open) :is(.bd-fields,.bd-actions,.bd-status,.bd-hint,.bd-ledger-warn .bd-warn){display:none}
-    .bd-side:not(.open) .bd-figs{margin-top:6px}
-    .bd-figs{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
-    .bd-fig:first-child{grid-column:auto}
-  }
   @media (max-width:540px){
     header.app{position:static}
-    .bd-side-head{flex-wrap:wrap}
-    .bd-side-toggle{width:100%;justify-content:center}
-    /* Model footer: the add menu gets its own row, the buttons the next. */
-    .bd-model-foot select.bd-add{flex:1 1 100%;width:100%}
     .bd-model-foot .spacer{display:none}
     .bd-model-foot button[data-act="m-remove"]{margin-left:auto}
     #bd-body .bd-wizard{padding:12px 12px 14px}
@@ -409,7 +398,7 @@
   @media (max-width:540px){
     /* A treasure with its "Move to" menu takes the full row. */
     .bd-items .bd-item:has(select){width:100%;box-sizing:border-box;flex-wrap:nowrap;padding-right:2px}
-    #bd-body .bd-items .bd-item:has(select) select{flex:1 1 0;min-width:0;width:auto}
+    #bd-body .bd-items .bd-item:has(select) :is(select,.nc-select){flex:1 1 0;min-width:0;width:auto}
   }
 }
 @media screen {
@@ -429,7 +418,7 @@
 }
 @media screen and (max-width:540px){
   .bd-choice{width:100%;box-sizing:border-box;flex-wrap:wrap;gap:6px 8px;padding:6px 6px 6px 10px}
-  #bd-body .bd-choice select{flex:1 1 160px}
+  #bd-body .bd-choice :is(select,.nc-select){flex:1 1 160px}
 }
 @media screen {
   /* Print queue: names are app text (Alegreya), not card blackletter —
@@ -443,7 +432,7 @@
   .queue-edit{background:var(--nc-raised);border-bottom-color:var(--nc-line-soft)}
   .queue-edit-row label{font:600 15px 'Alegreya',Georgia,serif;text-transform:lowercase;letter-spacing:0;color:var(--nc-secondary)}
   .queue-edit-row label::first-letter{text-transform:uppercase}
-  .queue-edit-row :is(input,textarea){font-size:15px;padding:6px 8px;background:#35312b;color:var(--nc-bone);border-color:var(--nc-line)}
+  .queue-edit-row :is(input,textarea){font-size:15px;padding:6px 8px;background:var(--nc-control-bg,var(--nc-raised));color:var(--nc-bone);border-color:var(--nc-control-line,var(--nc-line))}
   /* Library tiles: small labels were 12px; the queued badge needs padding. */
   .lib-tile .cat{font-size:14px;padding:1px 7px;border-radius:3px}
   .lib-tile .in-queue{padding:1px 7px;border-radius:3px;font-size:14px}
@@ -488,5 +477,231 @@
     header.app button.print-btn{padding:8px 14px}
     .bd-views{display:flex;width:100%;box-sizing:border-box}
     .bd-views button{flex:1 1 0;min-width:0;padding-left:6px;padding-right:6px}
+  }
+}
+@media screen {
+  /* Model card lists (v5.8): every list the model can have, each a block
+     with its chips and its own "+ Add …" button, which opens the picker. */
+  .bd-lists{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:12px 0 4px}
+  #bd-body .bd-model .bd-list{
+    display:flex;flex-direction:column;gap:6px;margin:0;padding:8px 10px 10px;
+    border:1px solid var(--nc-line-soft);border-radius:3px;min-width:0;
+  }
+  #bd-body .bd-model .bd-list h4{margin:0;font-size:15px}
+  .bd-model .bd-list .bd-items{flex:1 1 auto;align-content:flex-start}
+  .bd-none{color:var(--nc-muted);font-style:italic;font-size:15px}
+  .bd-item small.bd-bonus{color:var(--nc-success);font-style:italic}
+  #bd-body .bd-add-btn{
+    align-self:flex-start;min-height:36px;padding:5px 11px;font-size:15px;
+    background:transparent;border:1px dashed var(--nc-line);color:var(--nc-secondary);
+  }
+  #bd-body .bd-add-btn:hover{background:var(--nc-hover);border-style:solid;color:var(--nc-bone)}
+  .bd-model-foot{margin-top:10px}
+  .bd-lists .bd-list:has(.bd-mana){grid-column:auto}
+  .bd-list .bd-mana{gap:6px 12px}
+  .bd-gear-stash{margin-top:14px}
+  .bd-gear-stash .bd-hint{margin:0 0 6px}
+  @media (max-width:540px){
+    .bd-lists{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px}
+    #bd-body .bd-model .bd-list{padding:7px 8px 8px}
+  }
+
+  /* The picker: one modal dialog for every "+ Add …" (builder-picker.js). */
+  dialog.bd-picker{
+    width:min(680px,calc(100vw - 32px));max-height:min(86vh,820px);padding:0;
+    color:var(--nc-bone);background:var(--nc-surface);
+    border:1px solid var(--nc-line);border-radius:4px;
+    box-shadow:0 1px 2px rgb(0 0 0 / .18),0 18px 48px -12px rgb(0 0 0 / .5);
+  }
+  dialog.bd-picker.bd-picker-small{width:min(460px,calc(100vw - 32px))}
+  dialog.bd-picker::backdrop{background:rgb(0 0 0 / .55)}
+  .bd-picker-box{display:flex;flex-direction:column;gap:10px;max-height:inherit;box-sizing:border-box;padding:16px 18px}
+  dialog.bd-picker[open] .bd-picker-box{max-height:min(86vh,820px)}
+  .bd-picker-head{display:flex;align-items:flex-start;gap:12px}
+  .bd-picker-head h2{flex:1;margin:0;font:700 20px/1.25 'Alegreya SC',Georgia,serif;letter-spacing:.02em}
+  .bd-picker-x{min-width:42px;padding:6px 10px}
+  .bd-picker-search{
+    box-sizing:border-box;width:100%;min-height:44px;padding:9px 12px;
+    color:var(--nc-bone);background:var(--nc-control-bg,var(--nc-raised));
+    border:1px solid var(--nc-control-line,var(--nc-line));border-radius:3px;font:16px/1.35 'Alegreya',Georgia,serif;
+  }
+  .bd-picker-search::placeholder{color:var(--nc-muted);opacity:1}
+  .bd-picker-search:focus{outline:2px solid var(--nc-bone);outline-offset:1px}
+  .bd-picker-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .bd-picker-chips button.secondary{min-height:34px;padding:4px 11px;font-size:14px;background:transparent;border-color:var(--nc-line-soft);color:var(--nc-secondary)}
+  .bd-picker-chips button[aria-pressed="true"]{background:var(--nc-raised);border-color:var(--nc-line);color:var(--nc-bone)}
+  .bd-picker-list{flex:1 1 auto;min-height:120px;overflow-y:auto;overscroll-behavior:contain;
+    margin:0 -18px;padding:0 18px;border-top:1px solid var(--nc-line-soft);border-bottom:1px solid var(--nc-line-soft)}
+  .bd-picker-sec-title{margin:12px 0 2px;font:700 15px 'Alegreya SC',Georgia,serif;letter-spacing:.04em;color:var(--nc-bone)}
+  .bd-picker-group-title{margin:10px 0 2px;font:600 14px 'Alegreya SC',Georgia,serif;letter-spacing:.04em;color:var(--nc-muted)}
+  .bd-picker-row{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 12px;
+    padding:7px 10px;margin:0 -10px;border-radius:3px;cursor:pointer;
+  }
+  .bd-picker-row.is-active{background:var(--nc-raised);box-shadow:inset 0 0 0 1px var(--nc-line-soft)}
+  .bd-picker-row:hover{background:var(--nc-hover)}
+  .bd-pk-name{font-weight:600}
+  .bd-pk-cost{color:var(--nc-secondary);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
+  .bd-pk-sum,.bd-pk-why{grid-column:1 / -1;font-size:14px;line-height:1.35}
+  .bd-pk-sum{color:var(--nc-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .bd-pk-sum b{font-weight:600;color:var(--nc-bone)}
+  .bd-pk-why{color:var(--nc-muted);font-style:italic}
+  .bd-picker-empty{color:var(--nc-muted);font-style:italic;margin:14px 0}
+  .bd-picker-foot{display:flex;align-items:center;gap:12px}
+  .bd-picker-status{flex:1;margin:0;color:var(--nc-success);font-size:15px;min-height:1.4em}
+  .bd-picker-note{margin:0;color:var(--nc-secondary);font-size:15px}
+  .bd-picker-choices{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  @media (max-width:540px){
+    dialog.bd-picker:not(.bd-picker-small){
+      width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;
+    }
+    dialog.bd-picker:not(.bd-picker-small) .bd-picker-box{height:100%;max-height:none;padding:12px 14px}
+    .bd-picker-list{margin:0 -14px;padding:0 14px}
+  }
+}
+@media screen {
+  /* Lucide icons (web/js/lucide.js): sized to the text, in currentColor. */
+  .nc-icon{width:1.1em;height:1.1em;vertical-align:-0.18em;flex:none}
+  [data-icon]{display:inline-flex}
+  button > .nc-icon:first-child:not(:only-child),[data-icon]:first-child{margin-right:.3em}
+  #bd-body .bd-add-btn{display:inline-flex;align-items:center;gap:5px}
+  #bd-body .bd-add-btn .nc-icon{margin:0;width:1em;height:1em}
+  .bd-item button .nc-icon{width:14px;height:14px;vertical-align:-2px}
+  .bd-model-foot button .nc-icon{width:18px;height:18px;vertical-align:-3px}
+  .nav-settings > summary .nav-ico{margin:0}
+  .nav-settings > summary .nav-ico .nc-icon{width:18px;height:18px}
+  .nav-settings > summary .nav-chev{margin:0;transition:transform .12s ease}
+  .nav-settings > summary .nav-chev .nc-icon{width:15px;height:15px}
+  .bd-picker-searchbox{position:relative}
+  .bd-picker-searchbox > .nc-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--nc-muted);pointer-events:none}
+  .bd-picker-searchbox .bd-picker-search{padding-left:38px}
+  .bd-pk-why > .nc-icon{color:var(--nc-warning);margin-right:4px;width:14px;height:14px;vertical-align:-2px}
+  .bd-draft p{display:flex;align-items:flex-start;gap:8px}
+}
+@media screen {
+  /* Gathering header (v5.8): above every view — name, covenant and lair,
+     the figures inline, the gathering's warnings, Save / Discard, and a
+     secondary row of actions. */
+  .bd-ghead{
+    background:var(--nc-surface);border:1px solid var(--nc-line-soft);border-radius:3px;
+    padding:14px 18px 12px;margin:0 0 18px;display:flex;flex-direction:column;gap:10px;
+  }
+  .bd-ghead .bd-draft{margin:0}
+  #bd-body .bd-ghead input.bd-gname{
+    width:100%;box-sizing:border-box;margin:0;padding:4px 10px;min-height:0;
+    font:400 32px/1.15 var(--gothic);color:var(--nc-bone);
+    background:transparent;border:1px solid transparent;border-radius:3px;
+  }
+  #bd-body .bd-ghead input.bd-gname:hover{border-color:var(--nc-line-soft)}
+  #bd-body .bd-ghead input.bd-gname:focus{border-color:var(--nc-bone);background:var(--nc-control-bg)}
+  #bd-body .bd-ghead input.bd-gname::placeholder{color:var(--nc-muted);opacity:1}
+  .bd-ghead .bd-fields{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px}
+  .bd-gfield{display:flex;flex-direction:column;gap:3px;flex:1 1 220px;min-width:0;
+    font:700 14px 'Alegreya SC',Georgia,serif;letter-spacing:.03em;color:var(--nc-secondary)}
+  .bd-gfield :is(input,select,.nc-select){width:100%;max-width:none;box-sizing:border-box}
+  .bd-ghead .bd-lair-tools{display:flex;align-items:center;gap:6px 10px;flex:1 1 260px;min-width:0}
+  .bd-ghead .bd-lair-tools > button.link{white-space:nowrap;padding:0}
+  #bd-body .bd-ghead .bd-lair-tools :is(select,.nc-select){flex:1 1 0;min-width:0;font-size:15px !important}
+  .bd-ghead .bd-lair-tools .nc-select-trigger{font-size:15px}
+  .bd-ghead .bd-figs{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 26px;margin:4px 0 0}
+  .bd-ghead .bd-fig{display:flex;align-items:baseline;gap:8px;margin:0}
+  .bd-ghead .bd-fig dt{font-size:14px}
+  .bd-ghead .bd-fig dd{display:flex;align-items:baseline;gap:4px}
+  .bd-ghead .bd-meter{display:inline-block;width:90px;height:4px;margin:0 0 0 6px;align-self:center;background:var(--nc-raised)}
+  .bd-meter span{background:var(--nc-bone)}
+  .bd-fig.over .bd-meter span{background:var(--nc-error)}
+  .bd-fig.over dd b{color:var(--nc-error)}
+  .bd-ghead .bd-hint{margin:0}
+  .bd-ledger-warn{display:flex;flex-direction:column;gap:6px;margin:0}
+  .bd-ledger-warn .bd-warn{margin:0}
+  .bd-warn-toggle{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:0}
+  .bd-warn-toggle > .nc-icon{color:var(--nc-warning)}
+  .bd-ghead .bd-good{margin:0}
+  .bd-ghead .bd-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:2px 0 0;
+    padding-top:10px;border-top:1px solid var(--nc-line-soft)}
+  .bd-ghead .bd-actions button.primary,.bd-ghead .bd-actions button.secondary{min-height:38px;padding:6px 13px;font-size:15px}
+  .bd-share{position:relative}
+  .bd-share summary{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 6px;list-style:none;color:var(--nc-secondary)}
+  .bd-share summary::-webkit-details-marker{display:none}
+  .bd-share[open] summary .nc-icon{transform:rotate(180deg)}
+  .bd-share-menu{position:absolute;z-index:15;left:0;top:calc(100% + 4px);display:flex;flex-direction:column;
+    min-width:200px;padding:6px 12px;background:var(--nc-surface);border:1px solid var(--nc-line);border-radius:3px;
+    box-shadow:0 10px 28px -6px rgb(0 0 0 / .35)}
+  .bd-share-menu button.link{text-align:left;padding:4px 0}
+  .bd-ghead .bd-status{margin:0}
+  .bd-sum{margin:-8px 0 18px}
+
+  /* Models list beside the cards: sticky on desktop. */
+  .bd-side{position:sticky;top:84px;max-height:calc(100vh - 100px);overflow-y:auto;
+    background:var(--nc-surface);border:1px solid var(--nc-line-soft);border-radius:3px;padding:12px 12px 14px}
+  .bd-nav-title{margin:0 4px 8px;font:700 16px 'Alegreya SC',Georgia,serif;letter-spacing:.035em;color:var(--nc-secondary)}
+  .bd-nav-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+  .bd-nav-model{
+    display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:baseline;gap:0 8px;width:100%;
+    padding:6px 8px;text-align:left;cursor:pointer;color:var(--nc-bone);
+    background:transparent;border:1px solid transparent;border-radius:3px;font:inherit;
+  }
+  .bd-nav-model:hover{background:var(--nc-hover)}
+  .bd-nav-model[aria-current="true"]{background:var(--nc-raised);border-color:var(--nc-line)}
+  .bd-nav-name{font:400 19px/1.2 var(--gothic);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;grid-column:1}
+  .bd-nav-type{grid-column:1;grid-row:2;font-size:14px;color:var(--nc-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bd-nav-cost{grid-column:2;grid-row:1;font-size:15px;color:var(--nc-secondary);font-variant-numeric:lining-nums tabular-nums}
+  .bd-nav-warn{grid-column:3;grid-row:1;display:inline-flex;align-items:center;gap:2px;font-size:14px;color:var(--nc-warning)}
+  .bd-nav-warn .bd-nav-n{color:var(--nc-bone)}
+  .bd-side .bd-add-model{padding:10px 0 0;margin-top:8px;border-top:1px solid var(--nc-line-soft)}
+  .bd-side .bd-add-model :is(select,.nc-select){width:100%}
+  .bd-model:focus{outline:none}
+  .bd-model:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+  .visually-hidden{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+  /* Narrow: the list becomes a wrapping row of model chips above the cards. */
+  @media (max-width:1080px){
+    .bd-layout{grid-template-columns:minmax(0,1fr)}
+    .bd-side{order:-1;position:static;max-height:none;overflow:visible;padding:10px}
+    .bd-nav-title{display:none}
+    .bd-nav-list{flex-direction:row;flex-wrap:wrap;gap:6px}
+    .bd-nav-model{display:inline-flex;width:auto;align-items:center;gap:6px;padding:4px 10px;border-color:var(--nc-line-soft)}
+    .bd-nav-name{font-size:17px}
+    .bd-nav-type{display:none}
+    .bd-side .bd-add-model{border-top:0;padding-top:8px;margin-top:0}
+  }
+  @media (max-width:540px){
+    .bd-ghead{padding:10px 12px}
+    #bd-body .bd-ghead input.bd-gname{font-size:26px;padding:2px 6px}
+    .bd-ghead .bd-figs{gap:4px 16px}
+    .bd-ghead .bd-meter{width:60px}
+  }
+}
+@media screen {
+  /* Gatherings toolbar: Duplicate and Delete wrap together, never alone. */
+  .bd-toolbar-links{display:inline-flex;align-items:center;gap:4px 14px;white-space:nowrap}
+  @media (max-width:540px){
+    .bd-toolbar{gap:8px 10px}
+    .bd-toolbar > button.secondary{padding:6px 11px}
+  }
+}
+@media screen {
+  /* Campaign and Roster: the header is one compact block. */
+  .bd-ghead.compact{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 22px;padding:10px 16px}
+  .bd-ghead.compact .bd-draft{flex:1 1 100%}
+  #bd-body .bd-ghead.compact input.bd-gname{width:auto;flex:1 1 260px;font-size:26px}
+  .bd-ghead.compact .bd-figs{margin:0}
+  .bd-ghead.compact .bd-actions{border-top:0;padding-top:0;margin:0}
+  .bd-roster-bar .bd-views{margin:0}
+  .bd-roster-count{color:var(--nc-secondary);font-size:15px;font-variant-numeric:lining-nums tabular-nums}
+}
+@media screen {
+  .wb-toolbar[hidden],.sheets-wrap[hidden],.wb-pages[hidden]{display:none}
+}
+@media screen {
+  /* After-battle steps: the current one is raised with a border, no underline. */
+  .bd-crumbs button{border:1px solid transparent;border-radius:3px}
+  .bd-crumbs li.now button{color:var(--nc-bone);background:var(--nc-raised);border-color:var(--nc-line)}
+}
+@media screen {
+  .bd-ghead .bd-hint button.link{padding-left:0;padding-right:0}
+  @media (max-width:540px){
+    .bd-ghead .bd-lair-tools{flex-wrap:wrap}
+    #bd-body .bd-ghead .bd-lair-tools :is(select,.nc-select){flex:1 1 100%}
   }
 }

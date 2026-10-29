@@ -18,6 +18,7 @@ export const d = (sides, rng = Math.random) => 1 + Math.floor(rng() * sides);
 /** Fill in campaign fields older saves don't have. */
 export function ensureCampaign(g, catalog = null) {
   g.stash ||= [];
+  g.gearStash ||= [];
   g.lair ||= { name: "", upgrades: [] };
   g.lair.upgrades ||= [];
   g.ambitions = { active: [], progress: {}, completed: 0, greaterClaimed: 0, log: [], ...(g.ambitions || {}) };
@@ -81,6 +82,7 @@ export function refundUpgrade(g, key, catalog) {
 /* ---- ambitions (p.67-68) --------------------------------------------------- */
 
 const isLeader = (m) => categoryOf(m.profile) === "leaders";
+const leaderOf = (g) => (g.models || []).find(isLeader);
 /** Which battle and date a change belongs to: the one being closed, if any. */
 function when(g) {
   const ab = g.campaign?.afterBattle;
@@ -103,6 +105,24 @@ export function removeLedgerEntry(g, uid, id) {
   removeEntry(g.models.find(x => x.uid === uid), id);
 }
 
+/** Spells a "spell of your choice" reward (Master Abyssal Artillery) may go to: the leader's. */
+export function spellTargets(g, catalog, key) {
+  return [...new Set(leaderOf(g)?.spells || [])];
+}
+
+/**
+ * The channelling bonuses completed ambitions give, by spell key
+ * ({ "spells/wither": 1 }). Completing the ambition twice stacks.
+ */
+export function channelBonuses(g) {
+  const out = {};
+  for (const e of g.ambitions?.log || []) {
+    const k = e.applied?.channel;
+    if (k) out[k] = (out[k] || 0) + 1;
+  }
+  return out;
+}
+
 /** Models a "model of your choice" reward may go to. */
 export function rewardTargets(g, catalog, key) {
   const eff = catalog.row(key)?.reward_effect || {};
@@ -123,10 +143,15 @@ export function tickAmbition(g, key, catalog, step = 1) {
 
 /**
  * Complete an ambition at its goal and apply its reward.
- * @param {string} [uid]  the model a "model of your choice" reward goes to
+ * @param {string|object} [uid]  the model a "model of your choice" reward goes
+ *        to; or, in its place, the options object below
+ * @param {{uid?: string, spell?: string}} [opts]  `spell`: the leader's spell a
+ *        "spell of your choice" reward (+1 to channel, p.67) goes to
  * @returns {{treasure?: "minor"}}  a treasure still to roll, if the reward is one
  */
-export function completeAmbition(g, key, catalog, uid = null) {
+export function completeAmbition(g, key, catalog, uid = null, opts = {}) {
+  if (uid && typeof uid === "object") { opts = uid; uid = opts.uid ?? null; }
+  const { spell = null } = opts || {};
   ensureCampaign(g, catalog);
   const eff = catalog.row(key)?.reward_effect || {};
   const id = nextLogId(g);
@@ -151,6 +176,14 @@ export function completeAmbition(g, key, catalog, uid = null) {
       to = m.uid;
       break;
     }
+    case "spell": {
+      if (!spell || !spellTargets(g, catalog, key).includes(spell)) {
+        throw new Error("Choose one of the leader's spells for this reward");
+      }
+      applied.channel = spell;
+      to = leaderOf(g).uid;
+      break;
+    }
     case "gathering":
       if (eff.deployment) {
         g.deploymentLimit = (g.deploymentLimit ?? catalog.rules.gathering?.deployment_limit ?? 350) + eff.deployment;
@@ -170,7 +203,9 @@ export function completeAmbition(g, key, catalog, uid = null) {
 
 /**
  * Undo a completed ambition (a mis-click): its entries come off, its
- * deployment and bonus trait go back, its progress returns to the goal, and
+ * deployment, bonus trait and channelling bonus go back (the bonus lives
+ * only in its log entry, so removing the entry removes it), its progress
+ * returns to the goal, and
  * a treasure it gave is taken back from whoever holds it (if it still does).
  */
 export function undoAmbition(g, logId, catalog) {
@@ -327,7 +362,6 @@ const ab = (g) => {
   return a;
 };
 const gain = (g, n) => { g.treasury = (Number(g.treasury) || 0) + n; ab(g).obols += n; };
-const leaderOf = (g) => g.models.find(isLeader);
 
 /** The malady a D10 roll gives (p.66). */
 export const maladyFor = (catalog, roll) => (catalog.rules.maladies || []).find(m => m.rolls.includes(Number(roll)));
@@ -404,15 +438,26 @@ const discounted = (g, catalog, key) => {
 };
 export const buyPrice = discounted;
 
+const isImprovised = (key) => /improvised-weapon$/.test(key || "");
+/** Give a model a piece of gear; a real weapon replaces the free Improvised one. */
+function equip(m, list, key) {
+  if (list === "weapons" && m.weapons.length === 1 && isImprovised(m.weapons[0]) &&
+      categoryOf(key) !== "thrown-weapons") m.weapons = [];
+  (m[list] ||= []).push(key);
+}
+/** Take gear off a model; a model left with no weapon gets its free Improvised one back. */
+function unequip(catalog, m, list, index) {
+  const [key] = m[list].splice(Number(index), 1);
+  if (list === "weapons" && !m.weapons.length) m.weapons.push(defaultWeapon(catalog, m.profile));
+  return key;
+}
+
 /** Buy gear for a model in the Markets. */
 export function buyGear(g, catalog, uid, list, key) {
   if (!GEAR_LISTS[list]) throw new Error("Not a gear list");
   const m = g.models.find(x => x.uid === uid);
   const cost = discounted(g, catalog, key);
-  // A real weapon replaces the free Improvised one.
-  if (list === "weapons" && m.weapons.length === 1 && /improvised-weapon$/.test(m.weapons[0]) &&
-      categoryOf(key) !== "thrown-weapons") m.weapons = [];
-  m[list].push(key);
+  equip(m, list, key);
   pay(g, -cost);
   record(g, "buy", { item: key, uid, obols: -cost });
   return cost;
@@ -435,14 +480,80 @@ export const sellValue = (catalog, key) => Math.floor(price(catalog.row(key)) / 
 export function sellGear(g, catalog, uid, list, index) {
   if (list !== "weapons" && list !== "armour") throw new Error("Only weapons and armour sell");
   const m = g.models.find(x => x.uid === uid);
-  const [key] = m[list].splice(Number(index), 1);
-  if (!key) return 0;
   // A model always has at least its free Improvised Weapon.
-  if (list === "weapons" && !m.weapons.length) m.weapons.push(defaultWeapon(catalog, m.profile));
+  const key = unequip(catalog, m, list, index);
+  if (!key) return 0;
   const v = sellValue(catalog, key);
   pay(g, v);
   record(g, "sell", { item: key, uid, obols: v });
   return v;
+}
+
+/* ---- the gear stash ---------------------------------------------------------
+ *
+ * Not in the rulebook: p.72 (Markets) covers buying gear and selling weapons
+ * and armour for half their value, and p.73 lets the gathering keep treasures
+ * no model carries, but nothing says where gear taken off a model goes. The
+ * gear stash is an app convenience for that: `g.gearStash` holds
+ * `{ key, list }` entries (list = "weapons" | "armour" | "equipment", the list
+ * it came off), separate from the treasure stash `g.stash`. Moving gear in and
+ * out is free; from the stash, weapons and armour can still be sold for half
+ * their value, and anything can be discarded. Each move is recorded like a
+ * purchase, so it shows in the battle log and the ledger. Like buying and
+ * selling, these moves have no undo of their own: the Builder's draft
+ * (Discard) covers that.
+ */
+
+/**
+ * Move a model's weapon, armour or equipment into the gear stash, for free.
+ * The free Improvised Weapon is never stashed, only removed (and a model left
+ * with no weapon gets it back, so removing a lone one changes nothing).
+ * @returns {string|null}  the key stashed, or null if nothing was
+ */
+export function stashGear(g, catalog, uid, list, index) {
+  if (!GEAR_LISTS[list]) throw new Error("Not a gear list");
+  ensureCampaign(g, catalog);
+  const m = g.models.find(x => x.uid === uid);
+  if (!m?.[list]?.[Number(index)]) return null;
+  const key = unequip(catalog, m, list, index);
+  if (isImprovised(key)) return null;
+  g.gearStash.push({ key, list });
+  record(g, "stash", { item: key, uid, obols: 0 });
+  return key;
+}
+
+/** Move gear from the stash to a model, for free (it replaces a lone Improvised Weapon). */
+export function takeGear(g, uid, stashIndex) {
+  ensureCampaign(g);
+  const m = g.models.find(x => x.uid === uid);
+  if (!m) throw new Error("No such model");
+  const [e] = g.gearStash.splice(Number(stashIndex), 1);
+  if (!e) return null;
+  equip(m, e.list, e.key);
+  record(g, "take", { item: e.key, uid, obols: 0 });
+  return e.key;
+}
+
+/** Sell a stashed weapon or armour for half its value; equipment can't be sold (p.72). */
+export function sellStashedGear(g, catalog, stashIndex) {
+  ensureCampaign(g, catalog);
+  const e = g.gearStash[Number(stashIndex)];
+  if (!e) return 0;
+  if (e.list !== "weapons" && e.list !== "armour") throw new Error("Only weapons and armour sell");
+  g.gearStash.splice(Number(stashIndex), 1);
+  const v = sellValue(catalog, e.key);
+  pay(g, v);
+  record(g, "sell", { item: e.key, uid: null, obols: v });
+  return v;
+}
+
+/** Throw away a piece of stashed gear. */
+export function discardStashedGear(g, stashIndex) {
+  ensureCampaign(g);
+  const [e] = g.gearStash.splice(Number(stashIndex), 1);
+  if (!e) return null;
+  record(g, "discard", { item: e.key, uid: null, obols: 0 });
+  return e.key;
 }
 
 /** Sell a treasure: minor 10 obols, greater 50. `from` = uid, or null for the stash. */

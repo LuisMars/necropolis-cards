@@ -87,6 +87,12 @@ export function fromAppJson(json, catalog) {
     g.models.push(m);
   }
 
+  // Our own export's gathering-level block: the gear stash (by key).
+  for (const e of json.builder?.gearStash || []) {
+    if (e && GEAR_LISTS.includes(e.list) && catalog.row(e.key)) g.gearStash.push({ key: e.key, list: e.list });
+    else unmatched.push({ where: "gearStash", name: e?.name || e?.key || String(e) });
+  }
+
   // Older exports carry the leader's mana pool at the top level.
   const leader = g.models.find(m => categoryOf(m.profile) === "leaders");
   if (leader && json.manaPool) {
@@ -96,6 +102,96 @@ export function fromAppJson(json, catalog) {
     }
   }
   return { gathering: g, unmatched };
+}
+
+const GEAR_LISTS = ["weapons", "armour", "equipment"];
+
+/* ---- profile special rules ----------------------------------------------
+ *
+ * The Companion App exports each profile's special rules as
+ * `profile.special: [{name?, effect}]`, and the Warband roster reads them
+ * from there (warband.js `profileSpecials`): a rule with a card is shown from
+ * its card, a named one without from the glossary (data/app-glossary.yaml),
+ * an unnamed restriction from the glossary by its exact text. To give a
+ * gathering built here the same lines, we rebuild that list from the
+ * catalogue: each paragraph of the profile's `special_rules`, named after
+ * its card or glossary rule when it has one; the app's own wording (the
+ * glossary phrases) for the unnamed restrictions; and, for leaders, the
+ * Bone/Blood/Plasm Leader rule their affinity gives (builder-rules.yaml
+ * `leader_affinity_mods`). Affinity rules that don't match the model's
+ * chosen affinity are left out, as the roster hides them anyway; rules the
+ * card marks "(already factored in)" are left out too, as the app does
+ * (a Skeletal Husk's Bone Warrior is in its base stats).
+ */
+
+const AFFINITY_RULE = /^\s*(bone|blood|plasm)\s+(?:warrior|leader)\b/i;
+/** The app's spellings of a subject in its unnamed restrictions. */
+const PHRASE_SUBJECTS = { familliar: "familiar", "necrotic remnant": "necromantic remnant" };
+
+const specialCache = new WeakMap();
+function specialIndex(catalog) {
+  if (specialCache.has(catalog)) return specialCache.get(catalog);
+  const cards = new Map();
+  for (const r of catalog.rows.values()) {
+    if (r.category === "special-rules") cards.set(normName(r.row.name), r.row);
+  }
+  const gl = catalog.bundle?.glossary || {};
+  const rules = new Map((gl.rules || []).filter(r => r?.en).map(r => [normName(r.en), r]));
+  const phrases = new Map();
+  for (const ph of gl.phrases || []) {
+    const subject = /^(.*?)\s+can(?:not)?\b/i.exec(ph?.en || "")?.[1];
+    if (!subject) continue;
+    const n = normName(subject);
+    const who = PHRASE_SUBJECTS[n] || n;
+    phrases.set(who, [...(phrases.get(who) || []), ph.en]);
+  }
+  const idx = { cards, rules, phrases };
+  specialCache.set(catalog, idx);
+  return idx;
+}
+
+/**
+ * A profile's special rules in the app's `profile.special` shape.
+ * @param {string|null} affinity  the model's chosen affinity ("bone"), if any
+ */
+export function profileSpecial(catalog, profileKey, affinity = null) {
+  const row = catalog.row(profileKey);
+  if (!row) return [];
+  const { cards, rules, phrases } = specialIndex(catalog);
+  const out = [];
+  const applies = (name) => {
+    const cond = AFFINITY_RULE.exec(name || "")?.[1]?.toLowerCase();
+    return !cond || !affinity || cond === affinity;
+  };
+  let ownPhrases = phrases.get(normName(row.name)) || [];
+  for (const para of String(row.special_rules || "").split(/\n+/).map(x => x.trim()).filter(Boolean)) {
+    if (/already factored in/i.test(para)) continue;
+    const m = /^([^.:]+)[.:]\s*(.*)$/s.exec(para);
+    const name = m?.[1]?.trim() || "";
+    const card = cards.get(normName(name));
+    const gloss = rules.get(normName(name));
+    if (card || gloss) {
+      const ruleName = card?.name || gloss.en;
+      // The card's text, else this profile's own (the glossary's "Unique"
+      // effect is the Familiar's).
+      if (applies(ruleName)) out.push({ name: ruleName, effect: (card && text(card, "effect")) || m[2] });
+    } else if (ownPhrases.length) {
+      // An unnamed restriction: the app's own wording, which the glossary keys.
+      out.push(...ownPhrases.map(effect => ({ effect })));
+      ownPhrases = [];
+    } else if (m && m[2] && name.split(/\s+/).length <= 3) {
+      out.push({ name, effect: m[2] });
+    } else {
+      out.push({ effect: para });
+    }
+  }
+  if (categoryOf(profileKey) === "leaders") {
+    for (const a of AFFINITIES) {
+      const card = cards.get(normName(`${a} leader`));
+      if (card && applies(card.name)) out.push({ name: card.name, effect: text(card, "effect") });
+    }
+  }
+  return out;
 }
 
 /** "1 / 3" → [1, 3]. */
@@ -110,13 +206,17 @@ const text = (row, k) => { const v = String(row?.[k] ?? "").trim(); return v ===
 
 /**
  * Export in the app's JSON shape, plus `modelName`, `totalObols` and
- * `manaPool` for the Warband roster. This is also what the roster renders.
+ * `manaPool` for the Warband roster, and `builder` blocks the app ignores
+ * (per model: the campaign's changes; per gathering: the gear stash). This is also what the roster renders.
  */
 export function toAppJson(gathering, catalog) {
   const ev = evaluate(gathering, catalog);
   const cov = catalog.covenant(gathering.covenant);
   const leaderIdx = ev.models.findIndex(m => m.isLeader);
   const leader = leaderIdx >= 0 ? gathering.models[leaderIdx] : null;
+  // Channelling bonuses from completed ambitions (as campaign.js's channelBonuses).
+  const channel = {};
+  for (const e of gathering.ambitions?.log || []) if (e.applied?.channel) channel[e.applied.channel] = (channel[e.applied.channel] || 0) + 1;
 
   const out = {
     covenant: cov?.app_name || catalog.row(gathering.covenant)?.name || "",
@@ -138,6 +238,9 @@ export function toAppJson(gathering, catalog) {
         keywords: e.keywords.filter(k => k !== "Leader" && !AFFINITIES.includes(k.toLowerCase())),
         obols: int(row.obols),
       };
+      // The profile's special rules (Caster, Bone Leader, …), as the app exports them.
+      const special = profileSpecial(catalog, m.profile, m.affinity);
+      if (special.length) profile.special = special;
       const named = (keys, fn) => (keys || []).map(k => fn(catalog.row(k) || { name: k }));
       const entry = {
         ...(m.name ? { modelName: m.name } : {}),
@@ -146,7 +249,9 @@ export function toAppJson(gathering, catalog) {
         spells: named(m.spells, r => ({
           name: r.name, school: r.school, apCost: int(r.ap), channel: int(r.channel),
           effect: text(r, "effect"),
-        })),
+        // Our addition, which the app ignores: an ambition's +N to channel
+        // it (Master Abyssal Artillery), for the roster's spell line.
+        })).map((s, j) => (channel[m.spells[j]] ? { ...s, channelBonus: channel[m.spells[j]] } : s)),
         weapons: named(m.weapons, r => ({
           name: r.name, attacks: int(r.attacks), ...damage(r.damage), range: int(r.range),
           obols: int(r.obols), ...(text(r, "special") ? { special: [text(r, "special")] } : {}),
@@ -171,6 +276,11 @@ export function toAppJson(gathering, catalog) {
       return entry;
     }),
   };
+  // Our gathering-level addition, which the app ignores: the gear stash.
+  if ((gathering.gearStash || []).length) {
+    out.builder = { gearStash: gathering.gearStash.map(e => ({
+      key: e.key, list: e.list, name: catalog.row(e.key)?.name || e.key })) };
+  }
   if (leader && Object.values(leader.mana || {}).some(Number)) {
     out.manaPool = Object.fromEntries(AFFINITIES.filter(a => leader.mana[a]).map(a => [a, leader.mana[a]]));
   }

@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark light">
   <title>Necropolis · Bone Coal component reference</title>
   <!-- IMPORTANT: same stylesheets as the real application, not a second imitation. -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="design-v5.css">
 <link rel="stylesheet" href="design-palettes.css">
+<link rel="stylesheet" href="select.css" media="screen">
 <script src="js/design-palettes.js"></script>
   <style>
     /* Reference-page layout only. Production component rules live in design-v5.css. */
@@ -33,17 +34,17 @@
     .ds-field label{font:700 15px 'Alegreya SC',serif;color:var(--nc-secondary)}
     .ds-field input,.ds-field select{max-width:100%;min-width:0}
     .ds-colors{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-    .ds-swatch{min-height:75px;border-radius:3px;border:1px solid #958777}
+    .ds-swatch{min-height:75px;border-radius:3px;border:1px solid var(--nc-line)}
     .ds-swatchname{font:700 15px 'Alegreya SC',serif;margin-top:8px}
     .ds-hex{font:14px/1.2 ui-monospace,monospace;color:var(--nc-muted)}
     .ds-status{border:1px solid;padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
     .ds-status strong{font:700 17px 'Alegreya SC',serif}
     .ds-status p{font-size:15px;margin:4px 0 0;color:var(--nc-bone)}
-    .ds-status.ok{border-color:#679d7f;background:var(--nc-success-bg)}
+    .ds-status.ok{border-color:var(--nc-success);background:var(--nc-success-bg)}
     .ds-status.ok .ds-state-icon,.ds-status.ok strong{color:var(--nc-success)}
-    .ds-status.warning{border-color:#ae834c;background:var(--nc-warning-bg)}
+    .ds-status.warning{border-color:var(--nc-warning);background:var(--nc-warning-bg)}
     .ds-status.warning .ds-state-icon,.ds-status.warning strong{color:var(--nc-warning)}
-    .ds-status.error{border-color:#b46b66;background:var(--nc-error-bg)}
+    .ds-status.error{border-color:var(--nc-error);background:var(--nc-error-bg)}
     .ds-status.error .ds-state-icon,.ds-status.error strong{color:var(--nc-error)}
     .ds-state-icon{font-weight:700;font-size:20px;line-height:1.3}
     .ds-contrast{border-collapse:collapse;width:100%;max-width:760px;font-variant-numeric:tabular-nums}
@@ -61,7 +62,7 @@
     .ds-list li{margin:7px 0}
     .ds-code{font:13px ui-monospace,monospace;word-break:break-word;color:var(--nc-bone)}
     .ds-paper{display:grid;grid-template-columns:minmax(190px,245px) 1fr;gap:22px}
-    .ds-card-slot{max-width:245px;aspect-ratio:63/88;background:#e5dfd3;display:flex;align-items:center;justify-content:center;color:#2a261f;box-shadow:0 3px 18px #0008}
+    .ds-card-slot{max-width:245px;aspect-ratio:63/88;background:var(--nc-raised);display:flex;align-items:center;justify-content:center;color:var(--nc-bone);box-shadow:0 3px 18px rgb(0 0 0 / .35)}
     .ds-card-slot svg{display:block;width:100%;height:100%}
     .ds-card-slot p{padding:24px;font:16px 'Alegreya',serif}
     .ds-foot{color:var(--nc-muted);font-size:14px;max-width:860px;padding:25px 0}
@@ -69,6 +70,17 @@
     .ds-reference{border-left:3px solid var(--nc-primary);padding:8px 16px;background:var(--nc-raised);color:var(--nc-secondary)}
     .ds-example-model button.secondary{min-height:36px}
     .ds-example-model .bd-items{gap:8px;align-items:center}
+    .ds-header-specimen{padding:0;overflow:visible}
+    .ds-header-specimen > .ds-row,.ds-header-specimen > .ds-note{padding:0 20px}
+    .ds-header-specimen > .ds-note{padding-bottom:16px}
+    .ds-header-specimen .nav-settings{display:flex;flex-direction:column;align-items:flex-end}
+    .ds-picker-static{display:block;position:static;max-width:640px;width:auto;max-height:none;margin:0;box-shadow:none}
+    .ds-picker-static .bd-picker-box{max-height:none}
+    .ds-icons{gap:10px 20px;font-size:15px;color:var(--nc-secondary)}
+    .ds-icons > span{display:inline-flex;align-items:center;gap:6px}
+    #bd-body .bd-layout{margin-top:0}
+    .ds-section h2.bd-nav-title{font:700 16px 'Alegreya SC',Georgia,serif;letter-spacing:.035em;margin:0 4px 8px;color:var(--nc-secondary)}
+    .ds-section .bd-picker-head h2{font:700 20px/1.25 'Alegreya SC',Georgia,serif;margin:0}
     @media(max-width:850px){
       .ds-shell{padding:16px 14px 70px}
       .ds-grid,.ds-grid-3,.ds-paper{grid-template-columns:1fr}
@@ -82,21 +94,21 @@
 <main class="ds-shell">
   <header class="ds-masthead">
     <div>
-      <p class="ds-kicker">Production-linked reference · v5.4</p>
+      <p class="ds-kicker">Production-linked reference · v5.8</p>
       <h1 class="ds-mark">Necropolis</h1>
       <p style="color:var(--nc-secondary);margin:8px 0 0">Bone Coal · component gallery for the developer</p>
     </div>
     <nav class="ds-contents" aria-label="Reference sections">
-      <a href="#colors">Colors</a><a href="#typography">Type</a><a href="#controls">Controls</a>
-      <a href="#builder">Builder</a><a href="#feedback">Feedback</a><a href="#cards">Cards</a>
+      <a href="#colors">Colors</a><a href="#typography">Type</a><a href="#shell">Header</a><a href="#controls">Controls</a>
+      <a href="#builder">Gathering</a><a href="#picker">Picker</a><a href="#campaign">Campaign</a><a href="#feedback">Warnings</a><a href="#cards">Cards</a>
       <a href="index.html">Open app</a>
     </nav>
     <label class="nc-theme-picker" for="nc-theme-select">Theme
-  <select id="nc-theme-select" data-nc-palette-control aria-label="Appearance palette">
-    <option value="obsidian">Obsidian</option><option value="ink-bone">Ink &amp; Bone</option>
-    <option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
-  </select>
-</label>
+      <select id="nc-theme-select" data-nc-palette-control aria-label="Appearance palette">
+        <option value="auto">Match device</option><option value="obsidian">Obsidian</option><option value="vellum">Vellum (light)</option>
+        <option value="ink-bone">Ink &amp; Bone</option><option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
+      </select>
+    </label>
   </header>
   <p class="ds-intro">This page uses the <strong>same CSS classes, tokens and font files</strong> as the real application. It is a visual reference, not a second game implementation. Examples below use sample content and do not save or change campaign state.</p>
   <aside class="ds-reference"><strong>Important:</strong> The original card designs, PDF-derived artwork, SVG templates, and A4 print output are immutable. Application chrome is the only design surface being changed.</aside>
@@ -117,13 +129,14 @@
     <h2>02 · Original typography, appropriate roles</h2>
     <div class="ds-grid">
       <div class="ds-specimen">
-        <p class="ds-kicker">Brand only · JSL Blackletter</p>
+        <p class="ds-kicker">Names · JSL Blackletter</p>
         <div style="font:400 45px/1.2 'JSL Blackletter',serif">Necropolis</div>
-        <p class="ds-note">Use for the product identity and original card banner only. Never use blackletter for dropdown options, input values or numeric statistics.</p>
+        <div style="font:400 28px/1.2 'JSL Blackletter',serif">The Pale Regent</div>
+        <p class="ds-note">The brand, the gathering's name, model names (as on their cards), the roster title and the cards themselves. Never for dropdown options, field values in general, or numbers.</p>
       </div>
       <div class="ds-specimen">
         <p class="ds-kicker">Section and action labels · Alegreya SC</p>
-        <div style="font:700 28px 'Alegreya SC',serif">The Gathering</div>
+        <div style="font:700 28px 'Alegreya SC',serif">Lair upgrades</div>
         <p style="font:700 19px 'Alegreya SC',serif">After the battle</p>
         <p class="ds-note">Alegreya Small Caps introduces sections and compact controls. Avoid forcing small caps onto long body paragraphs.</p>
       </div>
@@ -134,142 +147,272 @@
       </div>
       <div class="ds-specimen">
         <p class="ds-kicker">Numbers and game state</p>
-        <div style="font:700 32px 'Alegreya',serif;font-variant-numeric:tabular-nums">175 / 300 <small style="font:700 16px 'Alegreya SC',serif">obols</small></div>
+        <div style="font:700 32px 'Alegreya',serif;font-variant-numeric:lining-nums tabular-nums">175 <small style="font:400 16px 'Alegreya',serif">of 300 obols</small></div>
         <p class="ds-note">Numerals require visual weight and stable widths. Keep costs and warnings visible during editing.</p>
       </div>
     </div>
   </section>
 
+  <!-- Everything below sits inside #bd-body so the specimens get the
+       app's own control styling (design-v5.css scopes fields to it). -->
+  <div id="bd-body">
+
+  <section class="ds-section" id="shell">
+    <h2>03 · Header, navigation and Settings</h2>
+    <p class="ds-description">Two destinations, <b>Gatherings</b> (Gathering, Campaign, Roster) and <b>Cards</b> (Library, Print queue), addressed by hash routes (<code>#gatherings</code>, <code>#gatherings/campaign</code>, <code>#gatherings/roster</code>, <code>#gatherings/roster/cards</code>, <code>#cards</code>, <code>#cards/queue</code>). The open destination is a raised panel with a border; no underline. Language and Theme live in the Settings menu. One primary action: Print, which names what it prints.</p>
+    <div class="ds-specimen ds-header-specimen">
+      <header class="app" style="position:static">
+        <h1 class="brand">Necropolis</h1>
+        <nav class="tabs" aria-label="Main (specimen)">
+          <span class="nav-item active"><a class="nav-dest" href="#shell" aria-current="page">Gatherings</a></span>
+          <span class="nav-item"><a class="nav-dest" href="#shell">Cards</a><a class="nav-count" href="#shell">12</a></span>
+        </nav>
+        <span class="spacer"></span>
+        <details class="nav-settings" open>
+          <summary><span class="nav-ico" data-icon="settings"></span><span>Settings</span><span class="nav-chev" data-icon="chevron-down"></span></summary>
+          <div class="nav-settings-panel" style="position:static;margin-top:6px">
+            <label class="lang-picker"><span>Language</span><select><option>English</option><option>Español</option></select></label>
+            <label class="nc-theme-picker"><span>Theme</span>
+              <select data-nc-palette-control aria-label="Theme (specimen)">
+                <option value="auto">Match device</option><option value="obsidian">Obsidian</option><option value="vellum">Vellum (light)</option>
+                <option value="ink-bone">Ink &amp; Bone</option><option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
+              </select></label>
+          </div>
+        </details>
+        <button class="print-btn" type="button"><span class="pb-verb">Print</span><span class="pb-rest"> roster</span></button>
+      </header>
+      <div class="ds-row" style="margin-top:16px">
+        <div class="bd-views" role="group" aria-label="View (specimen)">
+          <button class="secondary" type="button" aria-pressed="true" data-ds-view>Gathering</button>
+          <button class="secondary" type="button" aria-pressed="false" data-ds-view>Campaign</button>
+          <button class="secondary" type="button" aria-pressed="false" data-ds-view>Roster</button>
+        </div>
+        <div class="bd-views" role="group" aria-label="Roster part (specimen)">
+          <button class="secondary" type="button" aria-pressed="false" data-ds-view>Sheet</button>
+          <button class="secondary" type="button" aria-pressed="true" data-ds-view>Cards</button>
+        </div>
+      </div>
+      <p class="ds-note">Production: <code>index.html</code> and <code>web/js/main.js</code> (routes); the view switches come from <code>builder-tab.js</code> and <code>main.js</code>. Settings closes on Escape and on a click outside it — a click in a themed dropdown's list (a portal in <code>&lt;body&gt;</code>) counts as inside.</p>
+    </div>
+  </section>
+
   <section class="ds-section" id="controls">
-    <h2>03 · Controls: use the correct choice pattern</h2>
-    <p class="ds-description">The actual application uses native select elements for compact choices, radio inputs for affinities, and data-driven handlers in its builder modules. A searchable combobox for large equipment catalogs is <em>planned</em>, not integrated.</p>
+    <h2>04 · Controls</h2>
+    <p class="ds-description">Selects are themed dropdowns on fine pointers (<code>web/js/select.js</code>, a WAI-ARIA select-only combobox over the native <code>&lt;select&gt;</code>, which stays the source of truth) and the native picker, restyled, on touch. Long lists get a filter field. An option may carry <code>data-reason</code>: shown muted under it and announced as its description; it stays selectable. Affinities are visible radios. Icons are Lucide, from <code>web/js/lucide.js</code>.</p>
     <div class="ds-grid">
       <div class="ds-specimen">
         <h3>Button hierarchy</h3>
         <div class="ds-row">
-          <button class="primary" type="button" id="ds-primary">Apply change</button>
-          <button class="secondary" type="button">Secondary</button>
+          <button class="primary" type="button" id="ds-primary">Save changes</button>
+          <button class="secondary" type="button"><span data-icon="plus"></span>Add weapon</button>
           <button class="secondary" type="button" disabled>Disabled</button>
+          <button class="link" type="button">Discard changes</button>
         </div>
-        <p class="ds-note">One clear primary action per task area. Use destructive labels and a confirmation step when changes cannot be undone.</p>
+        <p class="ds-note">One primary action per task area.</p>
         <output id="ds-apply-output" class="ds-live" aria-live="polite"></output>
       </div>
       <div class="ds-specimen">
-        <h3>Native select + chevron</h3>
+        <h3>Themed dropdown, with a reason</h3>
         <div class="ds-field">
           <label for="ds-covenant">Covenant</label>
           <select id="ds-covenant">
-            <option>Embalmed Hands</option>
+            <option value="">Choose a covenant…</option>
             <option>Cairn-born</option>
             <option>The Crescent of Mourn</option>
-            <option>Recusant Maleficar</option>
-            <option>Crawling-Dark</option>
+            <option data-reason="This covenant only allows models with Plasm.">Crawling-Dark</option>
+            <option>Wretched Undead</option>
           </select>
         </div>
-        <p class="ds-note">Chevron centered in reserved right padding; options remain native for keyboard and assistive technology. Do not reintroduce split-button decoration.</p>
+        <p class="ds-note">Open it: the third option explains the rule it would break. Keyboard: arrows, Home/End, type-ahead, Enter, Escape.</p>
       </div>
       <div class="ds-specimen">
         <h3>Text and number fields</h3>
         <div class="ds-grid" style="gap:12px">
-          <div class="ds-field"><label for="ds-name">Gathering name</label><input id="ds-name" type="text" value="The Ashen Host"></div>
-          <div class="ds-field"><label for="ds-obols">Treasury</label><input id="ds-obols" type="number" min="0" value="175"></div>
+          <div class="ds-field"><label for="ds-name">Lair</label><input id="ds-name" type="text" value="The Undying Keep"></div>
+          <div class="ds-field"><label for="ds-obols">Treasury (obols)</label><input id="ds-obols" type="number" min="0" value="115"></div>
         </div>
-        <p class="ds-note">Keep labels outside the field; reserve placeholders for examples, not essential instructions.</p>
+        <p class="ds-note">Labels outside the field; placeholders only for examples.</p>
       </div>
       <div class="ds-specimen">
         <h3>Affinities: visible radio choices</h3>
         <fieldset class="bd-affinity-control" id="ds-affinity">
-          <legend>Affinity</legend>
-          <label class="bd-affinity-option"><input type="radio" name="ds-aff" value="" aria-label="Not selected"><span>—</span></label>
-          <label class="bd-affinity-option"><input type="radio" name="ds-aff" value="Bone" checked><span>Bone</span></label>
+          <legend>Keyword</legend>
+          <label class="bd-affinity-option"><input type="radio" name="ds-aff" value="" aria-label="None"><span>—</span></label>
           <label class="bd-affinity-option"><input type="radio" name="ds-aff" value="Blood"><span>Blood</span></label>
+          <label class="bd-affinity-option"><input type="radio" name="ds-aff" value="Bone" checked><span>Bone</span></label>
           <label class="bd-affinity-option"><input type="radio" name="ds-aff" value="Plasm"><span>Plasm</span></label>
         </fieldset>
-        <p class="ds-note">Production version is generated from <code>allowedAffinities(m.profile)</code>. Never hardcode options in <code>builder-tab.js</code> as this specimen does.</p>
+        <p class="ds-note">Production options come from <code>allowedAffinities(m.profile)</code>.</p>
         <output id="ds-aff-output" class="ds-live" aria-live="polite">Selected: Bone</output>
+      </div>
+      <div class="ds-specimen" style="grid-column:1 / -1">
+        <h3>Icons (Lucide)</h3>
+        <div class="ds-row ds-icons">
+          <span><span data-icon="dices"></span> dices</span><span><span data-icon="triangle-alert"></span> triangle-alert</span>
+          <span><span data-icon="x"></span> x</span><span><span data-icon="check"></span> check</span>
+          <span><span data-icon="plus"></span> plus</span><span><span data-icon="search"></span> search</span>
+          <span><span data-icon="arrow-up"></span> arrow-up</span><span><span data-icon="arrow-down"></span> arrow-down</span>
+          <span><span data-icon="chevron-down"></span> chevron-down</span><span><span data-icon="settings"></span> settings</span>
+          <span><span data-icon="download"></span> download</span><span><span data-icon="upload"></span> upload</span>
+          <span><span data-icon="copy"></span> copy</span><span><span data-icon="flag"></span> flag</span>
+        </div>
+        <p class="ds-note">24px grid, 2px stroke, <code>currentColor</code>, sized to the text (<code>.nc-icon</code>). Decorative icons are <code>aria-hidden</code>; the button or the text names the action. The roster sheet keeps its own printed glyphs (<code>web/js/icons.js</code>).</p>
       </div>
     </div>
   </section>
 
   <section class="ds-section" id="builder">
-    <h2>04 · Real builder component contracts</h2>
-    <p class="ds-description">Below, the classes and HTML structures mirror those used in <code>web/js/builder-tab.js</code>. The data is illustrative; evaluation, costs, rule validation, and persistence must continue to come from the existing builder modules.</p>
-    <div class="ds-mimic-builder">
-      <div class="bd-views" role="group" aria-label="Builder workspace">
-        <button class="secondary" type="button" aria-pressed="true" data-ds-view="gathering">Gathering</button>
-        <button class="secondary" type="button" aria-pressed="false" data-ds-view="campaign">Campaign</button>
+    <h2>05 · Gathering view</h2>
+    <p class="ds-description">The gathering's header sits above every view; in the Gathering view the model cards are beside a sticky models list (a wrapping row of chips on narrow screens). Classes and structure mirror <code>web/js/builder-tab.js</code>. The data is illustrative; costs, stats and warnings come from <code>evaluate(g, catalog())</code> in the app.</p>
+    <section class="bd-ghead" aria-label="Gathering (specimen)">
+      <input type="text" class="bd-gname" value="The Ashen Host" aria-label="Name">
+      <div class="bd-fields">
+        <label class="bd-gfield">Covenant <select><option>Cairn-born</option><option>Wretched Undead</option></select></label>
+        <label class="bd-gfield">Lair <input type="text" value="The Undying Keep"></label>
+        <div class="bd-lair-tools"><button type="button" class="link"><span data-icon="dices"></span>Roll on the lair table</button>
+          <select aria-label="Pick from the table"><option>Pick from the table…</option><option>11. The Undying Keep</option></select></div>
       </div>
-      <div class="bd-model leader ds-example-model">
-        <div class="bd-model-head">
-          <input type="text" aria-label="Model name" value="The Pale Regent">
-          <select aria-label="Model profile"><option>Leader</option><option>Wretched Undead</option></select>
-          <span class="wb-chip accent"><b>95</b> obols</span>
-          <span class="spacer"></span>
-          <button class="secondary" type="button" disabled aria-label="Move up">↑</button>
-          <button class="secondary" type="button" aria-label="Move down">↓</button>
-        </div>
-        <dl class="bd-stats">
-          <div class="bd-stat"><dt>AP</dt><dd>2</dd></div>
-          <div class="bd-stat"><dt>Move</dt><dd>6</dd></div>
-          <div class="bd-stat"><dt>Violence</dt><dd>5+</dd></div>
-          <div class="bd-stat"><dt>Ranged</dt><dd>8+</dd></div>
-          <div class="bd-stat"><dt>HP</dt><dd>4</dd></div>
-        </dl>
-        <ul class="bd-warn" aria-label="Rule warnings"><li>⚠ Sample warning: this model needs a valid affinity.</li></ul>
-        <div class="bd-lists">
-          <div class="bd-list">
-            <h4>Equipment</h4>
-            <div class="bd-items">
-              <span class="bd-item">Blade <small>10</small> <button type="button" aria-label="Remove Blade" data-ds-remove>×</button></span>
-              <select aria-label="Add equipment"><option value="">Add equipment…</option><option>Improvised Weapon</option><option>Blade</option><option>Armour</option></select>
+      <dl class="bd-figs">
+        <div class="bd-fig over"><dt>Obols spent</dt><dd><b>345</b> of 300<span class="bd-meter"><span style="width:100%"></span></span></dd></div>
+        <div class="bd-fig"><dt>Deployment limit</dt><dd><b>350</b></dd></div>
+        <div class="bd-fig"><dt>Models</dt><dd><b>6</b></dd></div>
+      </dl>
+      <div class="bd-ledger-warn">
+        <ul class="bd-warn" aria-label="Rule warnings"><li><span data-icon="triangle-alert"></span><span>345 obols spent of the 300 for the first build. If the band is already built, start its campaign.</span></li></ul>
+        <button type="button" class="link bd-warn-toggle"><span data-icon="triangle-alert"></span><span>2 warnings: show them all</span></button>
+      </div>
+      <div class="bd-actions">
+        <button type="button" class="primary">View roster</button>
+        <button type="button" class="secondary">Add cards to queue</button>
+      </div>
+    </section>
+    <div class="bd-layout">
+      <div class="bd-main">
+        <section class="bd-model leader">
+          <header class="bd-model-head">
+            <div class="bd-model-title">
+              <input type="text" class="bd-model-name" value="The Pale Regent" aria-label="Model name">
+              <div class="bd-model-type"><select aria-label="Model type"><option>Lich</option><option>Ghast Husk</option></select></div>
             </div>
+            <div class="bd-model-cost"><b>0</b> obols</div>
+          </header>
+          <dl class="bd-stats">
+            <div class="bd-stat"><dt>AP</dt><dd>2</dd></div><div class="bd-stat"><dt>Move</dt><dd>3</dd></div>
+            <div class="bd-stat"><dt>Violence</dt><dd>6+</dd></div><div class="bd-stat"><dt>Ranged</dt><dd>7+</dd></div>
+            <div class="bd-stat"><dt>HP</dt><dd>15</dd></div>
+          </dl>
+          <ul class="bd-warn" aria-label="Rule warnings">
+            <li><span data-icon="triangle-alert"></span><span>Mana points split: 0 of 4.</span></li>
+            <li><span data-icon="triangle-alert"></span><span>Only one suit of armour.</span></li>
+          </ul>
+          <div class="bd-lists">
+            <div class="bd-list"><h4>Spells</h4><div class="bd-items">
+              <span class="bd-item">Summon<button type="button" aria-label="Remove Summon"><span data-icon="x"></span></button></span>
+              <span class="bd-item">Wither<small class="bd-bonus">+1 channelling</small><button type="button" aria-label="Remove Wither"><span data-icon="x"></span></button></span></div>
+              <button type="button" class="secondary bd-add-btn" data-ds-picker="spells"><span data-icon="plus"></span>Add spell</button></div>
+            <div class="bd-list"><h4>Weapons</h4><div class="bd-items">
+              <span class="bd-item">Blade<small>10</small><button type="button" aria-label="Remove Blade"><span data-icon="x"></span></button></span></div>
+              <button type="button" class="secondary bd-add-btn" data-ds-picker="weapons"><span data-icon="plus"></span>Add weapon</button></div>
+            <div class="bd-list"><h4>Equipment</h4><div class="bd-items"><span class="bd-none">None yet</span></div>
+              <button type="button" class="secondary bd-add-btn" data-ds-picker="equipment"><span data-icon="plus"></span>Add equipment</button></div>
           </div>
-          <div class="bd-list">
-            <h4>Stats and restrictions</h4>
-            <p class="ds-note">Explain each modifier's origin: profile, keyword, trait, lair, ambition, malady, or manual ledger entry.</p>
+        </section>
+      </div>
+      <aside class="bd-side">
+        <nav class="bd-nav" aria-label="Models (specimen)">
+          <h2 class="bd-nav-title">Models</h2>
+          <ul class="bd-nav-list">
+            <li><button type="button" class="bd-nav-model leader" aria-current="true"><span class="bd-nav-name">The Pale Regent</span><span class="bd-nav-type">Lich</span><span class="bd-nav-cost">0</span><span class="bd-nav-warn"><span data-icon="triangle-alert"></span><span class="bd-nav-n">2</span></span></button></li>
+            <li><button type="button" class="bd-nav-model"><span class="bd-nav-name">Familiar</span><span class="bd-nav-cost">45</span></button></li>
+            <li><button type="button" class="bd-nav-model"><span class="bd-nav-name">Aberrant Husk</span><span class="bd-nav-cost">100</span></button></li>
+          </ul>
+          <div class="bd-add-model"><select aria-label="Add a model"><option>Add a model…</option><option>Skeletal Husk (50)</option></select></div>
+        </nav>
+      </aside>
+    </div>
+  </section>
+
+  <section class="ds-section" id="picker">
+    <h2>06 · The "Add" picker</h2>
+    <p class="ds-description">Each list on a model card has its own <b>Add</b> button, opening one shared modal <code>&lt;dialog&gt;</code> (<code>web/js/builder-picker.js</code>): a search over name, kind and rules text, filter chips by kind, and the rows grouped as on the cards with cost and a short summary. A row that would break a rule says why (<code>data-reason</code>, the first new warning from the real rules engine) and still adds: the Builder warns, it never blocks. In a campaign, "From the stash (free)" comes before "Buy at the Markets". Adding keeps it open ("Added Blade."); Done closes it. Full screen on phones.</p>
+    <div class="ds-specimen">
+      <div class="bd-picker ds-picker-static" role="presentation">
+        <div class="bd-picker-box">
+          <header class="bd-picker-head"><h2>Add a weapon to Aberrant Husk</h2>
+            <button type="button" class="secondary bd-picker-x" aria-label="Close"><span data-icon="x"></span></button></header>
+          <div class="bd-picker-searchbox"><span data-icon="search"></span><input type="search" class="bd-picker-search" placeholder="Search by name, kind or rules" aria-label="Search (specimen)"></div>
+          <div class="bd-picker-chips"><button type="button" class="secondary" aria-pressed="true">All</button><button type="button" class="secondary" aria-pressed="false">Melee</button><button type="button" class="secondary" aria-pressed="false">Ranged</button><button type="button" class="secondary" aria-pressed="false">Thrown</button></div>
+          <div class="bd-picker-list">
+            <div class="bd-picker-sec-title">From the stash (free)</div>
+            <div class="bd-picker-row is-active"><span class="bd-pk-name">Blade</span><span class="bd-pk-cost">free</span><span class="bd-pk-sum"><b>Attacks 3 · Damage 1/3 · Range 1" · 1-handed</b> +1 armour against Attack actions from melee weapons.</span></div>
+            <div class="bd-picker-sec-title">Buy at the Markets</div>
+            <div class="bd-picker-group-title">Melee</div>
+            <div class="bd-picker-row"><span class="bd-pk-name">Great Weapon</span><span class="bd-pk-cost">35 obols</span><span class="bd-pk-sum"><b>Attacks 2 · Damage 2/6 · Range 1" · 2-handed</b></span>
+              <span class="bd-pk-why" data-reason="Needs 3 hands; a model has 2."><span data-icon="triangle-alert"></span><span>Needs 3 hands; a model has 2.</span></span></div>
           </div>
+          <footer class="bd-picker-foot"><p class="bd-picker-status">Added Blade.</p><button type="button" class="primary">Done</button></footer>
         </div>
       </div>
-      <output id="ds-view-output" class="ds-live" aria-live="polite">Showing sample gathering view</output>
+      <p class="ds-note">Contract: options keep the <code>list|category/slug</code> keys and go through the same <code>edit()</code> / <code>addItem</code> (<code>buyGear</code> in a campaign) path as the old <code>m-add</code> select.</p>
     </div>
-    <div class="ds-grid" style="margin-top:18px">
+  </section>
+
+  <section class="ds-section" id="campaign">
+    <h2>07 · Campaign</h2>
+    <div class="ds-grid">
       <div class="ds-specimen">
-        <h3>Campaign panel</h3>
-        <div class="bd-panel">
-          <h3>Treasury &amp; deployment</h3>
-          <p><span class="wb-chip good">Ready</span> <span class="wb-chip">175 / 350 deployed</span></p>
-          <p>Use the real campaign ledger for cost changes. Display the effect and its source together.</p>
+        <h3>Treasures and the gear stash</h3>
+        <div class="bd-inline ds-row">
+          <button type="button" class="secondary"><span data-icon="dices"></span>Roll a minor treasure</button>
+          <button type="button" class="secondary"><span data-icon="dices"></span>Roll a greater treasure</button>
         </div>
-        <p class="ds-note">Production: <code>web/js/builder-campaign.js</code> and <code>web/js/builder/campaign.js</code>.</p>
+        <div class="bd-list bd-gear-stash"><h4>Gear stash</h4>
+          <p class="bd-hint">Not a rulebook rule: the app keeps gear here between models for you. Moving it in or out is free; selling follows the Markets (p.72).</p>
+          <div class="bd-items"><span class="bd-item">Blade <small>Weapons</small>
+            <select aria-label="Give to"><option>Give to…</option><option>Aberrant Husk</option></select>
+            <button type="button" class="bd-sell">Sell +5</button>
+            <button type="button" aria-label="Discard Blade"><span data-icon="x"></span></button></span></div>
+        </div>
+        <p class="ds-note">Production: <code>web/js/builder-campaign.js</code>; the rules in <code>web/js/builder/campaign.js</code>. Taking gear off a model in a campaign asks: sell (weapons and armour, half price), keep in the stash, or (equipment) discard.</p>
       </div>
       <div class="ds-specimen">
         <h3>After-battle wizard</h3>
         <div class="bd-panel bd-wizard">
           <h3>After the battle</h3>
-          <div class="bd-crumbs ds-row">
-            <button type="button" class="primary">Battle</button>
-            <button type="button" class="secondary">Maladies</button>
-            <button type="button" class="secondary">Rewards</button>
-          </div>
-          <p>Show completed, current, and pending steps. Persist the real sequence so it can resume.</p>
+          <ol class="bd-crumbs"><li class="done"><button type="button">Battle</button></li><li class="now"><button type="button" aria-current="step">Maladies</button></li><li><button type="button">Victory rewards</button></li></ol>
+          <p>Completed, current and pending steps; the real sequence has seven steps after the battle itself.</p>
         </div>
-        <p class="ds-note">Production: <code>web/js/builder-afterbattle.js</code>. Its seven steps and rules must not be replaced by this illustration.</p>
+        <p class="ds-note">Production: <code>web/js/builder-afterbattle.js</code>.</p>
       </div>
     </div>
   </section>
 
   <section class="ds-section" id="feedback">
-    <h2>05 · Semantic statuses</h2>
-    <p class="ds-description">Feedback must be recognizable as a color and as text. These three colors are for status, not decorative accents. Check small text and borders separately against WCAG 2.2.</p>
-    <div class="ds-grid-3">
-      <div class="ds-status ok" role="status"><span class="ds-state-icon" aria-hidden="true">✓</span><div><strong>Success</strong><p>Changes saved successfully.</p></div></div>
-      <div class="ds-status warning" role="status"><span class="ds-state-icon" aria-hidden="true">!</span><div><strong>Warning</strong><p>A model has a rules restriction.</p></div></div>
-      <div class="ds-status error" role="alert"><span class="ds-state-icon" aria-hidden="true">×</span><div><strong>Error</strong><p>This action cannot be completed.</p></div></div>
+    <h2>08 · Warnings and statuses</h2>
+    <p class="ds-description">Warnings are one panel per group: warning background, a 3px amber rule on the left, the items as plain lines in bone text, separated by a hairline, each with the warning icon. The draft bar and the full warning summary use the same panel. Never colour alone.</p>
+    <div class="ds-grid">
+      <div class="ds-specimen">
+        <ul class="bd-warn" aria-label="Rule warnings (specimen)">
+          <li><span data-icon="triangle-alert"></span><span>4 spells; it should have 5.</span></li>
+          <li><span data-icon="triangle-alert"></span><span>Mana points split: 0 of 4.</span></li>
+        </ul>
+        <div class="bd-draft" role="status"><p><span data-icon="triangle-alert"></span><span>These changes aren't saved yet.</span></p>
+          <button type="button" class="primary">Save changes</button><button type="button" class="link">Discard changes</button></div>
+      </div>
+      <div class="ds-specimen">
+        <div class="ds-row">
+          <span class="wb-chip good"><b>175</b> / 350 fielded</span>
+          <span class="wb-chip over"><b>380</b> / 350 fielded</span>
+          <span class="bd-good"><span data-icon="check"></span> No rule warnings.</span>
+        </div>
+      </div>
     </div>
     <h3 style="margin-top:26px">Live token contrast audit</h3>
     <table class="ds-contrast"><thead><tr><th>Pair</th><th>Ratio</th><th>AA text</th></tr></thead><tbody id="ds-contrast-body"></tbody></table>
-    <p class="ds-note">Contrast calculations use the actual computed CSS variables and WCAG relative luminance. Passing text contrast does not, by itself, validate every border, icon or focus indicator.</p>
+    <p class="ds-note">Computed from the palette in use (switch it above). Passing text contrast does not validate every border, icon or focus indicator.</p>
   </section>
+
+  </div>
 
   <section class="ds-section" id="cards">
     <h2>06 · Original card rendering, unchanged</h2>
@@ -302,25 +445,40 @@
   });
   document.querySelectorAll('[data-ds-view]').forEach(function(btn){
     btn.addEventListener('click',function(){
-      document.querySelectorAll('[data-ds-view]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn));});
-      document.getElementById('ds-view-output').textContent='Showing sample '+btn.dataset.dsView+' view';
+      btn.parentElement.querySelectorAll('[data-ds-view]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn));});
     });
-  });
-  document.querySelector('[data-ds-remove]').addEventListener('click',function(){
-    var chip=this.closest('.bd-item');chip.remove();
   });
   function linear(x){x/=255;return x<=0.04045?x/12.92:Math.pow((x+0.055)/1.055,2.4);}
   function rgb(v){var el=document.createElement('span');el.style.color=v;document.body.appendChild(el);var c=getComputedStyle(el).color;el.remove();var p=c.match(/[\d.]+/g).slice(0,3).map(Number);return p;}
   function lum(v){var a=rgb(v).map(linear);return 0.2126*a[0]+0.7152*a[1]+0.0722*a[2];}
   function contrast(a,b){var x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);}
-  var root=getComputedStyle(document.documentElement);
-  var panel=root.getPropertyValue('--nc-surface').trim();
-  var pairs=[['Primary text','--nc-bone'],['Secondary text','--nc-secondary'],['Muted text','--nc-muted'],['Success','--nc-success'],['Warning','--nc-warning'],['Error','--nc-error']];
-  document.getElementById('ds-contrast-body').innerHTML=pairs.map(function(p){
-    var c=root.getPropertyValue(p[1]).trim(),n=contrast(c,panel);
-    return '<tr><td>'+p[0]+'</td><td>'+n.toFixed(2)+':1</td><td class="ds-pass">'+(n>=4.5?'Pass':'Review')+'</td></tr>';
-  }).join('');
+  function audit(){
+    var root=getComputedStyle(document.documentElement);
+    var v=function(k){return root.getPropertyValue(k).trim();};
+    var pairs=[['Primary text on surface','--nc-bone','--nc-surface'],['Secondary text on surface','--nc-secondary','--nc-surface'],['Muted text on surface','--nc-muted','--nc-surface'],
+      ['Success on surface','--nc-success','--nc-surface'],['Warning on surface','--nc-warning','--nc-surface'],['Error on surface','--nc-error','--nc-surface'],
+      ['Success on its background','--nc-success','--nc-success-bg'],['Warning on its background','--nc-warning','--nc-warning-bg'],['Error on its background','--nc-error','--nc-error-bg'],
+      ['Text on the warning panel','--nc-bone','--nc-warning-bg']];
+    document.getElementById('ds-contrast-body').innerHTML=pairs.map(function(p){
+      var n=contrast(v(p[1]),v(p[2]));
+      return '<tr><td>'+p[0]+'</td><td>'+n.toFixed(2)+':1</td><td class="ds-pass">'+(n>=4.5?'Pass':'Review')+'</td></tr>';
+    }).join('');
+  }
+  audit();
+  document.addEventListener('necropolis:palette-change',function(){requestAnimationFrame(audit);});
 }());
+</script>
+<script type="module">
+  // The app's own icons and themed dropdowns.
+  import { icon } from './js/lucide.js';
+  import { observeSelects } from './js/select.js';
+  // Specimens mirror the JS-built markup: the <svg> itself in place of the
+  // marker; the header's wrappers (as in index.html) keep their span.
+  document.querySelectorAll('[data-icon]').forEach(el => {
+    if (el.className) { el.innerHTML = icon(el.dataset.icon); el.setAttribute('aria-hidden', 'true'); }
+    else el.outerHTML = icon(el.dataset.icon);
+  });
+  observeSelects(document);
 </script>
 <script type="module">
   // Same loader and renderer as the application; no hand-drawn replacement.

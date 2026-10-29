@@ -7,7 +7,8 @@
  * Two destinations, each with a local switch, addressed by the hash:
  *   #gatherings            Builder, Gathering view
  *   #gatherings/campaign   Builder, Campaign view
- *   #gatherings/roster     Builder, Roster view (the warband roster sheet)
+ *   #gatherings/roster     Builder, Roster view: the warband roster sheet
+ *   #gatherings/roster/cards  Roster view, Cards: the gathering's card sheets
  *   #cards                 Library
  *   #cards/queue           Print queue
  * The Builder's view state is the Builder's own (`setView`); the address
@@ -24,10 +25,13 @@ import { initImport }         from "./import.js";
 import { initLibrary, renderLibrary } from "./library.js";
 import { initWarband, renderWarband }  from "./warband.js";
 import { initBuilder, renderBuilder, setView, rosterPayload } from "./builder-tab.js";
-import { initPrint, renderPrint, printList } from "./print.js";
+import { initPrint, renderPrint, printList, renderSheetsInto, sheetCount, stillNeeded } from "./print.js";
+import { payloadCards }       from "./import.js";
 import { store }              from "./gatherings.js";
 import { label }              from "./builder/messages.js";
 import { $, escapeHtml }      from "./util.js";
+import { observeSelects }     from "./select.js";
+import { icon }               from "./lucide.js";
 
 const L = (k) => label(k, state.lang || "en");
 
@@ -36,7 +40,8 @@ const L = (k) => label(k, state.lang || "en");
 const ROUTES = {
   "gatherings":          { dest: "gatherings", tabs: ["builder"], view: "gathering" },
   "gatherings/campaign": { dest: "gatherings", tabs: ["builder"], view: "campaign" },
-  "gatherings/roster":   { dest: "gatherings", tabs: ["builder", "warband"], view: "roster" },
+  "gatherings/roster":   { dest: "gatherings", tabs: ["builder", "warband"], view: "roster", part: "sheet" },
+  "gatherings/roster/cards": { dest: "gatherings", tabs: ["builder", "warband"], view: "roster", part: "cards" },
   "cards":               { dest: "cards", tabs: ["library"] },
   "cards/queue":         { dest: "cards", tabs: ["print"] },
 };
@@ -132,7 +137,12 @@ function refreshHeader() {
 
   // The one primary action names what it prints, or says why it can't.
   let rest, reason = "";
-  if (r.dest === "gatherings") {
+  if (r.part === "cards") {
+    const k = rosterCards().length;
+    rest = `${k} ${L(k === 1 ? "printCard1" : "printCardN")}`;
+    if (!state.warband) reason = L("noGatheringToPrint");
+    else if (!k) reason = L("allOwned");
+  } else if (r.dest === "gatherings") {
     rest = L("printRoster");
     if (!state.warband) reason = L("noGatheringToPrint");
     else if (!(state.warband.gathering || []).length) reason = L("noModelsToPrint");
@@ -165,7 +175,9 @@ document.addEventListener("keydown", (e) => {
   $settings.querySelector("summary").focus();
 });
 document.addEventListener("pointerdown", (e) => {
-  if ($settings.open && !$settings.contains(e.target)) $settings.open = false;
+  // A themed dropdown's list is a portal in <body>: choosing from the
+  // Language or Theme list is still a click inside Settings.
+  if ($settings.open && !$settings.contains(e.target) && !e.target.closest?.(".nc-select-pop")) $settings.open = false;
 });
 
 // Print. Show what will print first so it's laid out (some browsers freeze
@@ -173,7 +185,7 @@ document.addEventListener("pointerdown", (e) => {
 // on the next frame: the roster on Gatherings, the card sheets on Cards.
 $printBtn.addEventListener("click", () => {
   const roster = ROUTES[current]?.dest === "gatherings";
-  navigate(roster ? "gatherings/roster" : "cards/queue");
+  navigate(roster ? (ROUTES[current].part === "cards" ? "gatherings/roster/cards" : "gatherings/roster") : "cards/queue");
   if (roster) document.body.classList.add("printing-warband");
   requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
 });
@@ -181,6 +193,45 @@ $printBtn.addEventListener("click", () => {
 /* ---- the roster follows the Builder ---------------------------------------------- */
 
 let rosterKey = "";
+
+/* The Roster view's Cards part: every card the gathering uses, matched as
+ * "Add cards to queue" matches them, minus the ones already printed when
+ * "Skip cards I already have" is on. The shared queue is never touched. */
+const LS_SKIP = "necropolis-ui-roster-skip-v1";
+let rosterSkip = false;
+try { rosterSkip = localStorage.getItem(LS_SKIP) === "1"; } catch {}
+function rosterCards() {
+  const all = payloadCards(state.warband);
+  return rosterSkip ? stillNeeded(all) : all;
+}
+/** For the Builder's roster bar: which part, the skip choice and the counts. */
+function rosterInfo() {
+  const cards = state.catalog ? payloadCards(rosterPayload()) : [];
+  const shown = rosterSkip ? stillNeeded(cards) : cards;
+  return { part: ROUTES[current]?.part || "sheet", skip: rosterSkip, cards: shown.length, sheets: sheetCount(shown.length) };
+}
+function setRosterSkip(on) {
+  rosterSkip = !!on;
+  try { localStorage.setItem(LS_SKIP, rosterSkip ? "1" : "0"); } catch {}
+  renderBuilder();
+}
+let rosterSheetsKey = "";
+/** Show the part the route asks for; lay the card sheets out when shown. */
+function renderRosterParts() {
+  const cards = ROUTES[current]?.part === "cards";
+  $("wb-pages").hidden = cards;
+  document.querySelector(".wb-toolbar").hidden = cards;
+  const $sheets = $("roster-sheets");
+  $sheets.hidden = !cards;
+  if (!cards) return;
+  const list = rosterCards();
+  const key = JSON.stringify([rosterKey, rosterSkip, $("bleed-toggle").checked, $("backs-toggle").checked, state.printed]);
+  if (key === rosterSheetsKey) return;
+  rosterSheetsKey = key;
+  $sheets.innerHTML = "";
+  if (list.length) renderSheetsInto($sheets, list);
+  else $sheets.innerHTML = `<div class="empty-msg">${escapeHtml(L(state.warband ? "allOwned" : "noGatheringToPrint"))}</div>`;
+}
 /** After every Builder redraw: the roster sheet shows the gathering on
  *  screen, unsaved draft included, through the same Companion App JSON the
  *  Builder exports. Re-laid out only when that JSON or the language changed. */
@@ -194,6 +245,7 @@ function syncRoster() {
     renderWarband();
   }
   if (current) showSections();
+  renderRosterParts();
   refreshHeader();
 }
 
@@ -217,7 +269,7 @@ initImport({
 });
 initLibrary({ onChange });
 initWarband();
-initBuilder({ onChange, navigate, onRender: syncRoster });
+initBuilder({ onChange, navigate, onRender: syncRoster, rosterInfo, setRosterSkip });
 initPrint({ onChange });
 // "Only what I still need" changes how many cards print.
 $("need-toggle").addEventListener("change", refreshHeader);
@@ -235,6 +287,20 @@ $langSelect.addEventListener("change", () => {
   renderBuilder();
   renderPrint();
   refreshHeader();
+});
+
+// Static markup marks its icons with data-icon (Lucide, web/js/lucide.js).
+document.querySelectorAll("[data-icon]").forEach(el => {
+  el.innerHTML = icon(el.dataset.icon);
+  el.setAttribute("aria-hidden", "true");
+});
+
+// Themed dropdowns for every select, now and as views redraw (select.js;
+// touch keeps the native picker). Its strings follow the Language setting:
+// read when a list first opens, and per select from data-* where set.
+observeSelects(document, {
+  get filterPlaceholder() { return L("filterOptions"); },
+  get noMatches() { return L("noMatches"); },
 });
 
 loadQueue();
@@ -257,6 +323,6 @@ Promise.all([loadFonts(), loadBundle()]).then(() => {
 }).catch(e => {
   document.querySelector("main").innerHTML =
     `<div class="empty-msg">Failed to load <code>data.json</code>: ${e.message}<br><br>` +
-    `Run <code style="background:#2f2f37;padding:2px 6px;border-radius:3px;">python3 web/bundle.py</code> ` +
+    `Run <code style="background:var(--nc-raised, var(--panel2));padding:2px 6px;border-radius:3px;">python3 web/bundle.py</code> ` +
     `from the project root to generate it.</div>`;
 });

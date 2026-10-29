@@ -8,6 +8,7 @@
  * JSON (file download/upload or copy/paste).
  */
 
+import { icon } from "./lucide.js";
 import {
   state, saveQueue,
   printedCount, addPrinted, cardId, savePrinted,
@@ -127,7 +128,7 @@ function renderGrid() {
     `${inView.length} item${inView.length === 1 ? "" : "s"}` +
     (queuedInView ? ` · ${queuedInView} in queue` : "");
   $addAll.disabled = inView.length === 0;
-  $addAll.textContent = `+ Add all in view (${inView.length})`;
+  $addAll.innerHTML = `${icon("plus")} Add all in view (${inView.length})`;
 }
 
 function buildTile(key, cat, row) {
@@ -156,7 +157,7 @@ function buildTile(key, cat, row) {
       ${queued
         ? (need > 0
             ? `<span class="need">need ${need}</span>`
-            : `<span class="need done">✓ all printed</span>`)
+            : `<span class="need done">${icon("check")} all printed</span>`)
         : ""}
     </div>`;
 

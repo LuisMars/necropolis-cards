@@ -343,6 +343,14 @@ export function evaluate(gathering, catalog) {
   }
   const activeAmbitions = (gathering.ambitions?.active || []).length;
   if (activeAmbitions > 4) warn("too-many-ambitions", { params: { count: activeAmbitions } });
+  // Master Abyssal Artillery (p.67): +1 to channel one of the leader's
+  // spells. Warn when the leader no longer knows the spell it went to.
+  const leaderSpells = new Set(leaders.length
+    ? (gathering.models.find(m => m.uid === leaders[0].uid)?.spells || []) : []);
+  for (const e of gathering.ambitions?.log || []) {
+    const sp = e.applied?.channel;
+    if (sp && !leaderSpells.has(sp)) warn("channel-spell-missing", { item: sp, params: { ambition: e.ambition } });
+  }
 
   return {
     models, total, budget, deploymentLimit, fielded,

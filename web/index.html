@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="design-v5.css">
 <link rel="stylesheet" href="design-palettes.css">
+<link rel="stylesheet" href="select.css" media="screen">
 <script src="js/design-palettes.js"></script>
 </head>
 <body>
@@ -28,7 +29,7 @@
   </nav>
   <span class="spacer"></span>
   <details class="nav-settings" id="nav-settings">
-    <summary><span id="nav-settings-label">Settings</span> <span class="nav-chev" aria-hidden="true">▾</span></summary>
+    <summary><span class="nav-ico" data-icon="settings"></span><span id="nav-settings-label">Settings</span><span class="nav-chev" data-icon="chevron-down"></span></summary>
     <div class="nav-settings-panel">
       <label class="lang-picker" title="Card language (English by default)">
         <span id="lang-label">Language</span>
@@ -56,8 +57,10 @@
       <select id="bd-pick" hidden></select>
       <button class="secondary" id="bd-new">New gathering</button>
       <button class="secondary" id="bd-import" aria-expanded="false" aria-controls="bd-import-panel">Import</button>
-      <button class="link" id="bd-dup">Duplicate</button>
-      <button class="link danger" id="bd-del">Delete</button>
+      <span class="bd-toolbar-links">
+        <button class="link" id="bd-dup">Duplicate</button>
+        <button class="link danger" id="bd-del">Delete</button>
+      </span>
     </div>
     <div class="bd-panel bd-import" id="bd-import-panel" hidden>
       <p class="bd-import-intro">
@@ -68,7 +71,7 @@
       </p>
       <textarea id="json-in" class="json-in" aria-label="Companion App JSON or share link" placeholder='{"covenant": "…", "gathering": [...]}  or  https://necropolis28.vercel.app/gathering-creation?id=…'></textarea>
       <div class="bd-import-actions">
-        <button class="primary" id="load-warband-btn">⚑ Load warband</button>
+        <button class="primary" id="load-warband-btn"><span data-icon="flag"></span> Load warband</button>
         <button class="secondary" id="parse-btn">Load &amp; add cards to queue</button>
         <button class="secondary" id="sample-btn">Load sample</button>
         <button class="link" id="bd-import-close">Close</button>
@@ -84,6 +87,10 @@
       <div class="wb-summary" id="wb-summary"></div>
     </div>
     <div class="wb-pages" id="wb-pages"></div>
+    <!-- Roster view, Cards part: the gathering's own card sheets (print.js's
+         renderer, not the queue). Only one of the two parts is shown, and the
+         hidden one stays hidden in print. -->
+    <div class="sheets-wrap" id="roster-sheets" hidden></div>
   </section>
 
   <section class="tab" data-tab="library">
@@ -95,13 +102,13 @@
       <select id="lib-category"><option value="">All categories</option></select>
       <span style="color:var(--muted); font-size:11px;" id="lib-count"></span>
       <span class="spacer" style="flex:1;"></span>
-      <button class="secondary" id="lib-add-all">+ Add all in view</button>
+      <button class="secondary" id="lib-add-all"><span data-icon="plus"></span> Add all in view</button>
     </div>
     <div class="lib-inv-bar">
       <span class="inv-label">Printed inventory:</span>
-      <button class="secondary" id="inv-export-file">⬇ Export file</button>
-      <button class="secondary" id="inv-copy">⧉ Copy JSON</button>
-      <button class="secondary" id="inv-import-file">⬆ Import file</button>
+      <button class="secondary" id="inv-export-file"><span data-icon="download"></span> Export file</button>
+      <button class="secondary" id="inv-copy"><span data-icon="copy"></span> Copy JSON</button>
+      <button class="secondary" id="inv-import-file"><span data-icon="upload"></span> Import file</button>
       <button class="secondary" id="inv-paste-toggle">Paste JSON…</button>
       <input type="file" id="inv-file-input" accept="application/json,.json" hidden>
       <span class="inv-status muted" id="inv-status"></span>
@@ -128,7 +135,7 @@
       <span style="color:var(--muted)">·</span>
       <span id="sheet-count"></span>
       <span class="spacer" style="flex:1;"></span>
-      <button class="secondary" id="mark-printed-btn" title="Add this run's cards to your printed inventory">✓ Mark this run as printed</button>
+      <button class="secondary" id="mark-printed-btn" title="Add this run's cards to your printed inventory"><span data-icon="check"></span> Mark this run as printed</button>
       <button class="secondary" id="clear-queue-btn-2">Clear queue</button>
     </div>
     <div class="queue-panel">

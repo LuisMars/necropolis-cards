@@ -21,6 +21,7 @@
  * the buttons only ask for a new address.
  */
 
+import { icon } from "./lucide.js";
 import { state } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { pickField } from "./i18n.js";
@@ -30,9 +31,10 @@ import { evaluate, campaignStarted, AFFINITIES } from "./builder/rules.js";
 import { newGathering, newModel } from "./builder/gathering.js";
 import { toAppJson } from "./builder/appjson.js";
 import { linkUrl, defaultWeapon } from "./builder/codec.js";
-import { categoryOf, slug, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./builder/catalog.js";
+import { categoryOf, slug } from "./builder/catalog.js";
 import { describe, label, itemName } from "./builder/messages.js";
-import { buyGear, sellGear, recruit, record } from "./builder/campaign.js";
+import { buyGear, sellGear, recruit, record, stashGear, takeGear, channelBonuses } from "./builder/campaign.js";
+import { initPicker, openPicker, openRemove, refreshPicker, stashable } from "./builder-picker.js";
 import { campaignHtml, campaignChange, campaignClick, setFold } from "./builder-campaign.js";
 import { afterBattleHtml, afterBattleChange, afterBattleClick } from "./builder-afterbattle.js";
 
@@ -47,7 +49,7 @@ let hooks = {};
 let status = "";          // one line of feedback from the last action (HTML)
 let summaryOpen = false;  // every warning listed, opened from the ledger
 let view = "gathering";   // "gathering" (build), "campaign" or "roster"
-let sideOpen = false;     // narrow screens: the ledger's details and actions shown
+let observer = null;      // marks the model card in view in the models list
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
@@ -94,8 +96,8 @@ function goView(v) {
 const queuedHtml = (n) => `${n} ${esc(L("cardsAdded"))} ` +
   `<button type="button" class="link" data-act="open-queue">${esc(L("openQueue"))}</button>`;
 
-export function initBuilder({ onChange, navigate, onRender }) {
-  hooks = { onChange, navigate, onRender };
+export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRosterSkip }) {
+  hooks = { onChange, navigate, onRender, rosterInfo, setRosterSkip };
   $newBtn.addEventListener("click", () => { store.save(newGathering()); status = ""; goView("gathering"); renderBuilder(); });
   $dupBtn.addEventListener("click", () => {
     const g = working();
@@ -114,6 +116,19 @@ export function initBuilder({ onChange, navigate, onRender }) {
     renderBuilder();
   });
   $body.addEventListener("change", onChange_);
+  initPicker({
+    working,
+    reasons: addReasons,
+    add: (uid, value) => edit(g => pickerAdd(g, uid, value)),
+    remove: (uid, list, i, how) => edit(g => {
+      if (how === "sell") sellGear(g, catalog(), uid, list, i);
+      else if (how === "stash") stashGear(g, catalog(), uid, list, i);
+      else {   // equipment: it can't be sold (p.72)
+        const [k] = findModel(g, uid)[list].splice(Number(i), 1);
+        record(g, "discard", { item: k, uid });
+      }
+    }),
+  });
   $body.addEventListener("click", onClick);
   // Folding sections remember whether they're open ("toggle" doesn't bubble).
   $body.addEventListener("toggle", (e) => { if (e.target.dataset?.fold) setFold(e.target.dataset.fold, e.target.open); }, true);
@@ -213,6 +228,7 @@ function onChange_(e) {
   if (!el) return;
   const { act, uid, aff } = el.dataset;
   const v = el.value;
+  if (act === "roster-skip") { hooks.setRosterSkip?.(el.checked); return; }
   edit(g => {
     if (afterBattleChange(act, el, g) || campaignChange(act, el, g)) return;
     const m = uid ? findModel(g, uid) : null;
@@ -261,11 +277,22 @@ function onClick(e) {
     return;
   }
   switch (act) {
-    case "m-del-item": edit(g => {
+    case "m-pick":     openPicker(uid, list, el.dataset.fid); break;
+    case "m-del-item":
+      // In a campaign, gear coming off a model is sold, kept in the stash
+      // or thrown away: ask which (the free Improvised Weapon just goes).
+      if (campaignStarted(g) && GEAR.includes(list) && stashable(findModel(g, uid)[list][Number(i)])) {
+        openRemove(uid, list, i, `${uid}-add-${list}`);
+        break;
+      }
+      edit(g => {
                          // In a campaign weapons and armour sell for half (p.72).
                          if (campaignStarted(g) && (list === "weapons" || list === "armour")) sellGear(g, catalog(), uid, list, i);
                          else {
-                           const [k] = findModel(g, uid)[list].splice(Number(i), 1);
+                           const m = findModel(g, uid);
+                           const [k] = m[list].splice(Number(i), 1);
+                           // A model always has a weapon: the free Improvised one comes back (as in the engine).
+                           if (list === "weapons" && !m.weapons.length) m.weapons.push(defaultWeapon(catalog(), m.profile));
                            if (campaignStarted(g) && list === "equipment") record(g, "discard", { item: k, uid });
                          }
                        }); break;
@@ -287,7 +314,6 @@ function onClick(e) {
     case "export":     download(`${fileStem(g)}.json`, toAppJson(g, catalog())); break;
     case "backup":     download(`${fileStem(g)}-backup.json`, g); break;
     case "summary":    summaryOpen = !summaryOpen; renderBuilder(); break;
-    case "side-toggle": sideOpen = !sideOpen; renderBuilder(); break;
     case "goto":       gotoModel(uid); break;
   }
 }
@@ -374,26 +400,27 @@ function draw() {
       <button type="button" class="secondary" data-act="import">${esc(L("import"))}</button></div>`;
     return;
   }
-  if (view === "roster") {
-    $body.innerHTML = `<div class="bd-roster-head">${viewTabsHtml()}${rosterBarHtml(g)}</div>`;
-    return;
-  }
   const ev = evaluate(g, catalog());
-  const main = view === "campaign"
-    ? (g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev))
-    : (campaignStarted(g) ? `<p class="bd-hint">${esc(L("campaignShop"))}</p>` : "") +
-      g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") + addModelHtml(g);
-  $body.innerHTML = `
-    <div class="bd-layout">
-      <div class="bd-main">
-        ${viewTabsHtml()}
-        ${summaryOpen && ev.warnings.length ? warningSummaryHtml(g, ev) : ""}
-        ${main}
-      </div>
-      <aside class="bd-side${sideOpen ? " open" : ""}">${ledgerHtml(g, ev)}</aside>
-    </div>`;
+  const head = `${viewTabsHtml()}${gatheringHeadHtml(g, ev)}${summaryOpen && ev.warnings.length ? warningSummaryHtml(g, ev) : ""}`;
+  if (view === "roster") {
+    $body.innerHTML = `<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>`;
+  } else if (view === "campaign") {
+    // The Campaign view has its own lists: no models sidebar.
+    $body.innerHTML = `${head}<div class="bd-main bd-campaign">${g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev)}</div>`;
+  } else {
+    $body.innerHTML = `${head}
+      <div class="bd-layout">
+        <div class="bd-main">
+          ${campaignStarted(g) ? `<p class="bd-hint">${esc(L("campaignShop"))}</p>` : ""}
+          ${g.models.length ? g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") : `<p class="bd-hint">${esc(L("noModels"))}</p>`}
+        </div>
+        <aside class="bd-side">${modelsNavHtml(g, ev)}</aside>
+      </div>`;
+  }
+  watchModels();
 
   if (focused) $body.querySelector(`[data-fid="${CSS.escape(focused)}"]`)?.focus();
+  refreshPicker();
 }
 
 function viewTabsHtml() {
@@ -402,13 +429,20 @@ function viewTabsHtml() {
     `${b("gathering", "viewGathering")}${b("campaign", "viewCampaign")}${b("roster", "viewRosterTab")}</div>`;
 }
 
-/** Above the roster sheet: the draft's Save / Discard (the sheet shows the
- *  unsaved changes too) and queueing the gathering's cards. */
+/** Above the roster: the Sheet / Cards switch (the A4 roster, or the
+ *  gathering's own card sheets), and for the cards, skipping those already
+ *  printed, how many there are, and queueing them to print with others. */
 function rosterBarHtml(g) {
+  const info = hooks.rosterInfo?.() || { part: "sheet", skip: false, cards: 0, sheets: 0 };
+  const b = (part, route, k) => `<button type="button" class="secondary" data-route="${route}" aria-pressed="${info.part === part}">${esc(L(k))}</button>`;
+  const cards = info.part === "cards" ? `
+        <label class="bd-check"><input type="checkbox" data-act="roster-skip" data-fid="roster-skip"${info.skip ? " checked" : ""}> ${esc(L("skipOwned"))}</label>
+        <span class="bd-roster-count">${esc(L("cardsSheets").replace("{cards}", info.cards).replace("{sheets}", info.sheets))}</span>` : "";
   return `
     <div class="bd-roster-bar">
-      ${draftHtml(g)}
       <div class="bd-roster-actions">
+        <div class="bd-views nav-local" role="group" aria-label="${esc(L("rosterPart"))}">${b("sheet", "gatherings/roster", "rosterSheet")}${b("cards", "gatherings/roster/cards", "rosterCards")}</div>
+        ${cards}
         <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>
         ${status ? `<div class="bd-status" role="status">${status}</div>` : ""}
       </div>
@@ -418,7 +452,7 @@ function rosterBarHtml(g) {
 function draftHtml(g) {
   return dirty(g) ? `
       <div class="bd-draft" role="status">
-        <p>${esc(L("unsaved"))}</p>
+        <p>${icon("triangle-alert")}<span>${esc(L("unsaved"))}</span></p>
         <button type="button" class="primary" data-act="save">${esc(L("saveChanges"))}</button>
         <button type="button" class="link" data-act="discard">${esc(L("discardChanges"))}</button>
       </div>` : "";
@@ -426,16 +460,21 @@ function draftHtml(g) {
 
 /** Rule warnings: amber, with a sign and the text, never colour alone. */
 const warnList = (ws) => ws.length
-  ? `<ul class="bd-warn" aria-label="${esc(L("ruleWarnings"))}">${ws.map(w => `<li>⚠ ${esc(describe(w, catalog(), lang()))}</li>`).join("")}</ul>`
+  ? `<ul class="bd-warn" aria-label="${esc(L("ruleWarnings"))}">${ws.map(w => `<li>${icon("triangle-alert")}<span>${esc(describe(w, catalog(), lang()))}</span></li>`).join("")}</ul>`
   : "";
 
 /**
- * The ledger beside the sheet: draft state, identity, the figures that
- * matter (spend against budget, treasury, deployment limit), problems, and
- * what to do with the gathering — one primary action at a time.
+ * The gathering's header, above every view: its name in blackletter, the
+ * covenant and lair, the figures that matter (spend against budget,
+ * treasury, deployment limit, models), the gathering's own warnings, the
+ * draft's Save / Discard, and a secondary row of what to do with it.
  */
-function ledgerHtml(g, ev) {
+function gatheringHeadHtml(g, ev) {
   const isDirty = dirty(g);
+  // Campaign and Roster lead with their own content: there the header keeps
+  // the name, the figures and the warning count, and leaves the fields to
+  // the Gathering view.
+  const full = view === "gathering";
   const covs = (catalog().rules.covenants || []).map(c =>
     `<option value="${esc(c.key)}"${c.key === g.covenant ? " selected" : ""}>${esc(itemName(catalog(), c.key, lang()))}</option>`).join("");
   const lairs = (catalog().rules.lair_names || []).map(e =>
@@ -444,60 +483,118 @@ function ledgerHtml(g, ev) {
   const first = ev.budget != null;
   const over = first && ev.total > ev.budget;
   const pct = first ? Math.min(100, Math.round(ev.total / ev.budget * 100)) : 0;
-  const figures = first ? `
-      <div class="bd-fig${over ? " over" : ""}">
-        <dt>${esc(L("obolsSpent"))}</dt><dd><b>${ev.total}</b> ${esc(L("of"))} ${ev.budget}</dd>
-        <div class="bd-meter"><span style="width:${pct}%"></span></div>
-      </div>` : `
-      <div class="bd-fig"><dt>${esc(L("treasury"))}</dt><dd><b>${Number(g.treasury) || 0}</b> ${esc(L("obols"))}</dd></div>
-      <div class="bd-fig"><dt>${esc(L("rosterValue"))}</dt><dd><b>${ev.total}</b> ${esc(L("obols"))}</dd></div>`;
+  const fig = (k, v, extra = "", cls = "") =>
+    `<div class="bd-fig${cls}"><dt>${esc(L(k))}</dt><dd>${v}${extra}</dd></div>`;
+  const figures = [
+    first
+      ? fig("obolsSpent", `<b>${ev.total}</b> ${esc(L("of"))} ${ev.budget}`, `<span class="bd-meter"><span style="width:${pct}%"></span></span>`, over ? " over" : "")
+      : fig("treasury", `<b>${Number(g.treasury) || 0}</b> ${esc(L("obols"))}`, "", Number(g.treasury) < 0 ? " over" : ""),
+    first ? "" : fig("rosterValue", `<b>${ev.total}</b> ${esc(L("obols"))}`),
+    fig("deploymentLimit", `<b>${ev.deploymentLimit}</b>`),
+    fig("modelsLabel", `<b>${g.models.length}</b>`),
+  ].join("");
 
   const own = ev.warnings.filter(w => !w.model);
   const n = ev.warnings.length;
   const warnings = n ? `
       <div class="bd-ledger-warn">
-        ${warnList(own)}
-        <button type="button" class="link" data-act="summary" aria-expanded="${summaryOpen}">
-          ${esc(summaryOpen ? L("hideWarnings") : `${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("showAll")}`)}</button>
-      </div>` : `<p class="bd-good">${esc(L("noWarnings"))}</p>`;
+        ${full ? warnList(own) : ""}
+        <button type="button" class="link bd-warn-toggle" data-act="summary" aria-expanded="${summaryOpen}">
+          ${icon("triangle-alert")}<span>${esc(summaryOpen ? L("hideWarnings") : `${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("showAll")}`)}</span></button>
+      </div>` : `<p class="bd-good">${icon("check")} ${esc(L("noWarnings"))}</p>`;
 
   return `
-    ${draftHtml(g)}
-    <div class="bd-side-head">
-      <h2 class="bd-gname">${esc(g.name || L("untitled"))}</h2>
-      <button type="button" class="secondary bd-side-toggle" data-act="side-toggle" aria-expanded="${sideOpen}">${esc(L(sideOpen ? "ledgerLess" : "ledgerMore"))}</button>
-    </div>
-    <div class="bd-fields">
-      <label>${esc(L("name"))}
-        <input type="text" data-act="name" data-fid="g-name" value="${esc(g.name)}" placeholder="${esc(L("untitled"))}"></label>
-      <label>${esc(L("covenant"))}
-        <select data-act="covenant" data-fid="g-cov"><option value="">${esc(L("chooseCovenant"))}</option>${covs}</select></label>
-      <label>${esc(L("lair"))}
-        <input type="text" data-act="lair-name" data-fid="g-lair" value="${esc(g.lair?.name || "")}" placeholder="${esc(L("lairPlaceholder"))}"></label>
-      <div class="bd-lair-tools">
-        <button type="button" class="link" data-act="lair-roll" data-fid="g-roll">${esc(L("rollLair"))}</button>
-        <select data-act="lair-pick" data-fid="g-lair-pick" aria-label="${esc(L("pickLair"))}"><option value="">${esc(L("pickLair"))}</option>${lairs}</select>
+    <section class="bd-ghead${full ? "" : " compact"}" aria-label="${esc(L("gathering"))}">
+      ${draftHtml(g)}
+      <input type="text" class="bd-gname" data-act="name" data-fid="g-name" value="${esc(g.name)}"
+             placeholder="${esc(L("untitled"))}" aria-label="${esc(L("name"))}">
+      ${full ? `<div class="bd-fields">
+        <label class="bd-gfield">${esc(L("covenant"))}
+          <select data-act="covenant" data-fid="g-cov"><option value="">${esc(L("chooseCovenant"))}</option>${covs}</select></label>
+        <label class="bd-gfield">${esc(L("lair"))}
+          <input type="text" data-act="lair-name" data-fid="g-lair" value="${esc(g.lair?.name || "")}" placeholder="${esc(L("lairPlaceholder"))}"></label>
+        <div class="bd-lair-tools">
+          <button type="button" class="link" data-act="lair-roll" data-fid="g-roll">${icon("dices")} ${esc(L("rollLair"))}</button>
+          <select data-act="lair-pick" data-fid="g-lair-pick" aria-label="${esc(L("pickLair"))}"><option value="">${esc(L("pickLair"))}</option>${lairs}</select>
+        </div>
+      </div>` : ""}
+      <dl class="bd-figs">${figures}</dl>
+      ${first && full ? `<p class="bd-hint">${over ? "" : `${esc(L("firstBuildNote"))} `}<button type="button" class="link" data-act="start-built">${esc(L("alreadyBuilt"))}</button></p>` : ""}
+      ${warnings}
+      <div class="bd-actions">
+        ${view === "roster" ? "" : `<button type="button" class="${isDirty ? "secondary" : "primary"}" data-act="roster">${esc(L("viewRoster"))}</button>
+        <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>`}
+        <details class="bd-share">
+          <summary>${esc(L("shareExport"))} ${icon("chevron-down")}</summary>
+          <div class="bd-share-menu">
+            <button type="button" class="link" data-act="link">${esc(L("copyLink"))}</button>
+            <button type="button" class="link" data-act="export">${esc(L("exportJson"))}</button>
+            <button type="button" class="link" data-act="backup">${esc(L("backup"))}</button>
+          </div>
+        </details>
       </div>
-    </div>
-    <dl class="bd-figs">
-      ${figures}
-      <div class="bd-fig"><dt>${esc(L("deploymentLimit"))}</dt><dd><b>${ev.deploymentLimit}</b></dd></div>
-      <div class="bd-fig"><dt>${esc(L("modelsLabel"))}</dt><dd><b>${g.models.length}</b></dd></div>
-    </dl>
-    ${first ? `<p class="bd-hint">${over ? "" : `${esc(L("firstBuildNote"))} `}<button type="button" class="link" data-act="start-built">${esc(L("alreadyBuilt"))}</button></p>` : ""}
-    ${warnings}
-    <div class="bd-actions">
-      <button type="button" class="${isDirty ? "secondary" : "primary"}" data-act="roster">${esc(L("viewRoster"))}</button>
-      <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>
-      <details class="bd-share">
-        <summary>${esc(L("shareExport"))}</summary>
-        <button type="button" class="link" data-act="link">${esc(L("copyLink"))}</button>
-        <button type="button" class="link" data-act="export">${esc(L("exportJson"))}</button>
-        <button type="button" class="link" data-act="backup">${esc(L("backup"))}</button>
-      </details>
-    </div>
-    ${status ? `<div class="bd-status">${status}</div>` : ""}`;
+      ${status && view !== "roster" ? `<div class="bd-status" role="status">${status}</div>` : ""}
+    </section>`;
 }
+
+/**
+ * The models list beside the cards (Gathering view): one row per model in
+ * the gathering's order, leader first, each a jump to its card; the one in
+ * view is marked (aria-current). "Add model" sits at the end.
+ */
+function modelsNavHtml(g, ev) {
+  const rows = g.models.map((m, i) => {
+    const e = ev.models[i];
+    const type = itemName(catalog(), m.profile, lang());
+    const w = e.warnings.length;
+    return `<li><button type="button" class="bd-nav-model${e.isLeader ? " leader" : ""}" data-act="goto" data-uid="${esc(m.uid)}">
+        <span class="bd-nav-name">${esc(m.name || type)}</span>
+        ${m.name ? `<span class="bd-nav-type">${esc(type)}</span>` : ""}
+        <span class="bd-nav-cost">${e.cost}</span>
+        ${w ? `<span class="bd-nav-warn" title="${esc(`${w} ${L(w === 1 ? "warning" : "warnings")}`)}">${icon("triangle-alert")}<span class="bd-nav-n">${w}</span>` +
+              `<span class="visually-hidden"> ${esc(L(w === 1 ? "warning" : "warnings"))}</span></span>` : ""}
+      </button></li>`;
+  }).join("");
+  return `
+    <nav class="bd-nav" aria-label="${esc(L("modelsLabel"))}">
+      <h2 class="bd-nav-title">${esc(L("modelsLabel"))}</h2>
+      ${rows ? `<ul class="bd-nav-list">${rows}</ul>` : ""}
+      ${addModelHtml(g)}
+    </nav>`;
+}
+
+/** Mark the model card in view in the models list: the last card whose top
+ *  has passed the reading line under the sticky header (IntersectionObserver
+ *  says when cards cross it; the geometry decides which one is current). */
+function watchModels() {
+  observer?.disconnect();
+  onScrollModels = null;
+  const cards = [...$body.querySelectorAll(".bd-model")];
+  if (!cards.length || typeof IntersectionObserver !== "function") return;
+  // The reading line: under the sticky header, about a third down the view.
+  const line = () => Math.max((parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0) + 40,
+                              innerHeight * 0.3);
+  const mark = (uid) => $body.querySelectorAll(".bd-nav-model").forEach(b => {
+    if (b.dataset.uid === uid) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
+  });
+  const update = () => {
+    const y = line();
+    const current = cards.filter(c => c.getBoundingClientRect().top <= y).pop() || cards[0];
+    mark(current.id.replace(/^bd-model-/, ""));
+  };
+  observer = new IntersectionObserver(update, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+  cards.forEach(c => observer.observe(c));
+  onScrollModels = update;
+  update();
+}
+// Between threshold crossings (a long card, a smooth scroll that ends
+// mid-card) the scroll position still decides: once per frame.
+let onScrollModels = null, scrollQueued = false;
+addEventListener("scroll", () => {
+  if (scrollQueued || !onScrollModels) return;
+  scrollQueued = true;
+  requestAnimationFrame(() => { scrollQueued = false; if ($body.querySelector(".bd-nav")) onScrollModels?.(); });
+}, { passive: true });
 
 /**
  * Every warning in one list: the gathering's own first, then each model's
@@ -522,11 +619,18 @@ function warningSummaryHtml(g, ev) {
   return `<ul class="bd-sum">${groups.join("")}</ul>`;
 }
 
-/** Scroll a model's card into view and mark it briefly. */
+/** Scroll a model's card into view, move focus to it and mark it briefly.
+ *  From the Campaign or Roster view, back to the Gathering view first. */
 function gotoModel(uid) {
+  if (view !== "gathering") { goView("gathering"); renderBuilder(); }
   const card = document.getElementById(`bd-model-${uid}`);
   if (!card) return;
-  card.scrollIntoView({ behavior: "smooth", block: "start" });
+  const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  card.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+  card.focus({ preventScroll: true });
+  $body.querySelectorAll(".bd-nav-model").forEach(b => {
+    if (b.dataset.uid === uid) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
+  });
   card.classList.remove("flash");
   void card.offsetWidth;   // restart the animation
   card.classList.add("flash");
@@ -569,18 +673,22 @@ function modelHtml(g, m, e, idx) {
     ...(leader ? [["mana", e.mana], ["spells", e.spellsAllowed]] : []),
   ].map(([k, v]) => `<div class="bd-stat"><dt>${esc(L(k))}</dt><dd>${esc(String(v ?? "—"))}</dd></div>`).join("");
 
-  // What it carries: only lists that have something, in the card's order.
+  // What it carries: every list the model can have, in the card's order,
+  // each with its own add menu under its chips. Sellswords come armed.
   const swRow = sw ? catalog().row(m.profile) || {} : null;
-  const list = (title, body) => `<div class="bd-list"><h4>${esc(title)}</h4><div class="bd-items">${body}</div></div>`;
-  const lists = sw
-    ? [list(L("armaments"), `<span class="bd-prose">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</span>`)]
-    : ["traits", "spells", "weapons", "armour", "equipment"]
-        .filter(l => (m[l] || []).length)
-        .map(l => list(L(l), chipsHtml(m, l)));
-  if (leader) lists.push(list(L("mana"), manaHtml(m)));
+  const list = (title, body, extra = "") =>
+    `<div class="bd-list"><h4>${esc(title)}</h4><div class="bd-items">${body}</div>${extra}</div>`;
+  let lists;
+  if (sw) {
+    lists = [list(L("armaments"), `<span class="bd-prose">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</span>`)];
+  } else {
+    lists = ADD_LISTS.filter(l => leader || !l.leader).map(l => l.list === "mana"
+      ? list(L("mana"), manaHtml(m))
+      : list(L(l.list), chipsHtml(m, l.list, g), addButtonHtml(m, l)));
+  }
 
   return `
-    <section class="bd-model${leader ? " leader" : ""}${m.affinity ? ` aff-${m.affinity}` : ""}" id="bd-model-${uid}">
+    <section class="bd-model${leader ? " leader" : ""}${m.affinity ? ` aff-${m.affinity}` : ""}" id="bd-model-${uid}" tabindex="-1" aria-label="${esc(m.name || typeName)}">
       <header class="bd-model-head">
         <div class="bd-model-title">
           <input type="text" class="bd-model-name" data-act="m-name" data-uid="${uid}" data-fid="${uid}-name"
@@ -599,71 +707,83 @@ function modelHtml(g, m, e, idx) {
       </header>
       <dl class="bd-stats">${stats}</dl>
       ${warnList(e.warnings)}
-      ${lists.length ? `<div class="bd-lists">${lists.join("")}</div>` : ""}
+      <div class="bd-lists">${lists.join("")}</div>
       <footer class="bd-model-foot">
-        ${sw ? "" : addMenuHtml(m, leader)}
         <span class="spacer"></span>
-        <button type="button" class="secondary" data-act="m-up" data-uid="${uid}" aria-label="${esc(L("moveUp"))}" title="${esc(L("moveUp"))}"${idx === 0 ? " disabled" : ""}>↑</button>
-        <button type="button" class="secondary" data-act="m-down" data-uid="${uid}" aria-label="${esc(L("moveDown"))}" title="${esc(L("moveDown"))}"${idx === g.models.length - 1 ? " disabled" : ""}>↓</button>
+        <button type="button" class="secondary" data-act="m-up" data-uid="${uid}" aria-label="${esc(L("moveUp"))}" title="${esc(L("moveUp"))}"${idx === 0 ? " disabled" : ""}>${icon("arrow-up")}</button>
+        <button type="button" class="secondary" data-act="m-down" data-uid="${uid}" aria-label="${esc(L("moveDown"))}" title="${esc(L("moveDown"))}"${idx === g.models.length - 1 ? " disabled" : ""}>${icon("arrow-down")}</button>
         <button type="button" class="secondary danger" data-act="m-remove" data-uid="${uid}">${esc(L("removeModel"))}</button>
       </footer>
     </section>`;
 }
 
-function chipsHtml(m, list) {
+function chipsHtml(m, list, g) {
   const uid = esc(m.uid);
-  return (m[list] || []).map((key, i) => {
+  // Master Abyssal Artillery (p.67): +1 to channel the spell it was given to.
+  const channel = list === "spells" ? channelBonuses(g) : {};
+  if (!(m[list] || []).length) return `<span class="bd-none">${esc(L("noneYet"))}</span>`;
+  return m[list].map((key, i) => {
     const name = itemName(catalog(), key, lang());
     const cost = Number(catalog().row(key)?.obols) || 0;
-    return `<span class="bd-item">${esc(name)}${cost ? `<small>${cost}</small>` : ""}` +
-      `<button type="button" data-act="m-del-item" data-uid="${uid}" data-list="${list}" data-i="${i}" aria-label="${esc(L("remove"))} ${esc(name)}">✕</button></span>`;
+    const bonus = channel[key] ? `<small class="bd-bonus">${esc(L("channelBonus").replace("{n}", channel[key]))}</small>` : "";
+    return `<span class="bd-item">${esc(name)}${cost ? `<small>${cost}</small>` : ""}${bonus}` +
+      `<button type="button" data-act="m-del-item" data-uid="${uid}" data-list="${list}" data-i="${i}" aria-label="${esc(L("remove"))} ${esc(name)}">${icon("x")}</button></span>`;
   }).join("");
 }
 
-/** Category headings for the add menu. */
-const CAT_TITLE = {
-  "basic-leader-traits":      ["Basic leader traits", "Rasgos básicos de líder"],
-  "covenant-leader-traits":   ["Covenant leader traits", "Rasgos de líder de pacto"],
-  "covenant-wretched-traits": ["Covenant traits", "Rasgos de pacto"],
-  "wretched-undead-traits":   ["Wretched Undead traits", "Rasgos de No Muertos Miserables"],
-  "melee-weapons":            ["Melee weapons", "Armas cuerpo a cuerpo"],
-  "ranged-weapons":           ["Ranged weapons", "Armas a distancia"],
-  "thrown-weapons":           ["Thrown weapons", "Armas arrojadizas"],
-  "colossal-weapons":         ["Colossal weapons", "Armas colosales"],
-  "armours":                  ["Armour", "Armaduras"],
-  "miscellaneous-equipment":  ["Equipment", "Equipo misceláneo"],
-};
+/** The lists on a model card, in the card's order. `leader`: leaders only. */
+const ADD_LISTS = [
+  { list: "traits",    add: "addTrait" },
+  { list: "spells",    add: "addSpell", leader: true },
+  { list: "mana",      leader: true },
+  { list: "weapons",   add: "addWeapon" },
+  { list: "armour",    add: "addArmour" },
+  { list: "equipment", add: "addEquipment" },
+];
 
-/** One menu for everything a model can take, grouped as on the cards. */
-function addMenuHtml(m, leader) {
-  const uid = esc(m.uid);
-  const group = (title, list, rows) => `<optgroup label="${esc(title)}">` + rows.map(([key, r]) => {
-    const cost = Number(r.obols) || 0;
-    return `<option value="${esc(`${list}|${key}`)}">${esc(pickField(r, "name", lang()))}${cost ? ` (${cost})` : ""}</option>`;
-  }).join("") + `</optgroup>`;
-  const cat = (c) => (catalog().bundle.categories[c]?.rows || []).map(r => [`${c}/${slug(r.name)}`, r]);
-  const title = (c) => (lang() === "es" ? CAT_TITLE[c]?.[1] : CAT_TITLE[c]?.[0]) || c;
-  const traitCats = leader ? TRAIT_CATEGORIES : ["covenant-wretched-traits", "wretched-undead-traits"];
-  const groups = [
-    ...traitCats.map(c => group(title(c), "traits", cat(c))),
-    ...(leader ? spellGroups().map(([school, rows]) => group(`${L("spells")}: ${school}`, "spells", rows)) : []),
-    ...WEAPON_CATEGORIES.map(c => group(title(c), "weapons", cat(c))),
-    group(title("armours"), "armour", cat("armours")),
-    group(title("miscellaneous-equipment"), "equipment", cat("miscellaneous-equipment")),
-  ];
-  return `<select class="bd-add" data-act="m-add" data-uid="${uid}" data-fid="${uid}-add">
-      <option value="">${esc(L("addToModel"))}</option>${groups.join("")}</select>`;
+/** A list's "+ Add …" button: opens the picker (builder-picker.js). */
+const addButtonHtml = (m, { list, add }) =>
+  `<button type="button" class="secondary bd-add-btn" data-act="m-pick" data-uid="${esc(m.uid)}" data-list="${list}" ` +
+  `data-fid="${esc(m.uid)}-add-${list}" aria-haspopup="dialog">${icon("plus")}${esc(L(add))}</button>`;
+
+/** Rule warnings as comparable keys: which rule and what, not the counts. */
+const warnKeys = (ws) => ws.map(w => `${w.code}|${w.model || ""}|${w.item || ""}`);
+
+/**
+ * Why each picker row would break a rule: value → the text of the first
+ * warning it would add. Each is tried on a copy of the gathering through
+ * the path the picker takes (addItem, so a campaign buys it; takeGear for
+ * the stash), evaluated by the rules engine, and compared with now.
+ */
+function addReasons(uid, values) {
+  const g = working();
+  const out = new Map();
+  if (!g || !findModel(g, uid)) return out;
+  const before = new Map();
+  for (const k of warnKeys(evaluate(g, catalog()).warnings)) before.set(k, (before.get(k) || 0) + 1);
+  for (const value of values) {
+    const trial = structuredClone(g);
+    pickerAdd(trial, uid, value);
+    const left = new Map(before);
+    const fresh = evaluate(trial, catalog()).warnings.filter(w => {
+      const k = warnKeys([w])[0];
+      const n = left.get(k) || 0;
+      if (n) left.set(k, n - 1);
+      return !n;
+    });
+    // The model's own rule first (hands, armour…), then the gathering's.
+    const added = fresh.find(w => w.model === uid) || fresh[0];
+    if (added) out.set(value, describe(added, catalog(), lang()));
+  }
+  return out;
 }
 
-/** Spells grouped by school, in the order the rulebook lists them. */
-function spellGroups() {
-  const groups = new Map();
-  for (const r of catalog().bundle.categories.spells?.rows || []) {
-    const school = pickField(r, "school", lang()) || r.school || "";
-    if (!groups.has(school)) groups.set(school, []);
-    groups.get(school).push([`spells/${slug(r.name)}`, r]);
-  }
-  return [...groups];
+/** What the picker adds: "list|key" through addItem (the m-add path), or
+ *  "stash|i" from the campaign's gear stash, free. */
+function pickerAdd(g, uid, value) {
+  const [list, key] = value.split("|");
+  if (list === "stash") takeGear(g, uid, Number(key));
+  else if (list && key) addItem(g, findModel(g, uid), list, key);
 }
 
 function manaHtml(m) {
@@ -680,8 +800,7 @@ function addModelHtml(g) {
     `<option value="${esc(`${cat}/${slug(r.name)}`)}">${esc(pickField(r, "name", lang()))} (${Number(r.obols) || 0})</option>`).join("");
   return `
     <div class="bd-add-model">
-      ${g.models.length ? "" : `<p>${esc(L("noModels"))}</p>`}
-      <select data-act="add-model" data-fid="add-model" class="bd-add">
+      <select data-act="add-model" data-fid="add-model" class="bd-add" aria-label="${esc(L(hasLeader ? "addModel" : "addLeader"))}">
         <option value="">${esc(L(hasLeader ? "addModel" : "addLeader"))}</option>
         ${hasLeader ? "" : `<optgroup label="${esc(L("leaders"))}">${opts("leaders")}</optgroup>`}
         <optgroup label="${esc(L("minions"))}">${opts("minions")}</optgroup>

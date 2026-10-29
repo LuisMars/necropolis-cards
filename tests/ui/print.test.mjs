@@ -74,3 +74,83 @@ test("sheets keep their physical A4 size", async () => {
     assert.ok(Math.abs(w - 794) <= 1 && Math.abs(h - 1123) <= 1, `${w}×${h}`);
   }
 });
+
+/* ---- pixels: palettes and the Roster view's Cards part ------------------- */
+
+const LINK = "c1;pl0,a1,tc2,tb6,sn0,sn3,sn1,sb3,sb1;pm4,a1,ewm8;pm3,a1,ewm1;pm1,a1,ewm4,ea0;pm1,a1,ewm4,ea0;pm5,a1,twu8,ewm8";
+
+/** A fresh page with the example link imported (saved, nothing queued). */
+async function withGathering() {
+  const p = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+  p.on("dialog", d => d.accept());
+  await p.goto(URL_);
+  await p.waitForFunction(() => document.querySelectorAll(".lib-tile").length > 0);
+  await p.click('nav.tabs a[data-dest="gatherings"]');
+  await p.locator('#bd-import:visible, #bd-body [data-act="import"]').first().click();
+  await p.fill("#json-in", LINK);
+  await p.click("#load-warband-btn");
+  await p.waitForTimeout(400);
+  return p;
+}
+/** Every printed sheet in `sel`, as PNG bytes, under print media. */
+async function sheets(p, sel, warband) {
+  await p.evaluate((w) => document.body.classList.toggle("printing-warband", w), warband);
+  await p.emulateMedia({ media: "print" });
+  await p.waitForTimeout(200);
+  const out = [];
+  for (const h of await p.$$(sel)) out.push(await h.screenshot());
+  await p.emulateMedia({ media: "screen" });
+  return out;
+}
+const same = (a, b) => a.length === b.length && a.every((buf, i) => buf.equals(b[i]));
+
+test("the Roster's Cards part prints the same sheets as the queue would", async () => {
+  const p = await withGathering();
+  await p.click('[data-act="view"][data-view="roster"]');
+  await p.click('button[data-route="gatherings/roster/cards"]');
+  await p.waitForTimeout(600);
+  assert.equal(await p.textContent("#queue-count"), "0");             // the queue is untouched
+  const count = await p.textContent(".bd-roster-count");
+  const fromRoster = await sheets(p, "#roster-sheets .sheet", true);
+  assert.ok(fromRoster.length > 0);
+  assert.match(count, new RegExp(`, ${fromRoster.length} sheets`));
+  // The roster sheet itself isn't printed alongside.
+  await p.emulateMedia({ media: "print" });
+  assert.equal(await p.isVisible("#wb-pages"), false);
+  await p.emulateMedia({ media: "screen" });
+  // The same cards through the queue.
+  await p.click('.bd-roster-bar [data-act="cards"]');
+  await p.click("#nav-queue-link");
+  await p.waitForTimeout(800);
+  const fromQueue = await sheets(p, "#sheets-wrap .sheet", false);
+  assert.equal(fromQueue.length, fromRoster.length);
+  assert.ok(same(fromRoster, fromQueue), "roster card sheets differ from the queue's");
+  await p.context().close();
+});
+
+test("printed sheets and the roster are identical in every palette", async () => {
+  const p = await withGathering();
+  await p.click('.bd-roster-bar [data-act="cards"], .bd-ghead [data-act="cards"]');
+  const palettes = await p.$$eval("#nc-theme-select option", os => os.map(o => o.value));
+  assert.ok(palettes.length >= 4);
+  const shoot = async (value) => {
+    await p.evaluate((v) => { const s = document.getElementById("nc-theme-select"); s.value = v; s.dispatchEvent(new Event("change", { bubbles: true })); }, value);
+    await p.goto(`${URL_}#cards/queue`); await p.waitForTimeout(700);
+    const cards = await sheets(p, "#sheets-wrap .sheet", false);
+    await p.goto(`${URL_}#gatherings/roster`); await p.waitForTimeout(700);
+    const roster = await sheets(p, "#wb-pages .wb-page", true);
+    return { cards, roster, palette: await p.evaluate(() => document.documentElement.dataset.ncPalette) };
+  };
+  const base = await shoot(palettes[0]);
+  assert.ok(base.cards.length > 0 && base.roster.length > 0);
+  for (const value of palettes.slice(1)) {
+    const now = await shoot(value);
+    assert.ok(same(base.cards, now.cards), `card sheets differ in ${value}`);
+    assert.ok(same(base.roster, now.roster), `roster differs in ${value}`);
+  }
+  // Light device setting ("Match device" when the palette has it).
+  await p.emulateMedia({ colorScheme: "light" });
+  const light = await shoot(palettes.includes("auto") ? "auto" : palettes[0]);
+  assert.ok(same(base.cards, light.cards) && same(base.roster, light.roster), "prints differ with a light device setting");
+  await p.context().close();
+});

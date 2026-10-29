@@ -107,13 +107,34 @@ function importJson(text, { queue = true } = {}) {
  *  `queue`, the matched cards also land in the print queue. The Builder tab
  *  calls this with the JSON it exports for a gathering. */
 export function applyPayload(data, { queue = true } = {}) {
-  const matches = [];
-
   // Keep the payload verbatim: the Warband tab re-derives its roster from it
   // on every render, so it stays in sync with the language selector and any
   // rebuilt data bundle.
   state.warband = data;
   saveWarband();
+
+  const matches = matchPayload(data);
+  if (queue) {
+    state.queue.push(...cardsOf(matches));
+    saveQueue();
+  }
+  return matches;
+}
+
+/** The queue entries for a list of matches: every matched card, in order. */
+const cardsOf = (matches) => matches.filter(m => m.target.kind !== "unmatched")
+  .map(m => ({ key: m.target.key, row: m.target.row, override: m.target.override || null }));
+
+/**
+ * Every card a Companion App payload uses, as print-queue entries, without
+ * touching the queue: the Roster view's Cards part prints these. The same
+ * matching as "Add cards to queue", so the sheets come out the same.
+ */
+export const payloadCards = (data) => (data ? cardsOf(matchPayload(data)) : []);
+
+/** Match a payload's covenant, models, traits, spells and gear to cards. */
+function matchPayload(data) {
+  const matches = [];
 
   // Covenant identity — best-effort match on the first comma-separated segment.
   if (data.covenant) {
@@ -168,15 +189,6 @@ export function applyPayload(data, { queue = true } = {}) {
     for (const e of (entry.miscEquipment || entry.equipment || [])) {
       matches.push({ source: e.name, sourceType: "equipment", target: findCard(e.name) });
     }
-  }
-
-  if (queue) {
-    for (const m of matches) {
-      if (m.target.kind !== "unmatched") {
-        state.queue.push({ key: m.target.key, row: m.target.row, override: m.target.override || null });
-      }
-    }
-    saveQueue();
   }
   return matches;
 }

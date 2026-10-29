@@ -40,7 +40,7 @@
   category_es: AMBICIÓN MENOR
   name: Master Abyssal Artillery
   name_es: Dominar la Artillería Abisal
-  reward_effect: { target: note }
+  reward_effect: { target: spell }
   restrictions: Curse Path
   restrictions_es: Sendero de la Maldición
   sigil: ""
