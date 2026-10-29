@@ -1,5 +1,5 @@
 /**
- * Companion-App JSON importer.
+ * Companion-App JSON importer: the Import panel on the Gatherings page.
  *
  * Parses a `{covenant, gathering[]}` payload, walks each model entry, and
  * tries to match every profile / trait / spell / weapon / armour / misc
@@ -18,40 +18,57 @@ const $jsonIn    = document.getElementById("json-in");
 const $matchList = document.getElementById("match-list");
 const $parseBtn  = document.getElementById("parse-btn");
 const $loadBtn   = document.getElementById("load-warband-btn");
-const $clearBtn  = document.getElementById("clear-queue-btn");
 const $sampleBtn = document.getElementById("sample-btn");
+const $toggleBtn = document.getElementById("bd-import");
+const $panel     = document.getElementById("bd-import-panel");
+const $closeBtn  = document.getElementById("bd-import-close");
+const $status    = document.getElementById("import-status");
 
 import { SAMPLE_JSON } from "./sample.js";
 import { isLink, decodeLink, encodeLink } from "./builder/codec.js";
 import { fromAppJson, toAppJson } from "./builder/appjson.js";
 import { FORMAT } from "./builder/gathering.js";
 import { store } from "./gatherings.js";
+import { label } from "./builder/messages.js";
 
-export function initImport({ onChange, switchToPrint, switchToWarband, onWarband }) {
-  // Load the roster only: the Warband tab is the whole point of the import,
-  // and queueing 20-odd cards is a separate decision.
+/** Open or close the panel; the toggle button says which it is. */
+function showPanel(open) {
+  $panel.hidden = !open;
+  $toggleBtn.setAttribute("aria-expanded", String(open));
+  if (open) { $toggleBtn.hidden = false; $jsonIn.focus(); }
+}
+
+/**
+ * `onImported` opens the imported gathering in the Builder; `openQueue`
+ * goes to the print queue; `onPanel` lets the Builder redraw its toolbar.
+ */
+export function initImport({ onChange, onImported, openQueue, onPanel }) {
+  $toggleBtn.addEventListener("click", () => { showPanel($panel.hidden); onPanel?.(); });
+  $closeBtn.addEventListener("click", () => { showPanel(false); onPanel?.(); $toggleBtn.focus(); });
+  // Load the gathering only: queueing 20-odd cards is a separate decision.
   $loadBtn.addEventListener("click", () => {
     const { matches, notes } = importJson($jsonIn.value, { queue: false });
     renderMatches(matches, notes);
-    onWarband?.();
-    if (matches.length) setTimeout(switchToWarband, 200);
+    showQueued(0);
+    if (matches.length) onImported?.();
   });
   $parseBtn.addEventListener("click", () => {
     const { matches, notes } = importJson($jsonIn.value);
     renderMatches(matches, notes);
     onChange();
-    onWarband?.();
-    if (matches.some(m => m.target.kind !== "unmatched")) {
-      setTimeout(switchToPrint, 200);
-    }
+    showQueued(matches.filter(m => m.target.kind !== "unmatched").length);
+    if (matches.length) onImported?.();
   });
-  $clearBtn.addEventListener("click", () => {
-    state.queue = [];
-    saveQueue();
-    onChange();
-    renderMatches([]);
-  });
+  $status.addEventListener("click", (e) => { if (e.target.closest("button")) openQueue?.(); });
   $sampleBtn.addEventListener("click", () => { $jsonIn.value = SAMPLE_JSON; });
+}
+
+/** After queueing: how many cards went in, and a way to the queue. */
+function showQueued(n) {
+  const lang = state.lang || "en";
+  $status.hidden = !n;
+  $status.innerHTML = n ? `${n} ${escapeHtml(label("cardsAdded", lang))} ` +
+    `<button type="button" class="link">${escapeHtml(label("openQueue", lang))}</button>` : "";
 }
 
 /** Parse a payload — the Companion App's JSON export, one of its share
@@ -250,6 +267,12 @@ function renderMatches(matches, notes = []) {
     </span>`;
   $matchList.appendChild(summary);
 
+  // The rows themselves fold away: the gathering opens right below.
+  const fold = document.createElement("details");
+  fold.className = "match-fold";
+  fold.innerHTML = `<summary>Show each card's match (${matches.length})</summary>`;
+  $matchList.appendChild(fold);
+
   for (const m of matches) {
     const row = document.createElement("div");
     row.className = "match-row " + m.target.kind;
@@ -261,6 +284,6 @@ function renderMatches(matches, notes = []) {
       <span class="source">${escapeHtml(m.source || "(empty)")}</span>
       <span class="arrow">→</span>
       <span class="target">${escapeHtml(target)}</span>`;
-    $matchList.appendChild(row);
+    fold.appendChild(row);
   }
 }

@@ -33,12 +33,13 @@ before(async () => {
   page.on("dialog", d => d.accept());
   await page.goto(URL_);
   await page.waitForFunction(() => document.querySelectorAll(".lib-tile").length > 0);
-  // Queue every card the sample warband matches, then open the print tab.
-  await page.click('nav.tabs button[data-tab="import"]');
+  // Queue every card the sample warband matches, then open the print queue.
+  await page.click('nav.tabs a[data-dest="gatherings"]');
+  await page.locator('#bd-import:visible, #bd-body [data-act="import"]').first().click();
   await page.fill("#json-in", EXPORT);
   await page.click("#parse-btn");
   await page.waitForTimeout(500);
-  await page.click('nav.tabs button[data-tab="print"]');
+  await page.click("#nav-queue-link");
   await page.waitForTimeout(800);
   await page.emulateMedia({ media: "print" });
 });

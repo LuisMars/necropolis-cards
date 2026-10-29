@@ -100,27 +100,35 @@ header.app h1 {
   margin: 0; font-family: var(--gothic); font-weight: 400; font-size: 30px;
   line-height: 1; letter-spacing: 0.01em;
 }
-header.app h1 span {
-  font-family: var(--caps); font-size: 15px; color: var(--muted); margin-left: 8px; letter-spacing: 0.02em;
+/* Two destinations. Each is a link (aria-current="page" on the open one);
+ * Cards carries the print-queue count as a second link beside it. The open
+ * one is marked by its border and raised background (design-v5.css). */
+nav.tabs { display: flex; gap: 4px; align-items: center; }
+nav.tabs .nav-item { display: inline-flex; align-items: center; border: 1px solid transparent; border-radius: 3px; }
+nav.tabs a { color: var(--muted); text-decoration: none; cursor: pointer; }
+nav.tabs a.nav-dest { padding: 6px 10px; font-size: 17px; }
+nav.tabs .nav-item.active a.nav-dest { color: var(--text); }
+nav.tabs a.nav-count {
+  min-width: 28px; margin-right: 6px; padding: 1px 7px; border-radius: 10px;
+  text-align: center; font-size: 14px; font-weight: 700; font-variant-numeric: lining-nums tabular-nums;
 }
-nav.tabs { display: flex; gap: 2px; }
-/* Narrow screens: let the header wrap so every tab stays reachable. */
-@media (max-width: 760px) {
-  header.app { flex-wrap: wrap; row-gap: 6px; padding: 8px 16px; }
-  nav.tabs { flex-wrap: wrap; order: 3; width: 100%; }
-}
-/* Tabs read as words with the open one underlined, not as buttons. */
-nav.tabs button {
-  background: none; color: var(--muted); border: 0; border-bottom: 2px solid transparent;
-  padding: 6px 10px 5px; cursor: pointer; font-size: 17px;
-}
-nav.tabs button:hover:not(.active) { color: var(--text); }
-nav.tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
 header.app .spacer { flex: 1; }
-header.app .badge { color: var(--muted); font-size: 14px; }
-header.app .badge span { color: var(--text); font-weight: 600; }
+/* Settings: a disclosure holding Language and Theme. */
+.nav-settings { position: relative; }
+.nav-settings > summary {
+  list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid transparent; border-radius: 3px; padding: 6px 10px;
+}
+.nav-settings > summary::-webkit-details-marker { display: none; }
+.nav-settings[open] .nav-chev { transform: rotate(180deg); }
+.nav-settings-panel {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 20;
+  display: flex; flex-direction: column; gap: 12px;
+  width: max-content; max-width: calc(100vw - 26px); padding: 14px 16px;
+}
+.nav-settings-panel label { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
 header.app .lang-picker {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; gap: 6px;
   color: var(--muted); font-size: 14px;
 }
 header.app .lang-picker select {
@@ -130,7 +138,12 @@ header.app .lang-picker select {
 header.app button.print-btn {
   background: var(--accent); color: var(--accent-ink); border: none;
   padding: 7px 16px; border-radius: 3px; cursor: pointer; font-size: 15px; font-weight: 600;
+  white-space: nowrap;
 }
+/* The local switch of a destination (Gathering / Campaign / Roster, Library /
+ * Print queue). The Cards one sits in a .print-toolbar row above the queue,
+ * which the print CSS already hides. */
+.nav-local-row { display: flex; margin-bottom: 4px; }
 
 main { padding: 16px; max-width: 1400px; margin: 0 auto; }
 /* Tabs are kept in flow but moved off-screen when not active. Using
@@ -169,7 +182,14 @@ button.link {
 button.link:hover { color: var(--text); text-decoration-color: var(--muted); }
 button:disabled { opacity: 0.4; cursor: default; }
 
-/* === Import tab === */
+/* === Import (a panel on the Gatherings page) === */
+.bd-import { margin-bottom: 18px; }
+.bd-import-intro { margin: 0 0 10px; color: var(--muted); max-width: 80ch; }
+.bd-import-intro a { color: var(--accent); }
+.bd-import-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.bd-import-actions .link { margin-left: auto; }
+.match-fold > summary { cursor: pointer; padding: 6px 2px; color: var(--muted); }
+.match-fold[open] { display: flex; flex-direction: column; gap: 4px; }
 .row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
 .row.col { flex-direction: column; }
 textarea.json-in {
@@ -634,7 +654,6 @@ button.link.danger:hover, button.secondary.danger:hover { color: var(--bad); }
 
 
 .bd-hint { color: var(--muted); font-size: 14px; }
-#wb-print-btn:disabled, #wb-clear-btn:disabled { opacity: 0.45; cursor: default; }
 
 /* --- roster pages --- */
 .wb-pages { background: #1a1a1f; padding: 16px 0; }

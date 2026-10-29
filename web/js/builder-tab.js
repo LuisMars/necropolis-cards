@@ -12,11 +12,16 @@
  * out freely. Nothing is blocked; a broken rule shows on its model.
  *
  * Hand-off to the rest of the app goes through the Companion App JSON the
- * gathering exports (builder/appjson.js): the Warband roster renders it and
+ * gathering exports (builder/appjson.js): the roster view renders it and
  * the importer's card matching queues its cards.
+ *
+ * The page is the Gatherings destination. Its view switch (Gathering /
+ * Campaign / Roster) is driven by the address (main.js routes
+ * #gatherings, #gatherings/campaign and #gatherings/roster to `setView`);
+ * the buttons only ask for a new address.
  */
 
-import { state, saveWarband } from "./state.js";
+import { state } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { pickField } from "./i18n.js";
 import { store, drafts } from "./gatherings.js";
@@ -36,11 +41,12 @@ const $body   = $("bd-body");
 const $newBtn = $("bd-new");
 const $dupBtn = $("bd-dup");
 const $delBtn = $("bd-del");
+const $importBtn = $("bd-import");
 
 let hooks = {};
 let status = "";          // one line of feedback from the last action (HTML)
 let summaryOpen = false;  // every warning listed, opened from the ledger
-let view = "gathering";   // "gathering" (build) or "campaign"
+let view = "gathering";   // "gathering" (build), "campaign" or "roster"
 let sideOpen = false;     // narrow screens: the ledger's details and actions shown
 
 const esc = escapeHtml;
@@ -60,14 +66,37 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const dirty = (g) => !!g && !!drafts.get(g.id) && !same(drafts.get(g.id), store.get(g.id));
 
 function keep(g) {
+  status = "";   // "Changes saved", a copied link… no longer describe it
   // Back to exactly what is saved: no draft needed.
   if (same(g, store.get(g.id))) drafts.remove(g.id);
   else drafts.set(g);
 }
 
-export function initBuilder({ onChange, switchToWarband }) {
-  hooks = { onChange, switchToWarband };
-  $newBtn.addEventListener("click", () => { store.save(newGathering()); status = ""; view = "gathering"; renderBuilder(); });
+/** The roster sheet's data: the gathering on screen (its draft, if any) as
+ *  the Companion App JSON the roster renders, or null with none open. */
+export function rosterPayload() {
+  const g = catalog() ? working() : null;
+  return g ? toAppJson(g, catalog()) : null;
+}
+
+/** The view the address asks for; main.js renders afterwards. */
+export function setView(v) {
+  view = ["gathering", "campaign", "roster"].includes(v) ? v : "gathering";
+}
+
+/** Ask for a view: through the address when main.js routes, else directly. */
+function goView(v) {
+  if (hooks.navigate) hooks.navigate(v === "gathering" ? "gatherings" : `gatherings/${v}`);
+  else { view = v; renderBuilder(); }
+}
+
+/** One line of feedback after cards were queued, with a way to the queue. */
+const queuedHtml = (n) => `${n} ${esc(L("cardsAdded"))} ` +
+  `<button type="button" class="link" data-act="open-queue">${esc(L("openQueue"))}</button>`;
+
+export function initBuilder({ onChange, navigate, onRender }) {
+  hooks = { onChange, navigate, onRender };
+  $newBtn.addEventListener("click", () => { store.save(newGathering()); status = ""; goView("gathering"); renderBuilder(); });
   $dupBtn.addEventListener("click", () => {
     const g = working();
     if (!g) return;
@@ -218,7 +247,9 @@ function onClick(e) {
   const g = working();
   switch (act) {
     case "new":     $newBtn.click(); return;
-    case "view":    view = el.dataset.view; renderBuilder(); return;
+    case "view":    goView(el.dataset.view); return;
+    case "import":  $importBtn.click(); return;
+    case "open-queue": hooks.navigate?.("cards/queue"); return;
     case "save":    store.save(drafts.get(g.id)); drafts.remove(g.id); status = esc(L("saved")); renderBuilder(); return;
     case "discard": if (confirm(L("confirmDiscardDraft"))) { drafts.remove(g.id); status = ""; renderBuilder(); } return;
   }
@@ -250,7 +281,7 @@ function onClick(e) {
                          if (j >= 0 && j < g.models.length) [g.models[k], g.models[j]] = [g.models[j], g.models[k]];
                        }); break;
     case "lair-roll":  edit(g => { g.lair = { ...g.lair, name: lairName(rollLair()) }; }); break;
-    case "roster":     showRoster(g); break;
+    case "roster":     goView("roster"); break;
     case "cards":      queueCards(g); break;
     case "link":       copyLink(g); break;
     case "export":     download(`${fileStem(g)}.json`, toAppJson(g, catalog())); break;
@@ -277,17 +308,11 @@ function lairName(roll) {
 
 /* ---- hand-off --------------------------------------------------------------- */
 
-function showRoster(g) {
-  state.warband = toAppJson(g, catalog());
-  saveWarband();
-  hooks.switchToWarband?.();
-}
-
 function queueCards(g) {
   const matches = applyPayload(toAppJson(g, catalog()), { queue: true });
   const n = matches.filter(m => m.target.kind !== "unmatched").length;
   hooks.onChange?.();
-  status = `${n} ${esc(L("cardsAdded"))}`;
+  status = queuedHtml(n);
   renderBuilder();
 }
 
@@ -320,15 +345,24 @@ function download(name, obj) {
 
 export function renderBuilder() {
   if (!catalog()) return;
+  draw();
+  // main.js keeps the roster sheet and the header in step with what's drawn.
+  hooks.onRender?.();
+}
+
+function draw() {
   // Keep focus on the same field across the redraw.
   const focused = document.activeElement?.dataset?.fid;
 
   const all = store.list();
   const g = working();
   $newBtn.textContent = L("newGathering");
+  $importBtn.textContent = L("import");
   $dupBtn.textContent = L("duplicate");
   $delBtn.textContent = L("delete");
-  $dupBtn.hidden = $delBtn.hidden = $newBtn.hidden = !g;   // the empty state has its own button
+  // The empty state has its own buttons.
+  $dupBtn.hidden = $delBtn.hidden = $newBtn.hidden = !g;
+  $importBtn.hidden = !g && $importBtn.getAttribute("aria-expanded") !== "true";
   $pick.hidden = all.length < 2;
   $pick.innerHTML = all.map(x =>
     `<option value="${esc(x.id)}"${x.id === g?.id ? " selected" : ""}>${esc((drafts.get(x.id) || x).name || L("untitled"))}` +
@@ -336,7 +370,12 @@ export function renderBuilder() {
 
   if (!g) {
     $body.innerHTML = `<div class="bd-empty"><p>${esc(L("empty"))}</p>
-      <button type="button" class="primary" data-act="new">${esc(L("newGathering"))}</button></div>`;
+      <button type="button" class="primary" data-act="new">${esc(L("newGathering"))}</button>
+      <button type="button" class="secondary" data-act="import">${esc(L("import"))}</button></div>`;
+    return;
+  }
+  if (view === "roster") {
+    $body.innerHTML = `<div class="bd-roster-head">${viewTabsHtml()}${rosterBarHtml(g)}</div>`;
     return;
   }
   const ev = evaluate(g, catalog());
@@ -359,7 +398,30 @@ export function renderBuilder() {
 
 function viewTabsHtml() {
   const b = (v, k) => `<button type="button" class="secondary" data-act="view" data-view="${v}" aria-pressed="${view === v}">${esc(L(k))}</button>`;
-  return `<div class="bd-views" role="group" aria-label="${esc(L("workspace"))}">${b("gathering", "viewGathering")}${b("campaign", "viewCampaign")}</div>`;
+  return `<div class="bd-views" role="group" aria-label="${esc(L("workspace"))}">` +
+    `${b("gathering", "viewGathering")}${b("campaign", "viewCampaign")}${b("roster", "viewRosterTab")}</div>`;
+}
+
+/** Above the roster sheet: the draft's Save / Discard (the sheet shows the
+ *  unsaved changes too) and queueing the gathering's cards. */
+function rosterBarHtml(g) {
+  return `
+    <div class="bd-roster-bar">
+      ${draftHtml(g)}
+      <div class="bd-roster-actions">
+        <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>
+        ${status ? `<div class="bd-status" role="status">${status}</div>` : ""}
+      </div>
+    </div>`;
+}
+
+function draftHtml(g) {
+  return dirty(g) ? `
+      <div class="bd-draft" role="status">
+        <p>${esc(L("unsaved"))}</p>
+        <button type="button" class="primary" data-act="save">${esc(L("saveChanges"))}</button>
+        <button type="button" class="link" data-act="discard">${esc(L("discardChanges"))}</button>
+      </div>` : "";
 }
 
 /** Rule warnings: amber, with a sign and the text, never colour alone. */
@@ -400,12 +462,7 @@ function ledgerHtml(g, ev) {
       </div>` : `<p class="bd-good">${esc(L("noWarnings"))}</p>`;
 
   return `
-    ${isDirty ? `
-      <div class="bd-draft" role="status">
-        <p>${esc(L("unsaved"))}</p>
-        <button type="button" class="primary" data-act="save">${esc(L("saveChanges"))}</button>
-        <button type="button" class="link" data-act="discard">${esc(L("discardChanges"))}</button>
-      </div>` : ""}
+    ${draftHtml(g)}
     <div class="bd-side-head">
       <h2 class="bd-gname">${esc(g.name || L("untitled"))}</h2>
       <button type="button" class="secondary bd-side-toggle" data-act="side-toggle" aria-expanded="${sideOpen}">${esc(L(sideOpen ? "ledgerLess" : "ledgerMore"))}</button>

@@ -38,16 +38,25 @@ async function open() {
   page.on("pageerror", e => errors.push(e.message));
   page.on("dialog", d => d.accept());
   await page.goto(URL_);
-  await page.waitForFunction(() => document.querySelectorAll(".lib-tile").length > 0);
+  await ready(page);
   return { page, errors };
 }
-const tab = (page, t) => page.click(`nav.tabs button[data-tab="${t}"]`);
+/** The data is in and the Builder has drawn (it draws on every route). */
+const ready = (page) => page.waitForFunction(() => document.querySelector("#bd-body > *"));
+/** Follow a header destination link: "gatherings" or "cards". */
+const go = (page, dest) => page.click(`nav.tabs a[data-dest="${dest}"]`);
+/** Open the Import panel on the Gatherings page (unless it's open). */
+async function openImport(page) {
+  await go(page, "gatherings");
+  if (await page.isHidden("#bd-import-panel")) {
+    await page.locator('#bd-import:visible, #bd-body [data-act="import"]').first().click();
+  }
+}
 async function importLink(page) {
-  await tab(page, "import");
+  await openImport(page);
   await page.fill("#json-in", LINK);
   await page.click("#load-warband-btn");
   await page.waitForTimeout(300);
-  await tab(page, "builder");
 }
 const text = async (page, sel) => ((await page.textContent(sel)) || "").replace(/\s+/g, " ").trim();
 
@@ -68,7 +77,7 @@ test("importing the same warband again opens it instead of copying it", async ()
   await importLink(page);
   assert.equal(await page.evaluate(() =>
     JSON.parse(localStorage.getItem("necropolis-builder-gatherings-v1")).order.length), 1);
-  await tab(page, "import");
+  assert.ok(await page.isVisible("#bd-import-panel"));
   assert.match(await text(page, "#match-list"), /Already saved as/);
 });
 
@@ -90,8 +99,8 @@ test("drafts: changes wait for Save, Discard puts them back", async () => {
   await page.waitForTimeout(100);
   await page.click('[data-act="save"]');
   await page.reload();
-  await page.waitForFunction(() => document.querySelectorAll(".lib-tile").length > 0);
-  await tab(page, "builder");
+  await ready(page);
+  await go(page, "gatherings");
   assert.equal(await text(page, ".bd-gname"), "The Faithful of Bone");
   assert.equal(await page.isVisible(".bd-draft"), false);
 });
@@ -147,4 +156,141 @@ test("the roster shows the gathering", async () => {
   await page.click('[data-act="roster"]');
   await page.waitForTimeout(400);
   assert.equal(await page.locator(".wb-member").count(), 6);
+});
+
+test("an import lands in the Builder on the imported gathering", async () => {
+  const { page } = await open();
+  assert.match(page.url(), /#cards$/);                     // nothing saved yet: Cards first
+  await importLink(page);
+  assert.match(page.url(), /#gatherings$/);
+  assert.equal(await page.getAttribute('[data-act="view"][data-view="gathering"]', "aria-pressed"), "true");
+  assert.equal(await page.locator(".bd-model").count(), 6);
+});
+
+test("the address keeps the view: reload restores it, Back returns", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="view"][data-view="campaign"]');
+  assert.match(page.url(), /#gatherings\/campaign$/);
+  await page.reload();
+  await ready(page);
+  assert.match(page.url(), /#gatherings\/campaign$/);
+  assert.equal(await page.getAttribute('[data-act="view"][data-view="campaign"]', "aria-pressed"), "true");
+  assert.equal(await page.getAttribute('nav.tabs a[data-dest="gatherings"]', "aria-current"), "page");
+
+  await go(page, "cards");
+  await page.click('[data-local="cards"] button[data-route="cards/queue"]');
+  assert.ok(await page.isVisible('section.tab[data-tab="print"]'));
+  await page.goBack();
+  await page.waitForFunction(() => location.hash === "#cards");
+  assert.ok(await page.isVisible('section.tab[data-tab="library"]'));
+  await page.goBack();
+  await page.waitForFunction(() => location.hash === "#gatherings/campaign");
+  assert.equal(await page.getAttribute('[data-act="view"][data-view="campaign"]', "aria-pressed"), "true");
+  await page.goBack();
+  await page.waitForFunction(() => location.hash === "#gatherings");
+  assert.equal(await page.getAttribute('[data-act="view"][data-view="gathering"]', "aria-pressed"), "true");
+
+  // No address: the last place comes back.
+  await page.goto(URL_);
+  await ready(page);
+  assert.match(page.url(), /#gatherings$/);
+  assert.deepEqual(errors, []);
+});
+
+test("the roster follows the unsaved draft", async () => {
+  const { page } = await open();
+  await importLink(page);
+  await page.fill('[data-act="m-name"][data-uid="m3"]', "Grimwald the Unsaved");
+  await page.press('[data-act="m-name"][data-uid="m3"]', "Tab");
+  await page.waitForTimeout(100);
+  await page.click('[data-act="view"][data-view="roster"]');
+  await page.waitForTimeout(300);
+  assert.match(page.url(), /#gatherings\/roster$/);
+  assert.ok(await page.isVisible(".bd-draft"));                     // still not saved
+  assert.match(await text(page, "#wb-pages"), /Grimwald the Unsaved/);
+  await page.click('[data-act="discard"]');
+  await page.waitForTimeout(300);
+  assert.doesNotMatch(await text(page, "#wb-pages"), /Grimwald the Unsaved/);
+});
+
+test("adding the roster's cards to the queue leads to the queue", async () => {
+  const { page } = await open();
+  await importLink(page);
+  await page.click('[data-act="view"][data-view="roster"]');
+  await page.click('.bd-roster-bar [data-act="cards"]');
+  await page.waitForTimeout(200);
+  const n = Number(await page.textContent("#queue-count"));
+  assert.ok(n > 0);
+  assert.equal(await page.getAttribute("#nav-queue-link", "aria-label"), `${n} cards in the print queue`);
+  await page.click('.bd-roster-bar [data-act="open-queue"]');
+  assert.match(page.url(), /#cards\/queue$/);
+  assert.ok(await page.isVisible("#queue-list .queue-item"));
+});
+
+test("the Print button names what it prints, or why it can't", async () => {
+  const { page } = await open();
+  const btn = "#global-print-btn";
+  const reason = () => page.evaluate(() => {
+    const b = document.getElementById("global-print-btn");
+    return document.getElementById(b.getAttribute("aria-describedby")).textContent;
+  });
+  // Cards, empty queue.
+  assert.equal(await text(page, btn), "Print 0 cards");
+  assert.ok(await page.isDisabled(btn));
+  assert.match(await reason(), /queue is empty/);
+  assert.equal(await page.getAttribute(btn, "title"), await reason());
+  // Gatherings with nothing open.
+  await go(page, "gatherings");
+  assert.equal(await text(page, btn), "Print roster");
+  assert.ok(await page.isDisabled(btn));
+  await importLink(page);
+  assert.equal(await text(page, btn), "Print roster");
+  assert.ok(await page.isEnabled(btn));
+  assert.equal(await reason(), "");
+  await page.click('[data-act="view"][data-view="campaign"]');
+  assert.equal(await text(page, btn), "Print roster");
+  // Queue the cards, then Cards says how many.
+  await page.click('[data-act="view"][data-view="gathering"]');
+  await page.click('[data-act="cards"]');
+  await page.waitForTimeout(200);
+  const n = await page.textContent("#queue-count");
+  await go(page, "cards");
+  assert.equal(await text(page, btn), `Print ${n} cards`);
+  assert.ok(await page.isEnabled(btn));
+  // Only one primary action in the header.
+  assert.equal(await page.locator("header.app :is(.primary, .print-btn)").count(), 1);
+  // Spanish.
+  await page.click("#nav-settings > summary");
+  await page.selectOption("#lang-select", "es");
+  assert.equal(await text(page, btn), `Imprimir ${n} cartas`);
+  await go(page, "gatherings");
+  assert.equal(await text(page, btn), "Imprimir lista");
+});
+
+test("the Settings menu works from the keyboard", async () => {
+  const { page } = await open();
+  const isOpen = () => page.evaluate(() => document.getElementById("nav-settings").open);
+  await page.focus("#nav-settings > summary");
+  await page.keyboard.press("Enter");
+  assert.equal(await isOpen(), true);
+  await page.keyboard.press("Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.id), "lang-select");
+  await page.keyboard.press("Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.id), "nc-theme-select");
+  await page.keyboard.press("Escape");
+  assert.equal(await isOpen(), false);
+  assert.ok(await page.evaluate(() => document.activeElement.matches("#nav-settings > summary")));
+  await page.keyboard.press("Space");
+  assert.equal(await isOpen(), true);
+  // Language sets the card language, and the header follows it.
+  await page.selectOption("#lang-select", "es");
+  assert.equal(await text(page, 'nav.tabs a[data-dest="gatherings"]'), "Séquitos");
+  assert.equal(await page.evaluate(() => localStorage.getItem("necropolis-card-printer-lang-v1")), "es");
+  // Theme keeps its palette control.
+  await page.selectOption("#nc-theme-select", "slate");
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.ncPalette), "slate");
+  // A click outside closes it.
+  await page.mouse.click(600, 600);
+  assert.equal(await isOpen(), false);
 });

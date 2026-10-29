@@ -1,7 +1,8 @@
 /**
- * Warband tab — roster view of the last imported Companion-App payload.
+ * Roster view (Gatherings → Roster) — the warband roster sheet.
  *
- * The importer keeps the raw JSON in `state.warband`; everything shown here
+ * main.js keeps `state.warband` as the Companion App JSON of the gathering
+ * open in the Builder (its draft, if any); everything shown here
  * is re-derived from it on every render, so a language switch or a rebuilt
  * data bundle is picked up without re-importing.
  *
@@ -13,7 +14,7 @@
  * on screen and in the print dialog, exactly like the Print tab's sheets.
  */
 
-import { state, saveWarband } from "./state.js";
+import { state } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { findCard, keyHintFromSource, normName } from "./matching.js";
 import { icon } from "./icons.js";
@@ -21,27 +22,11 @@ import { pickField, t, LABELS } from "./i18n.js";
 
 const $summary   = $("wb-summary");
 const $pagesWrap = $("wb-pages");
-const $printBtn  = $("wb-print-btn");
-const $clearBtn  = $("wb-clear-btn");
-
-let onChangeCb = null;
-
-export function initWarband({ onChange } = {}) {
-  onChangeCb = onChange;
-  $printBtn.addEventListener("click", () => {
-    document.body.classList.add("printing-warband");
-    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
-  });
+/** Printing it is the header's Print roster button (main.js), which sets
+ *  `printing-warband` on <body>; it comes off again after the dialog. */
+export function initWarband() {
   window.addEventListener("afterprint", () => {
     document.body.classList.remove("printing-warband");
-  });
-  $clearBtn.addEventListener("click", () => {
-    if (!state.warband) return;
-    if (!confirm("Remove the imported warband from this browser?")) return;
-    state.warband = null;
-    saveWarband();
-    renderWarband();
-    onChangeCb?.();
   });
 }
 
@@ -392,12 +377,10 @@ function obols(n, lang) {
 
 function renderSummary(roster) {
   const lang = state.lang || "en";
-  $printBtn.disabled = !roster || !roster.members.length;
-  $clearBtn.disabled = !roster;
   if (!roster) {
     $summary.innerHTML =
-      `<span class="wb-empty">No warband imported yet — paste a Companion App export in the ` +
-      `<strong>Import</strong> tab and it will show up here.</span>`;
+      `<span class="wb-empty">No gathering open — start one, or bring one in with ` +
+      `<strong>Import</strong>, and its roster will show up here.</span>`;
     return;
   }
   const chips = [
@@ -459,7 +442,7 @@ function renderPages(roster) {
   if (!roster || !roster.members.length) {
     const e = document.createElement("div");
     e.className = "empty-msg";
-    e.textContent = "The roster sheet will appear here once you import a warband.";
+    e.textContent = "The roster sheet will appear here once the gathering has models.";
     $pagesWrap.appendChild(e);
     return;
   }

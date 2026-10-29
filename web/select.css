@@ -1,0 +1,139 @@
+/* Necropolis themed dropdowns (web/js/select.js).
+ * Screen only: link with media="screen". Every rule is also inside
+ * @media screen, so in print nothing here applies.
+ * The trigger and popup carry the `hidden` attribute; only the display
+ * rules below reveal them, so print (and a missing stylesheet) falls back
+ * to the native select with no print rules at all.
+ * Colours come only from --nc-* tokens (dark and light palettes);
+ * chevron and tick are drawn in currentColor, never from data-URI colours.
+ */
+@media screen {
+  .nc-select {
+    position:relative; display:inline-flex; vertical-align:middle;
+    max-width:100%; min-width:0;
+  }
+  /* The native select stays in the form as the source of truth. */
+  .nc-select > select.nc-select-src {
+    position:absolute !important; left:0 !important; top:0 !important;
+    width:1px !important; height:1px !important; min-width:0 !important; min-height:0 !important;
+    margin:0 !important; padding:0 !important; border:0 !important;
+    opacity:0 !important; pointer-events:none !important;
+    clip-path:inset(50%) !important; overflow:hidden !important;
+  }
+
+  /* Trigger: same shape as the native app select (44px end cap). */
+  .nc-select-trigger {
+    position:relative; box-sizing:border-box; display:flex; align-items:center;
+    width:100%; min-width:0; min-height:44px; margin:0;
+    padding:9px 49px 9px 13px;
+    color:var(--nc-bone);
+    background:var(--nc-control-bg, var(--nc-raised));
+    border:1px solid var(--nc-control-line, var(--nc-line));
+    border-radius:3px;
+    font:16px/1.35 'Alegreya',Georgia,serif;
+    font-variant-numeric:lining-nums tabular-nums;
+    text-align:left; cursor:pointer; user-select:none; -webkit-user-select:none;
+  }
+  .nc-select-value { flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .nc-select-trigger[data-placeholder] .nc-select-value { color:var(--nc-secondary) }
+  .nc-select-chevron {
+    position:absolute; top:0; right:0; bottom:0; width:44px;
+    display:flex; align-items:center; justify-content:center; pointer-events:none;
+  }
+  .nc-select-chevron::before {
+    content:""; width:7px; height:7px; box-sizing:border-box;
+    border-right:1.7px solid currentColor; border-bottom:1.7px solid currentColor;
+    transform:translateY(-2px) rotate(45deg);
+  }
+  .nc-select.is-open .nc-select-chevron::before { transform:translateY(2px) rotate(225deg) }
+  .nc-select-trigger:hover { background:var(--nc-hover) }
+  .nc-select.is-open .nc-select-trigger,
+  .nc-select-trigger:focus { border-color:var(--nc-bone) }
+  .nc-select-trigger:focus { outline:none }
+  .nc-select-trigger:focus-visible { outline:2px solid var(--nc-bone); outline-offset:2px }
+  .nc-select-trigger[aria-disabled="true"] { opacity:.45; cursor:not-allowed; background:var(--nc-control-bg, var(--nc-raised)) }
+  .nc-select-trigger[aria-invalid="true"] { border-color:var(--nc-error) }
+
+  /* Popup: a portal in <body>, fixed-positioned by select.js. */
+  .nc-select-pop {
+    position:fixed; z-index:1000; box-sizing:border-box;
+    display:flex; flex-direction:column; width:max-content;
+    color:var(--nc-bone); background:var(--nc-surface);
+    border:1px solid var(--nc-line); border-radius:3px;
+    /* Two layers: a tight contact shadow and a soft drop. Low-alpha black
+       reads on bone paper and on coal alike; --nc-shadow can override. */
+    box-shadow:var(--nc-shadow, 0 1px 2px rgb(0 0 0 / .18), 0 10px 28px -6px rgb(0 0 0 / .45));
+    font:16px/1.35 'Alegreya',Georgia,serif;
+    font-variant-numeric:lining-nums tabular-nums;
+    overflow:hidden;
+  }
+  .nc-select-filter { flex:none; padding:8px; border-bottom:1px solid var(--nc-line-soft) }
+  .nc-select-filter-input {
+    box-sizing:border-box; width:100%; min-height:40px; margin:0; padding:7px 11px;
+    color:var(--nc-bone); background:var(--nc-control-bg, var(--nc-raised));
+    border:1px solid var(--nc-control-line, var(--nc-line)); border-radius:3px;
+    font:16px/1.35 'Alegreya',Georgia,serif;
+  }
+  .nc-select-filter-input::placeholder { color:var(--nc-muted); opacity:1 }
+  .nc-select-filter-input:focus { outline:none; border-color:var(--nc-bone) }
+  .nc-select-filter-input:focus-visible { outline:2px solid var(--nc-bone); outline-offset:-1px }
+
+  .nc-select-list {
+    flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+    padding:4px 0; outline:none;
+    scrollbar-width:thin; scrollbar-color:var(--nc-line-soft) transparent;
+  }
+  .nc-select-groupbox:not(.is-first) { border-top:1px solid var(--nc-line-soft); margin-top:4px }
+  .nc-select-group {
+    padding:9px 14px 3px 34px;
+    font:600 14px/1.3 'Alegreya SC',Georgia,serif; letter-spacing:.05em;
+    color:var(--nc-muted); cursor:default;
+  }
+  .nc-select-option {
+    position:relative; display:block; padding:7px 16px 7px 34px;
+    color:var(--nc-bone); cursor:pointer; overflow-wrap:anywhere;
+  }
+  .nc-select-option[hidden], .nc-select-groupbox[hidden], .nc-select-empty[hidden] { display:none }
+  .nc-select-option[data-placeholder] { color:var(--nc-secondary); font-style:italic }
+  .nc-select-option.is-active { background:var(--nc-raised) }
+  .nc-select-option[aria-selected="true"]::before {
+    content:""; position:absolute; left:14px; top:calc(7px + .68em - 6px);
+    width:5px; height:10px; box-sizing:border-box;
+    border-right:2px solid currentColor; border-bottom:2px solid currentColor;
+    transform:rotate(45deg);
+  }
+  .nc-select-option[aria-selected="true"] .nc-select-label { font-weight:600 }
+  .nc-select-option[aria-disabled="true"] { color:var(--nc-muted); opacity:.62; cursor:not-allowed }
+  .nc-select-reason {
+    display:block; margin-top:1px;
+    font-size:14px; line-height:1.3; font-style:italic; color:var(--nc-muted);
+  }
+  .nc-select-empty { padding:10px 16px 12px 34px; color:var(--nc-muted); font-style:italic }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .nc-select-chevron::before { transition:transform .14s ease }
+    .nc-select-pop { animation:nc-select-in .12s ease-out }
+    .nc-select-pop[data-placement="top"] { animation-name:nc-select-in-up }
+    @keyframes nc-select-in { from { opacity:0; transform:translateY(-3px) } }
+    @keyframes nc-select-in-up { from { opacity:0; transform:translateY(3px) } }
+  }
+  @media (forced-colors: active) {
+    .nc-select-option.is-active { forced-color-adjust:none; background:Highlight; color:HighlightText }
+    .nc-select-trigger, .nc-select-pop { border-color:CanvasText }
+  }
+
+  /* Touch devices keep the native picker; it is only themed. */
+  select.nc-select-native {
+    -webkit-appearance:none; appearance:none; box-sizing:border-box;
+    min-height:44px; max-width:100%; padding:9px 49px 9px 13px;
+    color:var(--nc-bone); background-color:var(--nc-control-bg, var(--nc-raised));
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%),
+      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position:calc(100% - 22px) 50%, calc(100% - 17px) 50%;
+    background-size:5px 5px, 5px 5px; background-repeat:no-repeat;
+    border:1px solid var(--nc-control-line, var(--nc-line)); border-radius:3px;
+    font:16px/1.35 'Alegreya',Georgia,serif; font-variant-numeric:lining-nums tabular-nums;
+    text-overflow:ellipsis;
+  }
+}

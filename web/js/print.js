@@ -86,7 +86,7 @@ function renderQueue() {
     empty.className = "empty-msg";
     empty.style.padding = "20px";
     empty.style.border = "none";
-    empty.textContent = "Queue is empty. Use Import or Library to add cards.";
+    empty.textContent = "Queue is empty. Add cards from the Library, or from a gathering's Add cards to queue.";
     $queueList.appendChild(empty);
     return;
   }

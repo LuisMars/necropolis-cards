@@ -16,59 +16,65 @@
 <body>
 
 <header class="app">
-  <h1>Necropolis <span>Card Printer</span></h1>
-  <nav class="tabs">
-    <button data-tab="import">Import</button>
-    <button data-tab="builder">Builder</button>
-    <button data-tab="warband">Warband</button>
-    <button data-tab="library" class="active">Library</button>
-    <button data-tab="print">Print</button>
+  <h1 class="brand">Necropolis</h1>
+  <nav class="tabs" id="main-nav" aria-label="Main">
+    <span class="nav-item" data-dest="gatherings">
+      <a class="nav-dest" href="#gatherings" data-dest="gatherings">Gatherings</a>
+    </span>
+    <span class="nav-item" data-dest="cards">
+      <a class="nav-dest" href="#cards" data-dest="cards">Cards</a>
+      <a class="nav-count" href="#cards/queue" id="nav-queue-link" aria-label="0 cards in the print queue"><span id="queue-count">0</span></a>
+    </span>
   </nav>
   <span class="spacer"></span>
-  <label class="lang-picker" title="Card language (English by default)">
-    Cards:
-    <select id="lang-select">
-      <option value="en" selected>English</option>
-      <option value="es">Español</option>
-    </select>
-  </label>
-<label class="nc-theme-picker" for="nc-theme-select">Theme
-  <select id="nc-theme-select" data-nc-palette-control aria-label="Appearance palette">
-    <option value="obsidian">Obsidian</option><option value="ink-bone">Ink &amp; Bone</option>
-    <option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
-  </select>
-</label>
-  <span class="badge"><span id="queue-count">0</span> in queue</span>
-  <button class="print-btn" id="global-print-btn">⎙ Print</button>
+  <details class="nav-settings" id="nav-settings">
+    <summary><span id="nav-settings-label">Settings</span> <span class="nav-chev" aria-hidden="true">▾</span></summary>
+    <div class="nav-settings-panel">
+      <label class="lang-picker" title="Card language (English by default)">
+        <span id="lang-label">Language</span>
+        <select id="lang-select">
+          <option value="en" selected>English</option>
+          <option value="es">Español</option>
+        </select>
+      </label>
+      <label class="nc-theme-picker" for="nc-theme-select"><span id="theme-label">Theme</span>
+        <select id="nc-theme-select" data-nc-palette-control>
+          <option value="obsidian">Obsidian</option><option value="ink-bone">Ink &amp; Bone</option>
+          <option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
+        </select>
+      </label>
+    </div>
+  </details>
+  <button class="print-btn" id="global-print-btn" aria-describedby="print-reason"><span class="pb-verb">Print</span><span class="pb-rest"></span></button>
+  <span id="print-reason" hidden></span>
 </header>
 
 <main>
-
-  <section class="tab" data-tab="import">
-    <div class="row col">
-      <p style="color:var(--muted); margin:0 0 6px;">
-        Paste a JSON export or a share link from the
-        <a href="https://necropolis28.vercel.app/" target="_blank" style="color:var(--accent)">Necropolis Companion App</a>.
-        <strong>Load warband</strong> just reads the roster into the Warband tab;
-        <strong>Load &amp; add cards to queue</strong> also queues every card it matched.
-      </p>
-      <textarea id="json-in" class="json-in" placeholder='{"covenant": "…", "gathering": [...]}  or  https://necropolis28.vercel.app/gathering-creation?id=…'></textarea>
-      <div style="display:flex; gap:8px;">
-        <button class="primary" id="load-warband-btn">⚑ Load warband</button>
-        <button class="secondary" id="parse-btn">Load &amp; add cards to queue</button>
-        <button class="secondary" id="sample-btn">Load sample</button>
-        <button class="secondary" id="clear-queue-btn">Clear queue</button>
-      </div>
-    </div>
-    <div id="match-list" class="match-list"></div>
-  </section>
 
   <section class="tab" data-tab="builder">
     <div class="bd-toolbar">
       <select id="bd-pick" hidden></select>
       <button class="secondary" id="bd-new">New gathering</button>
+      <button class="secondary" id="bd-import" aria-expanded="false" aria-controls="bd-import-panel">Import</button>
       <button class="link" id="bd-dup">Duplicate</button>
       <button class="link danger" id="bd-del">Delete</button>
+    </div>
+    <div class="bd-panel bd-import" id="bd-import-panel" hidden>
+      <p class="bd-import-intro">
+        Paste a JSON export or a share link from the
+        <a href="https://necropolis28.vercel.app/" target="_blank" rel="noopener">Necropolis Companion App</a>, or a Builder backup.
+        <strong>Load warband</strong> opens it here as a gathering;
+        <strong>Load &amp; add cards to queue</strong> also queues every card it matched.
+      </p>
+      <textarea id="json-in" class="json-in" aria-label="Companion App JSON or share link" placeholder='{"covenant": "…", "gathering": [...]}  or  https://necropolis28.vercel.app/gathering-creation?id=…'></textarea>
+      <div class="bd-import-actions">
+        <button class="primary" id="load-warband-btn">⚑ Load warband</button>
+        <button class="secondary" id="parse-btn">Load &amp; add cards to queue</button>
+        <button class="secondary" id="sample-btn">Load sample</button>
+        <button class="link" id="bd-import-close">Close</button>
+      </div>
+      <div class="bd-status" id="import-status" hidden></div>
+      <div id="match-list" class="match-list"></div>
     </div>
     <div id="bd-body"></div>
   </section>
@@ -76,14 +82,14 @@
   <section class="tab" data-tab="warband">
     <div class="wb-toolbar">
       <div class="wb-summary" id="wb-summary"></div>
-      <span class="spacer"></span>
-      <button class="secondary" id="wb-clear-btn">✕ Clear warband</button>
-      <button class="primary" id="wb-print-btn">⎙ Print roster</button>
     </div>
     <div class="wb-pages" id="wb-pages"></div>
   </section>
 
-  <section class="tab active" data-tab="library">
+  <section class="tab" data-tab="library">
+    <div class="nav-local-row">
+      <div class="bd-views nav-local" role="group" data-local="cards"></div>
+    </div>
     <div class="lib-toolbar">
       <input type="text" id="lib-search" placeholder="Filter by name…">
       <select id="lib-category"><option value="">All categories</option></select>
@@ -111,6 +117,10 @@
   </section>
 
   <section class="tab" data-tab="print">
+    <!-- Also a .print-toolbar, so the existing print CSS hides it on paper. -->
+    <div class="print-toolbar nav-local-row">
+      <div class="bd-views nav-local" role="group" data-local="cards"></div>
+    </div>
     <div class="print-toolbar">
       <label><input type="checkbox" id="bleed-toggle"> add gap between cards</label>
       <label><input type="checkbox" id="backs-toggle"> print card backs</label>

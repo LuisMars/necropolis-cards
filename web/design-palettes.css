@@ -16,9 +16,11 @@
 
   html,body {background:var(--nc-bg);color:var(--nc-bone)}
   header.app{background:var(--nc-chrome);border-bottom-color:var(--nc-line-soft)}
-  nav.tabs button.active{background:var(--nc-raised);border-color:var(--nc-line);color:var(--nc-bone)}
-  nav.tabs button:hover:not(.active){background:var(--nc-hover);border-color:var(--nc-line-soft)}
-  header.app .badge{background:var(--nc-raised);color:var(--nc-bone);border-color:var(--nc-line)}
+  nav.tabs .nav-item.active{background:var(--nc-raised);border-color:var(--nc-line)}
+  nav.tabs .nav-item.active a{color:var(--nc-bone)}
+  nav.tabs .nav-item:not(.active):hover{background:var(--nc-hover);border-color:var(--nc-line-soft)}
+  header.app .nav-count{background:var(--nc-bg);color:var(--nc-bone);border-color:var(--nc-line-soft)}
+  .nav-settings-panel{background:var(--nc-surface);border-color:var(--nc-line)}
   button.primary,header.app button.print-btn{background:var(--nc-primary);color:var(--nc-on-primary);border-color:var(--nc-primary)}
   button.primary:hover,header.app button.print-btn:hover{background:var(--nc-bone)}
   button.secondary{color:var(--nc-bone);background:var(--nc-raised);border-color:var(--nc-line-soft)}
@@ -85,5 +87,8 @@
     .nc-theme-picker{font-size:12px;gap:5px}
     .nc-theme-picker select{max-width:137px;font-size:14px;padding-left:8px;padding-right:36px}
   }
+  /* In the header's Settings menu the picker is a stacked label and field. */
+  .nav-settings-panel .nc-theme-picker{display:flex;flex-direction:column;align-items:stretch;gap:4px;font-size:14px}
+  .nav-settings-panel .nc-theme-picker select{max-width:none;min-height:44px;font-size:16px;padding-left:11px;padding-right:42px}
 }
 /* Do not add @media print rules here. Printed SVG cards always retain source colors. */

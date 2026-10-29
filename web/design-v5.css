@@ -25,27 +25,41 @@
   body {font-family:'Alegreya',Georgia,serif;font-size:16px;line-height:1.45}
   header.app {background:var(--nc-chrome);border-bottom:1px solid var(--nc-line-soft);padding:12px 19px;gap:15px}
   header.app h1 {
-    font-family:'JSL Blackletter','Alegreya SC',Georgia,serif;
-    font-size:28px;letter-spacing:0;white-space:nowrap;font-weight:400;
+    font-family:var(--gothic);
+    font-size:30px;letter-spacing:0;white-space:nowrap;font-weight:400;
   }
-  header.app h1 span {
-    display:inline-block;font-family:'Alegreya SC',Georgia,serif;
-    font-size:14px;letter-spacing:.07em;color:var(--nc-muted);font-weight:600;
-    vertical-align:middle;margin-left:6px;
-  }
-  nav.tabs{gap:3px;align-items:center}
-  nav.tabs button{
+  /* Destinations: words in Alegreya SC; the open one is a raised panel
+     with a border — no underline, no inset shadow. */
+  nav.tabs{gap:6px;align-items:center}
+  nav.tabs .nav-item{min-height:44px;border:1px solid transparent;border-radius:3px;background:transparent}
+  nav.tabs a{color:var(--nc-secondary);border-radius:2px}
+  nav.tabs a.nav-dest{
+    display:inline-flex;align-items:center;min-height:42px;padding:0 13px;
     font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;
-    padding:8px 13px;min-height:44px;border:1px solid transparent;
-    background:transparent;color:var(--nc-secondary);border-radius:3px;
   }
-  nav.tabs button:hover:not(.active){background:var(--nc-hover);border-color:var(--nc-line-soft)}
-  nav.tabs button.active{
-    background:var(--nc-raised);color:var(--nc-bone);
-    border-color:var(--nc-line);box-shadow:none;
+  nav.tabs .nav-item:not(.active):hover{background:var(--nc-hover);border-color:var(--nc-line-soft)}
+  nav.tabs .nav-item.active{background:var(--nc-raised);border-color:var(--nc-line);box-shadow:none}
+  nav.tabs .nav-item.active a{color:var(--nc-bone)}
+  nav.tabs a.nav-count{
+    display:inline-flex;align-items:center;justify-content:center;min-height:26px;margin:0 9px 0 -5px;
+    background:var(--nc-bg);color:var(--nc-bone);border:1px solid var(--nc-line-soft);
+    font-family:'Alegreya',Georgia,serif;font-size:14px;line-height:1;
   }
-  header.app .badge{background:var(--nc-raised);color:var(--nc-bone);border:1px solid var(--nc-line);border-radius:3px;padding:7px 10px}
-  header.app .lang-picker {color:var(--nc-secondary);font-family:'Alegreya SC',Georgia,serif;font-size:14px}
+  nav.tabs a.nav-count:hover{border-color:var(--nc-line)}
+  header.app :is(a,summary):focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+  /* Settings disclosure */
+  .nav-settings > summary{
+    min-height:44px;box-sizing:border-box;padding:0 12px;color:var(--nc-secondary);
+    font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;
+  }
+  .nav-settings > summary:hover,.nav-settings[open] > summary{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}
+  .nav-settings .nav-chev{font-size:13px;line-height:1}
+  .nav-settings-panel{
+    background:var(--nc-surface);border:1px solid var(--nc-line);border-radius:3px;
+    min-width:230px;box-sizing:border-box;
+  }
+  .nav-settings-panel select{width:100%;max-width:none}
+  header.app .lang-picker {color:var(--nc-secondary);font-family:'Alegreya SC',Georgia,serif;font-size:14px;font-weight:700}
   button.primary,header.app button.print-btn{
     color:var(--nc-on-primary);background:var(--nc-primary);border:1px solid #eae4d8;
     min-height:42px;border-radius:3px;font-family:'Alegreya SC',Georgia,serif;
@@ -254,9 +268,6 @@
 
   @media(max-width:900px){
     header.app{flex-wrap:wrap;gap:8px 12px}
-    nav.tabs{order:3;width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}
-    nav.tabs button{flex:none}
-    header.app .spacer{flex:1}
     main{padding:16px}
     .queue-panel{flex-direction:column}
     .queue-list{width:100%;max-height:340px}
@@ -376,9 +387,6 @@
     .bd-fig:first-child{grid-column:auto}
   }
   @media (max-width:540px){
-    /* Every tab fits on one line instead of scrolling Print out of view. */
-    nav.tabs{overflow-x:visible;gap:2px}
-    nav.tabs button{flex:1 1 auto;padding:8px 4px;font-size:15px}
     header.app{position:static}
     .bd-side-head{flex-wrap:wrap}
     .bd-side-toggle{width:100%;justify-content:center}
@@ -408,13 +416,10 @@
   .bd-draft button.link{padding:4px 2px}
 }
 @media screen {
-  /* Import actions wrap whole; the destructive Clear queue stands apart. */
-  div:has(> #load-warband-btn){flex-wrap:wrap;margin-top:12px}
-  #clear-queue-btn{margin-left:auto}
+  /* Import actions wrap whole; Close stands apart. */
   @media (max-width:540px){
-    div:has(> #load-warband-btn) > button{flex:1 1 auto;white-space:nowrap}
+    .bd-import-actions > button{flex:1 1 auto;white-space:nowrap}
     #load-warband-btn{flex-basis:100% !important}
-    #clear-queue-btn{margin-left:0}
   }
 }
 @media screen and (max-width:900px){
@@ -443,4 +448,45 @@
   .lib-tile .cat{font-size:14px;padding:1px 7px;border-radius:3px}
   .lib-tile .in-queue{padding:1px 7px;border-radius:3px;font-size:14px}
   .lib-tile .add{font-size:15px}
+}
+@media screen {
+  /* Header and navigation (v5.7). Desktop: one row, the header sticks, and
+     scroll-padding keeps a focused field from hiding under it (WCAG 2.4.11).
+     Phones: brand and Settings, then the destinations and Print; the header
+     scrolls away with the page. */
+  html{scroll-padding-top:84px}
+  header.app{gap:12px 18px}
+  .nav-local-row{margin:0 0 14px}
+  .nav-local-row .bd-views{margin:0}
+  .print-toolbar.nav-local-row{margin-bottom:14px}
+  .bd-roster-head .bd-views{margin-bottom:12px}
+  .bd-roster-bar{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+  .bd-roster-bar .bd-draft{max-width:60ch}
+  .bd-roster-actions{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+  .bd-roster-actions .bd-status{margin:0}
+  .bd-status button.link{padding:2px 0}
+  .bd-import{background:var(--nc-surface);border:1px solid var(--nc-line-soft)}
+  .bd-import-intro{color:var(--nc-secondary)}
+  .bd-import-intro a{color:var(--nc-bone)}
+  .bd-empty button + button{margin-left:8px}
+  @media (max-width:720px){
+    html{scroll-padding-top:0}
+    header.app{
+      position:static;display:grid;grid-template-columns:minmax(0,1fr) auto;
+      grid-template-areas:"brand settings" "nav print";align-items:center;gap:8px 10px;
+    }
+    header.app h1{grid-area:brand}
+    header.app .spacer{display:none}
+    .nav-settings{grid-area:settings}
+    nav.tabs{grid-area:nav;min-width:0;gap:4px}
+    nav.tabs a.nav-dest{padding:0 10px}
+    header.app button.print-btn{grid-area:print}
+  }
+  @media (max-width:480px){
+    header.app h1{font-size:26px}
+    header.app button.print-btn .pb-rest{display:none}
+    header.app button.print-btn{padding:8px 14px}
+    .bd-views{display:flex;width:100%;box-sizing:border-box}
+    .bd-views button{flex:1 1 0;min-width:0;padding-left:6px;padding-right:6px}
+  }
 }
