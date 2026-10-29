@@ -162,3 +162,71 @@ test("a thrown weapon counts against the one piece of Miscellaneous Equipment", 
   g.models[0] = { ...g.models[0], weapons: ["melee-weapons/blade"], equipment: ["thrown-weapons/wardart"] };
   assert.ok(!evaluate(g, catalog).warnings.some(x => x.code === "too-much-equipment"));
 });
+
+/* rules-gear: colossal weapons only where the entry says so; weapon counts. */
+
+const warnings = (g, uid) => evaluate(g, catalog).warnings.filter(w => !uid || w.model === uid);
+const has = (g, code, item) => warnings(g).some(w => w.code === code && (!item || w.item === item));
+
+test("colossal weapons warn on a model whose entry doesn't allow them (pp.38-39)", () => {
+  const { gathering: g } = decodeLink(EXAMPLE_LINK, catalog);
+  g.models[0].weapons = ["colossal-weapons/massive-hand-weapon"];                // a Lich
+  assert.ok(has(g, "weapon-not-allowed", "colossal-weapons/massive-hand-weapon"));
+  g.models[0].weapons = ["melee-weapons/blade"];
+  assert.ok(!has(g, "weapon-not-allowed"));
+  // The Gigantic Horror's entry allows them, and only them.
+  const h = newGathering({ covenant: "wretched-undead" });
+  h.models.push(newModel(h, { profile: "minions/gigantic-horror", affinity: "bone",
+                              weapons: ["colossal-weapons/massive-hand-weapon"] }));
+  assert.ok(!has(h, "weapon-not-allowed"));
+});
+
+test("a leader carries up to 2 weapons, a minion 1 (p.36)", () => {
+  const { gathering: g } = decodeLink(EXAMPLE_LINK, catalog);
+  g.models[0].weapons = ["melee-weapons/blade", "ranged-weapons/sling"];
+  assert.ok(!has(g, "too-many-weapons"));
+  g.models[0].weapons.push("melee-weapons/axe");
+  assert.ok(warnings(g, "m1").some(w => w.code === "too-many-weapons" && w.params.count === 3 && w.params.max === 2));
+  g.models[1].weapons = ["melee-weapons/blade", "melee-weapons/axe"];
+  assert.ok(warnings(g, "m2").some(w => w.code === "too-many-weapons" && w.params.max === 1));
+  // The free Improvised Weapon and a thrown weapon don't count.
+  g.models[1].weapons = ["melee-weapons/improvised-weapon", "melee-weapons/blade", "thrown-weapons/wardart"];
+  assert.ok(!warnings(g, "m2").some(w => w.code === "too-many-weapons"));
+});
+
+/* rules-gathering / rules-spells: covenant traits belong to their covenant. */
+
+test("another covenant's traits warn, and Wretched Undead takes none", () => {
+  const { gathering: g } = decodeLink(EXAMPLE_LINK, catalog);              // Cairn-born
+  g.models[1].traits = ["covenant-wretched-traits/march-of-the-hands"];      // Embalmed Hands'
+  assert.ok(has(g, "foreign-covenant-trait", "covenant-wretched-traits/march-of-the-hands"));
+  g.models[1].traits = ["covenant-wretched-traits/adamant-structure"];       // its own
+  assert.ok(!has(g, "foreign-covenant-trait"));
+  g.covenant = "wretched-undead";
+  assert.ok(has(g, "foreign-covenant-trait", "covenant-wretched-traits/adamant-structure"));
+  assert.ok(has(g, "foreign-covenant-trait", "covenant-leader-traits/osseous-sacrifice"));
+  // Wretched Undead traits are fine in a covenant gathering too (p.19: "or a
+  // trait from the Wretched Undead trait list").
+  g.covenant = "covenants/cairn-born";
+  g.models[1].traits = ["wretched-undead-traits/acolyte"];
+  assert.ok(!has(g, "foreign-covenant-trait"));
+});
+
+test("an Apprentice may know one spell its leader knows (p.22)", () => {
+  const g = newGathering({ covenant: "covenants/recusant-maleficar" });
+  g.models.push(newModel(g, { profile: "leaders/lich", affinity: "bone",
+    traits: ["covenant-leader-traits/erudite"], spells: ["spells/summon"] }));
+  g.models.push(newModel(g, { profile: "minions/skeletal-husk", weapons: ["melee-weapons/blade"],
+    traits: ["covenant-wretched-traits/apprentice"], spells: ["spells/summon"] }));
+  const codes = () => warnings(g, "m2").map(w => w.code);
+  assert.ok(!codes().includes("spells-on-minion"));
+  assert.ok(!codes().includes("apprentice-spell"));
+  g.models[1].spells = ["spells/dominate"];                                   // the leader doesn't know it
+  assert.ok(codes().includes("apprentice-spell"));
+  g.models[1].spells = ["spells/summon", "spells/dominate"];
+  assert.ok(codes().includes("spell-count"));
+  // Without the trait a minion still knows no spells.
+  g.models[1].traits = [];
+  g.models[1].spells = ["spells/summon"];
+  assert.ok(codes().includes("spells-on-minion"));
+});

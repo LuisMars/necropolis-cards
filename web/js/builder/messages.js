@@ -418,6 +418,10 @@ export function describe(w, catalog, lang = "en") {
     case "channel-spell-missing": return es ? `El líder ya no conoce ${item}, el hechizo con +1 a canalizar.`
                                           : `The leader no longer knows ${item}, the spell with +1 to channel.`;
     case "too-many-ambitions":  return es ? `${p.count} ambiciones activas; el máximo es 4.` : `${p.count} active ambitions; the most is 4.`;
+    case "too-many-weapons":    return es ? `${p.count} armas; puede llevar ${p.max}.` : `${p.count} weapons; it can have ${p.max}.`;
+    case "apprentice-spell":    return es ? `${item}: un Aprendiz solo conoce un hechizo que también conozca el líder.`
+                                          : `${item}: an Apprentice only knows a spell the leader also knows.`;
+    case "foreign-covenant-trait": return es ? `${item} no pertenece al pacto de este séquito.` : `${item} isn't this gathering's covenant trait.`;
     default:                    return w.code;
   }
 }

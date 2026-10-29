@@ -21,7 +21,9 @@ gathering:
   max_deployment_limit: 500
   leader_max_traits: 3
   minion_max_traits: 1
-  max_equipment: 1          # p.41: each model may only have 1 piece of misc equipment
+  max_equipment: 1          # p.41: each model may only have 1 piece of misc equipment (thrown weapons included)
+  leader_max_weapons: 2     # p.36: a leader may have 2 weapons, a minion 1
+  minion_max_weapons: 1
 
 # p.65: improvement limits for individual models
 improvement_caps: { ap: 1, move: 2, violence: 2, ranged: 2, hp: 5 }

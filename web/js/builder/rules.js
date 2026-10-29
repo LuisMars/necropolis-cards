@@ -15,6 +15,7 @@ import { ledgerOf } from "./ledger.js";
 
 export const AFFINITIES = ["blood", "bone", "plasm"];
 const STATS = ["ap", "move", "violence", "ranged", "hp"];
+const APPRENTICE = "covenant-wretched-traits/apprentice";
 
 /** "7+" → 7, "—" → null, 3 → 3. */
 function num(v) {
@@ -175,7 +176,7 @@ export function evaluateModel(model, catalog, gathering = {}) {
   // Gear: forbidden items, whitelists, hands, one body armour / shield / misc item.
   const forbid = [...(pr.forbid || []), ...(affMods.forbid || [])];
   const except = pr.except || [];
-  let hands = 0, bodies = 0, shields = 0, misc = 0;
+  let hands = 0, bodies = 0, shields = 0, misc = 0, weapons = 0;
   for (const g of gearOf(model)) {
     const gr = catalog.row(g);
     if (!gr) { warn("unknown-item", { item: g }); continue; }
@@ -184,9 +185,14 @@ export function evaluateModel(model, catalog, gathering = {}) {
     }
     const cat = categoryOf(g);
     if (WEAPON_CATEGORIES.includes(cat)) {
-      if (pr.weapons_only && !pr.weapons_only.some(sel => matches(catalog, g, sel))) {
-        warn("weapon-not-allowed", { item: g });
-      }
+      // pp.38-39: colossal weapons "cannot be taken unless noted on the
+      // leader/minion entry", which `weapons_only` does for colossal models.
+      const allowedWeapon = pr.weapons_only ? pr.weapons_only.some(sel => matches(catalog, g, sel))
+                                            : cat !== "colossal-weapons";
+      if (!allowedWeapon) warn("weapon-not-allowed", { item: g });
+      // p.36: a leader may have 2 weapons, a minion 1. The free Improvised
+      // Weapon and thrown weapons (Miscellaneous Equipment, p.41) don't count.
+      if (cat !== "thrown-weapons" && !/improvised-weapon$/.test(g)) weapons++;
       // Thrown weapons are Miscellaneous Equipment (p.41, which prints no
       // handedness for them; the Companion App files them under equipment
       // too), so they don't take a hand.
@@ -203,6 +209,8 @@ export function evaluateModel(model, catalog, gathering = {}) {
   if (shields > 1) warn("multiple-shields");
   const maxMisc = rules.gathering?.max_equipment ?? 1;
   if (misc > maxMisc) warn("too-much-equipment", { params: { count: misc, max: maxMisc } });
+  const maxWeapons = isLeader ? (rules.gathering?.leader_max_weapons ?? 2) : (rules.gathering?.minion_max_weapons ?? 1);
+  if (weapons > maxWeapons) warn("too-many-weapons", { params: { count: weapons, max: maxWeapons } });
 
   // Traits per model: leaders up to 3 (one Basic Leader Trait), minions 1.
   const maxTraits = isLeader ? (rules.gathering?.leader_max_traits ?? 3)
@@ -246,6 +254,14 @@ export function evaluateModel(model, catalog, gathering = {}) {
     mana = manaAllowed;
     const split = AFFINITIES.reduce((n, a) => n + (Number(model.mana?.[a]) || 0), 0);
     if (split !== manaAllowed) warn("mana-split", { params: { count: split, allowed: manaAllowed } });
+  } else if (spells.length && (model.traits || []).includes(APPRENTICE)) {
+    // Apprentice (p.22): "This model knows 1 spell that is also known by
+    // the gathering's leader."
+    if (spells.length > 1) warn("spell-count", { params: { count: spells.length, allowed: 1 } });
+    const leader = (gathering.models || []).find(m => categoryOf(m.profile) === "leaders");
+    for (const sp of spells) {
+      if (!(leader?.spells || []).includes(sp)) warn("apprentice-spell", { item: sp });
+    }
   } else if (spells.length) {
     warn("spells-on-minion");
   }
@@ -268,6 +284,15 @@ export function evaluateModel(model, catalog, gathering = {}) {
     }
     if (isLeader && cov.leader_trait && !(model.traits || []).includes(cov.leader_trait)) {
       warn("covenant-leader-trait-missing", { item: cov.leader_trait });
+    }
+    // p.17-23: a covenant gives its own leader trait and its own model
+    // trait; Wretched Undead gives neither, only its own list (p.17).
+    for (const t of traitRows) {
+      const c = categoryOf(t.key);
+      if ((c === "covenant-leader-traits" && t.key !== cov.leader_trait) ||
+          (c === "covenant-wretched-traits" && t.key !== cov.trait)) {
+        warn("foreign-covenant-trait", { item: t.key });
+      }
     }
   }
 
