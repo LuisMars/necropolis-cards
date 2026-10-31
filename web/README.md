@@ -135,13 +135,48 @@ If you'd rather avoid Actions, you can also use the branch approach: run
 `python3 web/bundle.py` locally, then push the `web/` directory to a
 `gh-pages` branch and point Pages at it.
 
+## Offline use and updates (PWA)
+
+The site is an installable, offline-capable app (`manifest.webmanifest`,
+icons, and a service worker). No libraries.
+
+- `python3 web/bundle.py` writes `web/sw.js` from `web/sw.template.js`. The
+  version is a hash of every precached file (everything in `web/` except
+  `*.py`, `README.md`, `CNAME`, `design-reference.html`, `select-demo.html`,
+  dotfiles and the worker files), so any changed asset changes `sw.js`, and a
+  byte change in `sw.js` is what makes browsers update. `sw.js` is generated
+  and gitignored. `python3 web/bundle.py --sw-only` regenerates just it.
+- **Deploy: run `bundle.py` first, and ship `sw.js` with the rest of `web/`**
+  (the GitHub Pages workflow does; for sitekeeper, deploy the bundled `web/`
+  directory). Without `sw.js` the app still works, just not offline.
+- Install precaches everything (about 20 MB, mostly card images). A new
+  version waits; the app shows "A new version is available" and reloads only
+  when the player presses Update. Settings > App updates shows the version and
+  has "Check for updates". The sync server (`couch.luismars.com`) is never
+  touched or cached by the worker.
+- Tests: `tests/ui/pwa.test.mjs`.
+
+### Retiring the service worker (kill switch)
+
+If a bad version ships and people are stuck on it, publish
+`web/sw-kill.template.js` as `sw.js` (same path), for example
+`cp web/sw-kill.template.js web/sw.js` and deploy WITHOUT running
+`bundle.py`. Browsers re-fetch `sw.js` on every visit; the kill worker
+deletes the app's caches (`necropolis-cards-*`), unregisters itself, and open
+tabs reload once. Afterwards every load comes from the network. The page
+registers `sw.js` on each visit, so an idle stub may stay registered; it has
+no fetch handler and no cache. To remove it fully, ship a build without the
+registration (`js/pwa.js`). Tested in `tests/ui/pwa.test.mjs`.
+
 ## Module map
 
 ```
 web/
 ├── index.html              # app shell (header + the page sections)
 ├── styles.css              # screen + print CSS
-├── bundle.py               # data + templates + images builder
+├── bundle.py               # data + templates + images builder; also writes sw.js
+├── sw.template.js          # service worker source (sw.js is generated)
+├── sw-kill.template.js     # kill switch: publish as sw.js to retire the worker
 ├── data.json               # generated
 ├── templates/              # generated
 ├── images/                 # generated

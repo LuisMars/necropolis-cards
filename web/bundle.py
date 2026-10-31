@@ -323,6 +323,6 @@ def main():
 
 if __name__ == "__main__":
     if "--sw-only" in sys.argv:      # regenerate sw.js only (tests, quick republish)
-        print(build_service_worker()[0])
+        print(build_service_worker(Path(__file__).resolve().parent)[0])
     else:
         main()

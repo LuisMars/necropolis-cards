@@ -713,6 +713,8 @@
   .nc-sync-conflict legend{font-weight:700;padding:0 4px}
   .nc-sync-conflict dt{font-weight:700;margin-top:4px}
   .nc-sync-conflict dd{overflow-wrap:anywhere}
+  /* The Settings panel (Language, Theme, Sync, App updates) can be taller than a short screen: scroll inside it. */
+  .nav-settings-panel{max-height:calc(100vh - 90px);max-height:calc(100dvh - 90px);overflow-y:auto}
   /* App updates (service worker). The notice is persistent and never blocks the page. */
   .nc-update[hidden]{display:none}
   .nc-update{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);padding:10px 14px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:14px}
