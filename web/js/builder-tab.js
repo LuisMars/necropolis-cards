@@ -32,7 +32,7 @@ import { newGathering, newModel } from "./builder/gathering.js";
 import { toAppJson } from "./builder/appjson.js";
 import { linkUrl, defaultWeapon } from "./builder/codec.js";
 import { categoryOf, slug } from "./builder/catalog.js";
-import { describe, label, itemName } from "./builder/messages.js";
+import { describe, label, itemName, plural } from "./builder/messages.js";
 import { buyGear, sellGear, recruit, record, stashGear, takeGear, channelBonuses } from "./builder/campaign.js";
 import { initPicker, openPicker, openRemove, refreshPicker, stashable } from "./builder-picker.js";
 import { campaignHtml, campaignChange, campaignClick, setFold, setNotice, failText } from "./builder-campaign.js";
@@ -93,8 +93,7 @@ function goView(v) {
 }
 
 /** One line of feedback after cards were queued, with a way to the queue. */
-// TODO plural: "1 cards"; switch cardsAdded to plural() once messages.js has it.
-const queuedHtml = (n) => `${n} ${esc(L("cardsAdded"))} ` +
+const queuedHtml = (n) => `${esc(plural("cardsAddedN", n, lang()))} ` +
   `<button type="button" class="link" data-act="open-queue">${esc(L("openQueue"))}</button>`;
 
 export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRosterSkip }) {

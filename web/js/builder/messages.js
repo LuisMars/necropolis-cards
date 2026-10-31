@@ -143,7 +143,6 @@ const UI = {
   exportJson:     ["Export JSON", "Exportar JSON"],
   backup:         ["Download backup", "Descargar copia de seguridad"],
   linkCopied:     ["Companion App link copied.", "Enlace de la Companion App copiado."],
-  cardsAdded:     ["cards added to the print queue.", "cartas añadidas a la cola de impresión."],
   addModel:       ["Add a model…", "Añadir una miniatura…"],
   leaders:        ["Leaders", "Líderes"],
   minions:        ["Minions", "Esbirros"],
