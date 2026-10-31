@@ -232,7 +232,7 @@
   flavor: A rotten chimeric horror, the skeleton of a giant knight, a screaming mass of souls.
   flavor_es: Un horror quimérico podrido, el esqueleto de un caballero gigante, una masa gritona de almas.
   special_rules: |
-    Colossal: may only take weapons from the Colossal Melee Weapon list.
+    Colossal: may only take weapons from the Colossal Weapons list.
 
     Unique. Each gathering may take only 1 Gigantic Horror.
 
@@ -240,7 +240,7 @@
 
     Plasm Warrior: gains Fly, -2 HP, cannot wear heavy armour.
   special_rules_es: |
-    Colosal: solo puede coger armas de la lista de Armas Colosales cuerpo a cuerpo.
+    Colosal: solo puede coger armas de la lista de Armas Colosales.
 
     Único. Cada Séquito solo puede llevar 1 Horror Colosal.
 
