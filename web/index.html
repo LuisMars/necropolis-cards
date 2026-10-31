@@ -16,6 +16,7 @@
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#101011">
+<meta name="necropolis-sync" content="https://couch.luismars.com">
 <script src="js/design-palettes.js"></script>
 </head>
 <body>
@@ -49,6 +50,34 @@
           <option value="soft-ash" data-i18n="themeSoftAsh">Soft Ash</option><option value="slate" data-i18n="themeSlate">Slate</option><option value="vellum" data-i18n="themeVellum">Vellum</option>
         </select>
       </label>
+      <section class="nc-sync" id="sync-section" aria-labelledby="sync-title">
+        <h2 id="sync-title" data-i18n="syncTitle">Sync</h2>
+        <p class="nc-sync-note" id="sync-note"></p>
+        <form id="sync-form" novalidate>
+          <label for="sync-email"><span id="sync-email-label">Email</span>
+            <input id="sync-email" name="email" type="email" autocomplete="username" autocapitalize="off" spellcheck="false" aria-describedby="sync-error">
+          </label>
+          <label for="sync-password"><span id="sync-password-label">Password</span>
+            <input id="sync-password" name="password" type="password" autocomplete="current-password" aria-describedby="sync-error">
+          </label>
+          <p class="nc-sync-error" id="sync-error" hidden></p>
+          <div class="nc-sync-actions">
+            <button type="submit" class="primary" id="sync-signin">Sign in</button>
+            <button type="button" class="secondary" id="sync-signup">Create account</button>
+          </div>
+        </form>
+        <div id="sync-account" hidden>
+          <p id="sync-user"></p>
+          <p id="sync-last"></p>
+          <p class="nc-sync-error" id="sync-account-error" hidden></p>
+          <div class="nc-sync-actions">
+            <button type="button" class="secondary" id="sync-now">Sync now</button>
+            <button type="button" class="secondary" id="sync-signout">Sign out</button>
+          </div>
+        </div>
+        <div id="sync-conflicts"></div>
+        <p id="sync-status" class="nc-sync-status" role="status" aria-live="polite"></p>
+      </section>
     </div>
   </details>
   <button class="print-btn" id="global-print-btn" aria-describedby="print-reason"><span class="pb-verb">Print</span><span class="pb-rest"></span></button>

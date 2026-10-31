@@ -20,6 +20,9 @@
 
 import { state, loadQueue, loadPrinted, loadLang, saveLang, loadWarband, saveWarband } from "./state.js";
 import { loadBundle }         from "./data.js";
+import { initSync }           from "./sync/ui.js";
+import { localChanged }       from "./sync/bus.js";
+import { LS }                 from "./sync/keys.js";
 import { loadFonts }          from "./fonts.js";
 import { initImport }         from "./import.js";
 import { initLibrary, renderLibrary } from "./library.js";
@@ -237,6 +240,7 @@ function rosterInfo() {
 function setRosterSkip(on) {
   rosterSkip = !!on;
   try { localStorage.setItem(LS_SKIP, rosterSkip ? "1" : "0"); } catch {}
+  localChanged("prefs");
   renderBuilder();
 }
 let rosterSheetsKey = "";
@@ -331,6 +335,27 @@ loadQueue();
 loadPrinted();
 loadWarband();
 refreshLabels();
+
+// Device sync (Settings > Sync). Off until the player signs in. When a sync
+// brings in data from another device, read it all again and redraw.
+document.addEventListener("necropolis:palette-change", () => localChanged("prefs"));
+function refreshFromStorage() {
+  loadLang();
+  $langSelect.value = state.lang;
+  loadQueue(); loadPrinted(); loadWarband();
+  try { rosterSkip = localStorage.getItem(LS_SKIP) === "1"; } catch {}
+  try { dispatchEvent(new StorageEvent("storage", { key: LS.palette, newValue: localStorage.getItem(LS.palette) })); } catch {}
+  refreshLabels();
+  if (current === "cards") renderLibrary();
+  renderBuilder();
+  renderPrint();
+  refreshHeader();
+}
+initSync({
+  lang: () => state.lang || "en",
+  onPulled: refreshFromStorage,
+  onConflicts: () => { $settings.open = true; },
+});
 current = startRoute();
 history.replaceState(null, "", `#${current}`);
 showSections();
