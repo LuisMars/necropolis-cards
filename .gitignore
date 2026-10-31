@@ -16,6 +16,7 @@ web/data.json
 web/templates/
 web/images/
 web/fonts/
+web/sw.js
 
 # Local dev cruft
 .DS_Store

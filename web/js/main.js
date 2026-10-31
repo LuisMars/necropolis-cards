@@ -21,6 +21,7 @@
 import { state, loadQueue, loadPrinted, loadLang, saveLang, loadWarband, saveWarband } from "./state.js";
 import { loadBundle }         from "./data.js";
 import { initSync }           from "./sync/ui.js";
+import { initPwa }            from "./pwa.js";
 import { localChanged }       from "./sync/bus.js";
 import { LS }                 from "./sync/keys.js";
 import { loadFonts }          from "./fonts.js";
@@ -351,6 +352,8 @@ function refreshFromStorage() {
   renderPrint();
   refreshHeader();
 }
+const pwa = initPwa({ lang: () => state.lang || "en" });
+document.getElementById("lang-select")?.addEventListener("change", () => pwa.render());
 initSync({
   lang: () => state.lang || "en",
   onPulled: refreshFromStorage,

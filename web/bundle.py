@@ -16,6 +16,7 @@ just `python3 -m http.server` from the web/ dir).
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shutil
@@ -166,6 +167,46 @@ def bundle_fonts() -> int:
     return copied
 
 
+# ---- service worker -----------------------------------------------------
+
+# Never precached: docs, demos, the worker templates and the worker itself.
+# (*.py and dotfiles are skipped by precache_files.)
+SW_EXCLUDE_NAMES = {"sw.js", "sw.template.js", "sw-kill.template.js", "README.md",
+                    "CNAME", "design-reference.html", "select-demo.html"}
+
+
+def precache_files(web_dir: Path) -> list[str]:
+    """Posix paths (relative to web/) of every file the app needs offline."""
+    out = []
+    for p in sorted(web_dir.rglob("*")):
+        rel = p.relative_to(web_dir)
+        if not p.is_file() or any(part.startswith(".") or part == "__pycache__" for part in rel.parts):
+            continue
+        if p.suffix == ".py" or p.name in SW_EXCLUDE_NAMES:
+            continue
+        out.append(rel.as_posix())
+    return out
+
+
+def precache_version(web_dir: Path, files: list[str]) -> str:
+    """Content hash of every precached file (paths included), 12 hex chars."""
+    h = hashlib.sha256()
+    for f in files:
+        h.update(f.encode() + b"\0" + hashlib.sha256((web_dir / f).read_bytes()).digest())
+    return h.hexdigest()[:12]
+
+
+def build_service_worker(web_dir: Path = None) -> tuple[str, int]:
+    """Write sw.js from sw.template.js. Returns (version, total precache bytes)."""
+    web_dir = web_dir or WEB_DIR
+    files = precache_files(web_dir)
+    version = precache_version(web_dir, files)
+    tpl = (web_dir / "sw.template.js").read_text(encoding="utf-8")
+    js = tpl.replace("__VERSION__", version).replace("__PRECACHE__", json.dumps(files, indent=2))
+    (web_dir / "sw.js").write_text(js, encoding="utf-8")
+    return version, sum((web_dir / f).stat().st_size for f in files)
+
+
 def main():
     if not DATA_DIR.exists() or not TPL_DIR.exists():
         sys.exit("data/ or templates/ not found — run this from necropolis-cards/")
@@ -275,8 +316,13 @@ def main():
     (WEB_DIR / "data.json").write_text(json.dumps(bundle, indent=2, ensure_ascii=False), encoding="utf-8")
     bytes_written = (WEB_DIR / "data.json").stat().st_size
     print(f"  wrote web/data.json ({bytes_written:,} bytes)")
+    version, size = build_service_worker()
+    print(f"  wrote web/sw.js (version {version}, precache {size / 1e6:.1f} MB)")
     print(f"  serve with:  python3 -m http.server -d web 8000")
 
 
 if __name__ == "__main__":
-    main()
+    if "--sw-only" in sys.argv:      # regenerate sw.js only (tests, quick republish)
+        print(build_service_worker()[0])
+    else:
+        main()

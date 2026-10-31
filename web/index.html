@@ -16,6 +16,7 @@
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#101011">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="necropolis-sync" content="https://couch.luismars.com">
 <script src="js/design-palettes.js"></script>
 </head>
@@ -78,8 +79,20 @@
         <div id="sync-conflicts"></div>
         <p id="sync-status" class="nc-sync-status" role="status" aria-live="polite"></p>
       </section>
+      <section class="nc-sync nc-pwa" id="pwa-section" aria-labelledby="pwa-title">
+        <h2 id="pwa-title">App updates</h2>
+        <p id="pwa-version"></p>
+        <div class="nc-sync-actions">
+          <button type="button" class="secondary" id="pwa-check">Check for updates</button>
+        </div>
+        <p id="pwa-status" class="nc-sync-status" role="status" aria-live="polite"></p>
+      </section>
     </div>
   </details>
+  <div class="nc-update" id="nc-update" role="status" hidden>
+    <span id="nc-update-text">A new version is available.</span>
+    <button type="button" class="secondary" id="nc-update-btn">Update</button>
+  </div>
   <button class="print-btn" id="global-print-btn" aria-describedby="print-reason"><span class="pb-verb">Print</span><span class="pb-rest"></span></button>
   <span id="print-reason" hidden></span>
 </header>

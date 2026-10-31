@@ -769,7 +769,7 @@ footer.app-foot .muted { font-size: 13px; opacity: 0.7; }
     background: white; color: black;
   }
   /* Hide everything except the print tab and the sheets inside. */
-  header.app, .queue-list, .print-toolbar, .sheet-num, footer.app-foot,
+  header.app, .nc-update, .queue-list, .print-toolbar, .sheet-num, footer.app-foot,
   section.tab[data-tab="import"], section.tab[data-tab="library"],
   section.tab[data-tab="warband"], section.tab[data-tab="builder"] {
     display: none !important;
