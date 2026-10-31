@@ -23,7 +23,7 @@
 
 import { icon } from "./lucide.js";
 import { state } from "./state.js";
-import { $, escapeHtml } from "./util.js";
+import { $, escapeHtml, whenPointerFree } from "./util.js";
 import { pickField } from "./i18n.js";
 import { store, drafts } from "./gatherings.js";
 import { applyPayload } from "./import.js";
@@ -35,8 +35,8 @@ import { categoryOf, slug } from "./builder/catalog.js";
 import { describe, label, itemName } from "./builder/messages.js";
 import { buyGear, sellGear, recruit, record, stashGear, takeGear, channelBonuses } from "./builder/campaign.js";
 import { initPicker, openPicker, openRemove, refreshPicker, stashable } from "./builder-picker.js";
-import { campaignHtml, campaignChange, campaignClick, setFold } from "./builder-campaign.js";
-import { afterBattleHtml, afterBattleChange, afterBattleClick } from "./builder-afterbattle.js";
+import { campaignHtml, campaignChange, campaignClick, setFold, setNotice, failText } from "./builder-campaign.js";
+import { afterBattleHtml, afterBattleChange, afterBattleClick, syncRequired } from "./builder-afterbattle.js";
 
 const $pick   = $("bd-pick");
 const $body   = $("bd-body");
@@ -93,6 +93,7 @@ function goView(v) {
 }
 
 /** One line of feedback after cards were queued, with a way to the queue. */
+// TODO plural: "1 cards"; switch cardsAdded to plural() once messages.js has it.
 const queuedHtml = (n) => `${n} ${esc(L("cardsAdded"))} ` +
   `<button type="button" class="link" data-act="open-queue">${esc(L("openQueue"))}</button>`;
 
@@ -130,6 +131,8 @@ export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRoste
     }),
   });
   $body.addEventListener("click", onClick);
+  // A die typed or a choice made (no redraw) can enable an Apply button.
+  for (const t of ["input", "change"]) $body.addEventListener(t, () => syncRequired($body));
   // Folding sections remember whether they're open ("toggle" doesn't bubble).
   $body.addEventListener("toggle", (e) => { if (e.target.dataset?.fold) setFold(e.target.dataset.fold, e.target.open); }, true);
 }
@@ -137,15 +140,26 @@ export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRoste
 /* ---- editing --------------------------------------------------------------- */
 
 /** Clone the working copy, let `fn` change it, keep it as the draft and
- *  redraw. The redraw waits a tick so a Tab key press lands its focus first. */
-function edit(fn) {
+ *  redraw. The redraw waits a tick so a Tab key press lands its focus
+ *  first, and waits for a pressed pointer to be released, so the button
+ *  being clicked isn't replaced under it. A change that throws is dropped
+ *  and says why. */
+function edit(fn, act = "") {
   const cur = working();
   if (!cur) return;
   const g = structuredClone(cur);
-  fn(g);
+  try {
+    fn(g);
+  } catch (err) {
+    setNotice(cur, failText(act, err));
+    redraw();
+    return;
+  }
+  setNotice(null);
   keep(g);
-  setTimeout(renderBuilder, 0);
+  redraw();
 }
+const redraw = () => whenPointerFree(renderBuilder);
 
 const findModel = (g, uid) => g.models.find(m => m.uid === uid);
 const isLeaderKey = (key) => categoryOf(key) === "leaders";
@@ -253,7 +267,7 @@ function onChange_(e) {
       }
       case "m-mana":     m.mana = { ...m.mana, [aff]: Math.max(0, parseInt(v, 10) || 0) }; break;
     }
-  });
+  }, act);
 }
 
 function onClick(e) {
@@ -269,11 +283,22 @@ function onClick(e) {
     case "save":    store.save(drafts.get(g.id)); drafts.remove(g.id); status = esc(L("saved")); renderBuilder(); return;
     case "discard": if (confirm(L("confirmDiscardDraft"))) { drafts.remove(g.id); status = ""; renderBuilder(); } return;
   }
-  // Campaign and after-battle actions change a clone; only a handled one is kept.
+  // Campaign and after-battle actions change a clone; only a handled one is
+  // kept. One that throws (a die left blank, a reward with no model) keeps
+  // nothing and says why where it was pressed.
   const clone = g ? structuredClone(g) : null;
-  if (clone && (afterBattleClick(act, el, clone) || campaignClick(act, el, clone))) {
+  let handled = false;
+  try {
+    handled = !!clone && (afterBattleClick(act, el, clone) || campaignClick(act, el, clone));
+  } catch (err) {
+    setNotice(g, failText(act, err));
+    redraw();
+    return;
+  }
+  if (handled) {
+    setNotice(null);
     keep(clone);
-    setTimeout(renderBuilder, 0);
+    redraw();
     return;
   }
   switch (act) {
@@ -376,9 +401,65 @@ export function renderBuilder() {
   hooks.onRender?.();
 }
 
+/* ---- focus across a redraw ---------------------------------------------------
+ * A redraw replaces every control, so the focused one is found again: by its
+ * data-fid, else its id, else its action and the data it acts on (the ↑ of
+ * model m3 is still the ↑ of m3 after it moved). When it's gone (a removed
+ * chip, a model moved to the top), focus goes to the control now in its
+ * place in the same model card, else to the next card, else to the control
+ * at the same position on the page — never back to the top of the page. */
+
+const CONTROLS = "button, input, select, textarea, summary";
+const KEY_DATA = ["act", "uid", "list", "i", "key", "step", "by", "part", "from", "view", "take", "id", "kind", "field", "aff", "dest"];
+const usable = (el) => el && !el.disabled && !el.closest("[hidden], details:not([open]) > :not(summary)");
+/** The controls a player can reach, in order; a themed dropdown counts as its select. */
+const controlsIn = (root) => [...root.querySelectorAll(CONTROLS)].filter(usable);
+const sourceOf = (el) => el?.closest?.(".nc-select")?.querySelector(":scope > select") || el;
+
+function focusMark() {
+  const el = sourceOf(document.activeElement);
+  if (!el || el === document.body || !$body.contains(el)) return null;
+  const d = el.dataset || {};
+  let sel = null;
+  if (d.fid) sel = `[data-fid="${CSS.escape(d.fid)}"]`;
+  else if (el.id) sel = `#${CSS.escape(el.id)}`;
+  else if (d.act) sel = el.tagName.toLowerCase() + KEY_DATA.filter(k => d[k] != null)
+    .map(k => `[data-${k}="${CSS.escape(d[k])}"]`).join("");
+  const card = el.closest(".bd-model");
+  const cards = [...$body.querySelectorAll(".bd-model")];
+  return {
+    sel,
+    card: card?.id || null,
+    cardIndex: card ? cards.indexOf(card) : -1,
+    inCard: card ? controlsIn(card).indexOf(el) : -1,
+    index: controlsIn($body).indexOf(el),
+    isCard: el.classList?.contains("bd-model"),
+  };
+}
+
+function restoreFocus(mark) {
+  if (!mark) return;
+  const exact = mark.sel && [...$body.querySelectorAll(mark.sel)].find(usable);
+  if (exact) { exact.focus(); return; }
+  if (mark.card) {
+    const card = document.getElementById(mark.card);
+    if (card && !mark.isCard) {
+      const list = controlsIn(card);
+      const el = list[Math.min(Math.max(mark.inCard, 0), list.length - 1)];
+      (el || card).focus();
+      return;
+    }
+    const cards = [...$body.querySelectorAll(".bd-model")];
+    const next = card || cards[Math.min(mark.cardIndex, cards.length - 1)];
+    if (next) { next.focus(); return; }
+  }
+  const list = controlsIn($body);
+  list[Math.min(Math.max(mark.index, 0), list.length - 1)]?.focus();
+}
+
 function draw() {
-  // Keep focus on the same field across the redraw.
-  const focused = document.activeElement?.dataset?.fid;
+  // Keep focus on the same control across the redraw.
+  const focused = focusMark();
 
   const all = store.list();
   const g = working();
@@ -390,6 +471,9 @@ function draw() {
   $dupBtn.hidden = $delBtn.hidden = $newBtn.hidden = !g;
   $importBtn.hidden = !g && $importBtn.getAttribute("aria-expanded") !== "true";
   $pick.hidden = all.length < 2;
+  // Nothing left in the toolbar (the empty state): no gap above the message.
+  // Inline, since .bd-toolbar's display beats [hidden].
+  $pick.closest(".bd-toolbar").style.display = !g && $importBtn.hidden ? "none" : "";
   $pick.innerHTML = all.map(x =>
     `<option value="${esc(x.id)}"${x.id === g?.id ? " selected" : ""}>${esc((drafts.get(x.id) || x).name || L("untitled"))}` +
     `${dirty(x) ? ` (${esc(L("unsavedShort"))})` : ""}</option>`).join("");
@@ -398,6 +482,7 @@ function draw() {
     $body.innerHTML = `<div class="bd-empty"><p>${esc(L("empty"))}</p>
       <button type="button" class="primary" data-act="new">${esc(L("newGathering"))}</button>
       <button type="button" class="secondary" data-act="import">${esc(L("import"))}</button></div>`;
+    restoreFocus(focused);
     return;
   }
   const ev = evaluate(g, catalog());
@@ -418,8 +503,9 @@ function draw() {
       </div>`;
   }
   watchModels();
+  syncRequired($body);
 
-  if (focused) $body.querySelector(`[data-fid="${CSS.escape(focused)}"]`)?.focus();
+  restoreFocus(focused);
   refreshPicker();
 }
 
@@ -470,7 +556,6 @@ const warnList = (ws) => ws.length
  * draft's Save / Discard, and a secondary row of what to do with it.
  */
 function gatheringHeadHtml(g, ev) {
-  const isDirty = dirty(g);
   // Campaign and Roster lead with their own content: there the header keeps
   // the name, the figures and the warning count, and leaves the fields to
   // the Gathering view.
@@ -522,7 +607,7 @@ function gatheringHeadHtml(g, ev) {
       ${first && full ? `<p class="bd-hint">${over ? "" : `${esc(L("firstBuildNote"))} `}<button type="button" class="link" data-act="start-built">${esc(L("alreadyBuilt"))}</button></p>` : ""}
       ${warnings}
       <div class="bd-actions">
-        ${view === "roster" ? "" : `<button type="button" class="${isDirty ? "secondary" : "primary"}" data-act="roster">${esc(L("viewRoster"))}</button>
+        ${view === "roster" ? "" : `<button type="button" class="secondary" data-act="roster">${esc(L("viewRoster"))}</button>
         <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>`}
         <details class="bd-share">
           <summary>${esc(L("shareExport"))} ${icon("chevron-down")}</summary>

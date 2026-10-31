@@ -554,12 +554,12 @@ function buildMemberBlock(m, lang) {
   const stats = [
     statCell(t("cost", lang), m.profileCost, "obol"),
     statCell(t("apAbbr", lang), m.stats.ap, "bolt", delta(m, "ap")),
-    statCell(lang === "es" ? "Mov" : "Move", m.stats.m, "", delta(m, "move")),
-    statCell(lang === "es" ? "Violencia" : "Violence", target(m.stats.viol), "", delta(m, "violence")),
-    statCell(lang === "es" ? "A Dist." : "Ranged", target(m.stats.rngd), "", delta(m, "ranged")),
-    statCell("HP", m.stats.hp, "heart", delta(m, "hp")),
+    statCell(statName("move", lang), m.stats.m, "", delta(m, "move")),
+    statCell(statName("violence", lang), target(m.stats.viol), "", delta(m, "violence")),
+    statCell(statName("ranged", lang), target(m.stats.rngd), "", delta(m, "ranged")),
+    statCell(statName("hp", lang), m.stats.hp, "heart", delta(m, "hp")),
   ];
-  if (m.mana != null) stats.push(statCell(lang === "es" ? "Maná" : "Mana", m.mana, "drop", delta(m, "mana")));
+  if (m.mana != null) stats.push(statCell(statName("mana", lang), m.mana, "drop", delta(m, "mana")));
   if (m.spellSlots != null) {
     stats.push(statCell(t("spellSlots", lang), `+${m.spellSlots}`, "star", delta(m, "spells")));
   }

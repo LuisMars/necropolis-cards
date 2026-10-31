@@ -19,7 +19,7 @@ const PORT = 8765;
 const URL_ = `http://localhost:${PORT}/`;
 const LINK = "c1;pl0,a1,tc2,tb6,sn0,sn3,sn1,sb3,sb1;pm4,a1,ewm8;pm3,a1,ewm1;pm1,a1,ewm4,ea0;pm1,a1,ewm4,ea0;pm5,a1,twu8,ewm8";
 
-let server, browser;
+let server, browser, lastContext;
 
 before(async () => {
   server = spawn("python3", ["web/serve.py", String(PORT)], { cwd: ROOT, stdio: "ignore" });
@@ -33,7 +33,9 @@ after(async () => { await browser?.close(); server?.kill(); });
 
 /** A fresh page on the site; collects page errors, accepts confirm dialogs. */
 async function open() {
-  const page = await (await browser.newContext({ viewport: { width: 1360, height: 900 } })).newPage();
+  await lastContext?.close();     // one page at a time: the suite is long
+  lastContext = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  const page = await lastContext.newPage();
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
   page.on("dialog", d => d.accept());
@@ -479,4 +481,501 @@ test("the app's own interface uses icons, not emoji", async () => {
   }
   await go(page, "cards");
   assert.deepEqual(await scan(), []);
+});
+
+/* ---- focus, checks before applying, and what the audit found ---------------- */
+
+/** The focused control, described by what it acts on. */
+const focusOf = (page) => page.evaluate(() => {
+  const a = document.activeElement;
+  const s = a?.closest?.(".nc-select")?.querySelector(":scope > select") || a;
+  return { tag: s?.tagName, act: s?.dataset?.act || null, uid: s?.dataset?.uid || null, card: s?.closest?.(".bd-model")?.id || null };
+});
+/** Press a button with the pointer held a moment, as a person does. */
+async function slowPress(page, selector) {
+  await page.locator(selector).scrollIntoViewIfNeeded();
+  const box = await page.locator(selector).boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(80);
+  await page.mouse.up();
+  await page.waitForTimeout(150);
+}
+/** Into the after-battle sequence, on step `n`. */
+async function afterBattle(page, n = 0) {
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.click('[data-act="ab-open"]');
+  for (let i = 0; i < n; i++) await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+}
+
+test("focus stays on a model's up button when it moves", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  const order = async () => (await working(page)).models.map(m => m.uid);
+  const before = await order();
+  await page.focus('[data-act="m-up"][data-uid="m5"]');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.notDeepEqual(await order(), before);                    // it did move
+  assert.deepEqual(await focusOf(page), { tag: "BUTTON", act: "m-up", uid: "m5", card: "bd-model-m5" });
+  // And again, from the same place on the keyboard.
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.equal((await focusOf(page)).act, "m-up");
+  assert.equal((await focusOf(page)).uid, "m5");
+  assert.deepEqual(errors, []);
+});
+
+test("focus stays near a control that goes away", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  // Moved to the top, its up button is disabled: focus stays on that card.
+  await page.focus('[data-act="m-up"][data-uid="m2"]');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.ok(await page.isDisabled('[data-act="m-up"][data-uid="m2"]'));
+  assert.deepEqual(await focusOf(page), { tag: "BUTTON", act: "m-down", uid: "m2", card: "bd-model-m2" });
+  // A removed chip: focus stays in its card.
+  await page.focus('#bd-model-m4 [data-act="m-del-item"][data-list="armour"]');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.equal((await focusOf(page)).card, "bd-model-m4");
+  // A removed model: focus moves to a neighbouring card, not the page top.
+  await page.focus('[data-act="m-remove"][data-uid="m5"]');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  const after = await page.evaluate(() => document.activeElement.closest(".bd-model")?.id);
+  assert.match(after, /^bd-model-m/);
+  assert.notEqual(after, "bd-model-m5");
+  assert.deepEqual(errors, []);
+});
+
+test("focus survives a redraw on campaign and after-battle controls", async () => {
+  const { page, errors } = await open();
+  await afterBattle(page, 7);
+  // A roll button, then a themed dropdown found again by its id.
+  await page.focus('[data-act="ab-roll-scn"][data-part="missions"]');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.equal((await focusOf(page)).act, "ab-roll-scn");
+  await page.focus('#ab-next-environments + .nc-select-trigger');
+  await page.selectOption("#ab-next-environments", { index: 1 });
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => document.activeElement.closest(".nc-select")?.querySelector("select")?.id), "ab-next-environments");
+  // The step buttons keep it too.
+  await page.focus('.bd-wizard-nav [data-act="ab-step"][data-by="-1"]');
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  assert.equal((await focusOf(page)).act, "ab-step");
+  assert.deepEqual(errors, []);
+});
+
+test("a click isn't lost to the redraw a blur causes", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.fill('[data-act="m-name"][data-uid="m4"]', "Bob");  // still focused
+  await slowPress(page, '[data-act="m-remove"][data-uid="m5"]');
+  const g = await working(page);
+  assert.equal(g.models.some(m => m.uid === "m5"), false, "the Remove click landed");
+  assert.equal(g.models.find(m => m.uid === "m4").name, "Bob");
+  // In the print queue: leaving a name unchanged redraws nothing.
+  await page.click('[data-act="cards"]');
+  await page.waitForTimeout(200);
+  await page.goto(`${URL_}#cards/queue`);
+  await page.waitForFunction(() => document.querySelectorAll("#queue-list .queue-item").length > 1);
+  const count = () => page.locator("#queue-list .queue-item").count();
+  const n = await count();
+  await page.focus("#queue-list .queue-item:nth-child(1) .name");
+  await page.locator("#queue-list .queue-item-wrap").nth(0).locator(".name").focus();
+  await slowPress(page, '#queue-list .queue-item-wrap:nth-child(2) button[aria-label="Remove"]');
+  assert.equal(await count(), n - 1, "unchanged name: the Remove click landed");
+  // A real rename still applies, and the click that ended it still lands.
+  const name = page.locator("#queue-list .queue-item-wrap").nth(0).locator(".name");
+  await name.fill("Renamed");
+  await slowPress(page, '#queue-list .queue-item-wrap:nth-child(2) button[aria-label="Remove"]');
+  assert.equal(await count(), n - 2, "rename: the Remove click landed");
+  assert.equal(await text(page, "#queue-list .queue-item-wrap:nth-child(1) .name"), "Renamed");
+  assert.deepEqual(errors, []);
+});
+
+test("dice: Apply waits for whole numbers from 1 to 10", async () => {
+  const { page, errors } = await open();
+  await afterBattle(page, 2);
+  const apply = '[data-act="ab-apply-rewards"]';
+  assert.ok(await page.isDisabled(apply));                       // blank
+  await page.fill("#ab-d1", "3");
+  assert.ok(await page.isDisabled(apply));                       // one die
+  for (const bad of ["0", "11", "2.5", "-1"]) {
+    await page.fill("#ab-d2", bad);
+    assert.ok(await page.isDisabled(apply), `die ${bad}`);
+  }
+  await page.fill("#ab-d2", "10");
+  assert.ok(await page.isEnabled(apply));
+  await page.fill("#ab-d2", "");
+  assert.ok(await page.isDisabled(apply));                       // and back
+  // The Roll button fills them in, so Apply is ready.
+  await page.click('[data-act="ab-roll-rewards"]');
+  await page.waitForTimeout(150);
+  assert.ok(await page.isEnabled(apply));
+  await page.click(apply);
+  await page.waitForTimeout(150);
+  assert.ok((await working(page)).campaign.afterBattle.done.rewards.dice.every(n => n >= 1 && n <= 10));
+  assert.deepEqual(errors, []);
+});
+
+test("an action that fails says why, and changes nothing", async () => {
+  const { page, errors } = await open();
+  await afterBattle(page, 2);
+  // Past the disabled button (a stale page, a script): the check still holds.
+  await page.evaluate(() => {
+    const b = document.querySelector('[data-act="ab-apply-rewards"]');
+    b.disabled = false;
+    b.click();
+  });
+  await page.waitForTimeout(150);
+  assert.match(await text(page, ".bd-step .bd-notice"), /whole number from 1 to 10/);
+  assert.equal((await working(page)).campaign.afterBattle.done.rewards, undefined);
+  assert.equal(await page.getAttribute(".bd-notice", "role"), "alert");
+  // The next action that works clears it.
+  await page.fill("#ab-d1", "3");
+  await page.fill("#ab-d2", "4");
+  await page.click('[data-act="ab-apply-rewards"]');
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator(".bd-notice").count(), 0);
+  assert.equal((await working(page)).campaign.afterBattle.done.rewards.obols, 37);
+  assert.deepEqual(errors, []);
+});
+
+test("an error from the rules engine reads in the player's words", async () => {
+  const { page } = await open();
+  const words = (act, err) => page.evaluate(([a, e]) =>
+    import("/js/builder-campaign.js").then(m => m.failText(a, e)), [act, err]);
+  // An error code with a label uses the label: any label, so this holds
+  // whichever codes the engine has.
+  assert.match(await words("ab-income", { code: "diceInvalid" }), /whole number from 1 to 10/);
+  // A code with no label falls back on what the action was.
+  assert.match(await words("ab-income", { code: "no-such-code" }), /whole number from 1 to 10/);
+  assert.match(await words("other", { code: "no-such-code", message: "boom" }), /didn't work: boom/);
+});
+
+test("a malady that asks for a stat can't be applied without one", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.click('[data-act="ab-open"]');
+  await page.check('[data-field="leaderShattered"]');
+  await page.waitForTimeout(100);
+  await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+  await page.fill('[data-act="ab-malady-roll"]', "2");           // Cursed Form
+  await page.press('[data-act="ab-malady-roll"]', "Tab");
+  await page.waitForTimeout(150);
+  const apply = '[data-act="ab-apply-malady"]';
+  assert.ok(await page.isDisabled(apply));
+  await page.selectOption("#ab-mal-stat", "move");
+  assert.ok(await page.isEnabled(apply));                        // no redraw needed
+  await page.click(apply);
+  await page.waitForTimeout(150);
+  assert.equal((await working(page)).campaign.afterBattle.done.maladies.stat, "move");
+  assert.deepEqual(errors, []);
+});
+
+test("withdrawing agreement on the omen withdraws the omen", async () => {
+  const { page, errors } = await open();
+  await afterBattle(page, 7);
+  await page.check('[data-act="ab-omen-agree"]');
+  await page.waitForTimeout(100);
+  await page.click('[data-act="ab-roll-scn"][data-part="dread-omens"]');
+  await page.waitForTimeout(100);
+  assert.ok((await working(page)).campaign.afterBattle.next["dread-omens"]);
+  await page.uncheck('[data-act="ab-omen-agree"]');
+  await page.waitForTimeout(100);
+  assert.equal((await working(page)).campaign.afterBattle.next["dread-omens"], null);
+  await page.click('[data-act="ab-finish"]');
+  await page.waitForTimeout(100);
+  assert.equal((await working(page)).campaign.nextScenario.omen, null);
+  assert.deepEqual(errors, []);
+});
+
+test("an agreed omen still carries over", async () => {
+  const { page, errors } = await open();
+  await afterBattle(page, 7);
+  await page.check('[data-act="ab-omen-agree"]');
+  await page.waitForTimeout(100);
+  await page.click('[data-act="ab-roll-scn"][data-part="dread-omens"]');
+  await page.waitForTimeout(100);
+  const omen = (await working(page)).campaign.afterBattle.next["dread-omens"];
+  await page.click('[data-act="ab-finish"]');
+  await page.waitForTimeout(100);
+  assert.equal((await working(page)).campaign.nextScenario.omen, omen);
+  assert.deepEqual(errors, []);
+});
+
+test("a reward's pick stops counting when the model is gone", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  const key = "ambitions/a-favoured-familiar";
+  const complete = `[data-act="amb-complete"][data-key="${key}"]`;
+  await page.selectOption('[data-act="amb-add"]', key);
+  await page.click(`[data-act="amb-tick"][data-key="${key}"][data-step="1"]`);
+  assert.ok(await page.isDisabled(complete));
+  await page.selectOption(`[data-act="amb-target"][data-key="${key}"]`, "m2");
+  await page.waitForTimeout(100);
+  assert.ok(await page.isEnabled(complete));
+  await page.click('[data-act="view"][data-view="gathering"]');
+  await page.click('[data-act="m-remove"][data-uid="m2"]');
+  await page.waitForTimeout(100);
+  await page.click('[data-act="view"][data-view="campaign"]');
+  assert.ok(await page.isDisabled(complete));
+  assert.deepEqual(errors, []);
+});
+
+test("a treasure waiting to be given out stays with its gathering", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  const first = (await working(page)).id;
+  await page.click('[data-act="t-roll"][data-kind="greater"][data-manual]');
+  await page.waitForTimeout(100);
+  assert.ok(await page.locator('[data-act="t-take"]').count() > 0);
+  // A second gathering, its campaign started, has nothing waiting.
+  await page.click("#bd-new");
+  await page.waitForTimeout(100);
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.click('[data-act="start"]');
+  await page.waitForTimeout(100);
+  assert.notEqual((await working(page)).id, first);
+  assert.equal(await page.locator('[data-act="t-take"]').count(), 0);
+  // Back on the first, it's still there.
+  await page.selectOption("#bd-pick", first);
+  await page.waitForTimeout(100);
+  assert.ok(await page.locator('[data-act="t-take"]').count() > 0);
+  assert.deepEqual(errors, []);
+});
+
+test("restoring a backup replaces that gathering's unsaved draft", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.fill(".bd-gname", "Saved name");
+  await page.press(".bd-gname", "Tab");
+  await page.waitForTimeout(100);
+  await page.click('[data-act="save"]');
+  await page.waitForTimeout(100);
+  const backup = JSON.stringify(await working(page));
+  await page.fill(".bd-gname", "Unsaved name");
+  await page.press(".bd-gname", "Tab");
+  await page.waitForTimeout(100);
+  await openImport(page);
+  await page.fill("#json-in", backup);
+  await page.click("#load-warband-btn");
+  await page.waitForTimeout(300);
+  assert.equal(await page.inputValue(".bd-gname"), "Saved name");
+  assert.equal(await page.isVisible(".bd-draft"), false);
+  assert.match(await text(page, "#match-list"), /unsaved changes on this device were replaced/);
+  assert.deepEqual(errors, []);
+});
+
+test("the importer turns away JSON that isn't an object", async () => {
+  await lastContext?.close();
+  lastContext = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  const page = await lastContext.newPage();
+  const errors = [], alerts = [];
+  page.on("pageerror", e => errors.push(e.message));
+  page.on("dialog", d => { alerts.push(d.message()); d.accept(); });
+  await page.goto(URL_);
+  await ready(page);
+  await openImport(page);
+  for (const bad of ["null", "3", '"text"', "[]"]) {
+    await page.fill("#json-in", bad);
+    await page.click("#load-warband-btn");
+    await page.waitForTimeout(100);
+  }
+  assert.equal(alerts.length, 4);
+  assert.ok(alerts.every(a => /isn't a gathering/.test(a)));
+  assert.deepEqual(errors, []);
+});
+
+test("closing Import with no gathering open keeps focus on Import", async () => {
+  const { page } = await open();
+  await openImport(page);
+  await page.click("#bd-import-close");
+  await page.waitForTimeout(100);
+  assert.equal(await page.isHidden("#bd-import-panel"), true);
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.act), "import");
+});
+
+test("the reason Print is unavailable can be reached and read", async () => {
+  const { page } = await open();
+  await page.evaluate(() => { window.printed = 0; window.print = () => { window.printed++; }; });
+  const reason = page.locator("#print-reason");
+  assert.equal(await reason.evaluate(el => el.hidden), false);
+  assert.match(await reason.textContent(), /queue is empty/);
+  // The keyboard reaches it, it describes the button, and it does nothing.
+  await page.focus("#global-print-btn");
+  assert.equal(await page.evaluate(() => document.activeElement.id), "global-print-btn");
+  assert.equal(await page.getAttribute("#global-print-btn", "aria-disabled"), "true");
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(100);
+  assert.equal(await page.evaluate(() => window.printed), 0);
+  assert.equal(page.url().endsWith("#cards/queue"), false);
+  // With something to print the reason goes and the button works.
+  await importLink(page);
+  assert.equal(await reason.evaluate(el => el.hidden), true);
+  assert.equal(await page.getAttribute("#global-print-btn", "aria-disabled"), null);
+  await page.click("#global-print-btn");
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(() => window.printed), 1);
+});
+
+test("the empty Gatherings page has no blank picker, and its buttons work", async () => {
+  for (const width of [1360, 390]) {
+    await lastContext?.close();
+    lastContext = await browser.newContext({ viewport: { width, height: 860 } });
+    const page = await lastContext.newPage();
+    const errors = [];
+    page.on("pageerror", e => errors.push(e.message));
+    await page.goto(`${URL_}#gatherings`);
+    await page.waitForSelector(".bd-empty");
+    assert.equal(await page.locator('section[data-tab="builder"] .bd-toolbar select:visible, section[data-tab="builder"] .bd-toolbar .nc-select-trigger:visible').count(), 0);
+    assert.equal(await page.isVisible(".bd-toolbar"), false);
+    // Import opens its panel, with its toggle back in the toolbar.
+    await page.click('#bd-body [data-act="import"]');
+    assert.ok(await page.isVisible("#bd-import-panel"));
+    assert.ok(await page.isVisible("#bd-import"));
+    await page.click("#bd-import-close");
+    assert.equal(await page.isVisible(".bd-toolbar"), false);
+    // New gathering opens one; with only one there's still no picker.
+    await page.click('#bd-body [data-act="new"]');
+    await page.waitForSelector(".bd-ghead");
+    assert.ok(await page.isVisible("#bd-new"));
+    assert.equal(await page.locator(".bd-toolbar .nc-select-trigger:visible").count(), 0);
+    // A second one brings the picker.
+    await page.click("#bd-new");
+    await page.waitForTimeout(150);
+    const picker = page.locator(".bd-toolbar .nc-select-trigger:visible");
+    assert.equal(await picker.count(), 1);
+    assert.deepEqual(errors, []);
+  }
+});
+
+test("a dropdown's filter text follows the language", async () => {
+  const { page } = await open();
+  await go(page, "cards");
+  // A select the page keeps across a language switch: redrawn ones start over.
+  const trigger = "#lib-category + .nc-select-trigger";
+  await page.click(trigger);
+  assert.equal(await page.getAttribute(".nc-select-filter-input", "placeholder"), "Type to filter…");
+  await page.fill(".nc-select-filter-input", "zzzz");
+  assert.equal(await text(page, ".nc-select-empty"), "No matches");
+  await page.keyboard.press("Escape");
+  await page.click("#nav-settings > summary");
+  await page.selectOption("#lang-select", "es");
+  await page.waitForTimeout(150);
+  await page.click("#nav-settings > summary");
+  await page.click(trigger);
+  assert.equal(await page.getAttribute(".nc-select-filter-input", "placeholder"), "Escribe para filtrar…");
+  await page.fill(".nc-select-filter-input", "zzzz");
+  assert.equal(await text(page, ".nc-select-empty"), "Sin resultados");
+});
+
+test("every after-battle and campaign field has a name", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  const unnamed = () => page.evaluate(() =>
+    [...document.querySelectorAll(".bd-campaign select, .bd-campaign input:not([type=hidden])")]
+      .filter(f => !f.getAttribute("aria-label") && !f.labels?.length)
+      .map(f => f.id || f.dataset.act || f.outerHTML.slice(0, 60)));
+  await page.evaluate(() => document.querySelectorAll("details.bd-fold").forEach(d => { d.open = true; }));
+  await page.click('[data-act="t-roll"][data-kind="minor"][data-manual]');
+  await page.waitForTimeout(100);
+  assert.deepEqual(await unnamed(), []);
+  await page.click('[data-act="t-cancel"]');
+  await page.waitForTimeout(100);
+  await page.click('[data-act="ab-open"]');
+  await page.check('[data-field="leaderShattered"]');
+  for (let step = 0; step < 8; step++) {
+    assert.deepEqual(await unnamed(), [], `step ${step}`);
+    if (step === 7) break;
+    await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+    await page.waitForTimeout(50);
+    if (step === 5) {    // the Bazaar: the Tomb Robber's second dropdown
+      await page.click('[data-act="ab-tomb-roll"]');
+      await page.waitForTimeout(100);
+    }
+  }
+  assert.deepEqual(errors, []);
+});
+
+test("one primary action per area", async () => {
+  const { page } = await open();
+  await importLink(page);
+  // Print leads in the header; the gathering's own buttons are secondary.
+  assert.equal(await page.locator('[data-act="roster"].primary').count(), 0);
+  assert.equal(await page.locator('[data-act="roster"].secondary').count(), 1);
+  assert.equal(await page.locator(".bd-actions .primary").count(), 0);
+  // An unsaved draft has Save as the header card's one primary.
+  await page.fill(".bd-gname", "Changed");
+  await page.press(".bd-gname", "Tab");
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator(".bd-ghead .primary").count(), 1);
+  assert.equal(await page.locator('.bd-ghead [data-act="save"].primary').count(), 1);
+  // The wizard: Next on the way, Finish on the last step, never both.
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.click('[data-act="ab-open"]');
+  for (let step = 0; step <= 7; step++) {
+    assert.equal(await page.locator(".bd-wizard .primary").count(), 1, `step ${step}`);
+    if (step < 7) await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+  }
+});
+
+test("the step line says where you are, and moves between steps", async () => {
+  const { page, errors } = await open();
+  await afterBattle(page);
+  const now = () => text(page, ".bd-stepper-now");
+  assert.equal(await now(), "Battle");
+  const prev = '.bd-stepper [data-by="-1"]', next = '.bd-stepper [data-by="1"]';
+  assert.ok(await page.isDisabled(prev));
+  // dispatchEvent: the line only shows on phones, and this page is wide.
+  await page.locator(next).dispatchEvent("click");
+  await page.waitForTimeout(100);
+  assert.equal(await now(), "Step 1 of 7: Reconstitution Maladies");
+  for (let i = 0; i < 6; i++) { await page.locator(next).dispatchEvent("click"); await page.waitForTimeout(50); }
+  assert.match(await now(), /^Step 7 of 7: /);
+  assert.ok(await page.isDisabled(next));
+  await page.locator(prev).dispatchEvent("click");
+  await page.waitForTimeout(100);
+  assert.match(await now(), /^Step 6 of 7: /);
+  assert.equal(await page.locator(".bd-crumbs li button").count(), 8);  // the full list is still there
+  assert.deepEqual(errors, []);
+});
+
+test("the picker's cursor stays in place after taking from the stash", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  // Two weapons in the stash, from m3 and m4.
+  for (const uid of ["m3", "m4"]) {
+    await page.click(`#bd-model-${uid} [data-act="m-del-item"][data-list="weapons"]`);
+    await page.click('[data-pk="rm"][data-how="stash"]');
+    await page.waitForTimeout(150);
+  }
+  assert.equal((await working(page)).gearStash.length, 2);
+  const active = () => page.getAttribute(".bd-picker-row.is-active", "data-value");
+  await page.click('[data-act="m-pick"][data-uid="m5"][data-list="weapons"]');
+  // Take the second (last) stash row: the row now in its place is next.
+  await page.click('.bd-picker-row[data-value="stash|1"]');
+  await page.waitForTimeout(150);
+  assert.equal((await working(page)).gearStash.length, 1);
+  const rows = await page.$$eval(".bd-picker-row", rs => rs.map(r => r.dataset.value));
+  assert.equal(await active(), rows[1]);
+  assert.notEqual(await active(), rows[0]);
+  assert.deepEqual(errors, []);
 });

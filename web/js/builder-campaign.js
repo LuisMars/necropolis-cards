@@ -6,7 +6,9 @@
  * Renders HTML for builder-tab.js and handles the `data-act` events it
  * forwards. Every change goes through builder/campaign.js on the clone that
  * builder-tab's `edit` hands over, so this module holds no gathering state
- * of its own — only the treasure a reward or a roll has left to give out.
+ * of its own — only, per gathering, the treasure a reward or a roll has left
+ * to give out, the model picked for each ambition's reward, and the notice
+ * saying why the last action didn't happen.
  */
 
 import { icon } from "./lucide.js";
@@ -33,14 +35,37 @@ const name = (key) => itemName(catalog(), key, lang());
 const rows = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r => [`${cat}/${slug(r.name)}`, r]);
 const modelTitle = (m) => (m.name ? `${m.name} (${name(m.profile)})` : name(m.profile));
 
-/** A treasure waiting to be given out: {kind, choices?, greater?, source?}. */
-let pending = null;
-
+/** A treasure waiting to be given out, by gathering id:
+ *  {kind, choices?, greater?, source?}. Another gathering never sees it. */
+const pendings = new Map();
+const pendingOf = (g) => pendings.get(g.id) || null;
 /** Queue a treasure to roll or pick (the after-battle rewards step uses it). */
-export function setPending(p) { pending = p; }
-export const pendingTreasure = () => pending;
-/** Model chosen for each completed ambition's reward, by ambition key. */
-const rewardPick = {};
+export function setPending(g, p) { if (p) pendings.set(g.id, p); else pendings.delete(g.id); }
+export const pendingTreasure = (g) => pendingOf(g);
+/** Model (or spell) chosen for each completed ambition's reward, by
+ *  gathering id and ambition key. */
+const rewardPicks = new Map();
+const pickKey = (g, key) => `${g.id}|${key}`;
+
+/** Why the last action didn't happen, shown above the view it came from. */
+let notice = null;   // {gid, text}
+export function setNotice(g, text) { notice = g && text ? { gid: g.id, text } : null; }
+export const noticeHtml = (g) => notice && notice.gid === g.id
+  ? `<p class="bd-notice" role="alert">${icon("triangle-alert")}<span>${esc(notice.text)}</span></p>` : "";
+/** An error whose message is already the player's words. */
+export const uiError = (k) => Object.assign(new Error(L(k)), { ui: true });
+/** The words for an action that threw: a UI check's own, then the label for
+ *  the engine's error code ({code: "invalidDie"}) if it has one, else by
+ *  action (the engine's own messages are for developers, in English). */
+export function failText(act, err) {
+  if (err?.ui) return err.message;
+  if (err?.code && L(err.code) !== err.code) return L(err.code);
+  const k = {
+    "amb-complete": "chooseRewardFirst", "ab-apply-malady": "chooseStatFirst",
+    "ab-apply-rewards": "diceInvalid", "ab-income": "diceInvalid", "ab-purl": "diceInvalid",
+  }[act];
+  return k ? L(k) : `${L("actionFailed")} ${err?.message || err}`;
+}
 
 /* ---- events ---------------------------------------------------------------- */
 
@@ -56,10 +81,10 @@ export function campaignChange(act, el, g) {
     case "field":       g.models.find(m => m.uid === uid).status = el.checked ? "active" : "reserve"; return true;
     case "hire":        if (v) hireSellsword(g, v, catalog()); return true;
     case "amb-add":     if (v && !g.ambitions.active.includes(v)) g.ambitions.active.push(v); return true;
-    case "amb-target":  rewardPick[key] = v; return true;
+    case "amb-target":  if (v) rewardPicks.set(pickKey(g, key), v); else rewardPicks.delete(pickKey(g, key)); return true;
     case "t-move":      if (v !== "") moveTreasure(g, from || null, Number(i), v === "stash" ? null : v); return true;
     case "t-add":       if (v) giveTreasure(g, v, null); return true;
-    case "t-pick":      if (v && pending) pending = { ...pending, choices: [v] }; return true;
+    case "t-pick":      if (v && pendingOf(g)) setPending(g, { ...pendingOf(g), choices: [v] }); return true;
     case "g-give":      if (v) takeGear(g, v, Number(i)); return true;
   }
   return false;
@@ -79,8 +104,10 @@ export function campaignClick(act, el, g) {
     case "amb-drop":       g.ambitions.active = g.ambitions.active.filter(k => k !== key); return true;
     case "amb-complete": {
       const spellReward = catalog().row(key)?.reward_effect?.target === "spell";
-      const r = completeAmbition(g, key, catalog(), spellReward ? { spell: rewardPick[key] } : rewardPick[key] || null);
-      if (r.treasure) pending = { kind: r.treasure, ambition: r.ambition };
+      const pick = rewardPicks.get(pickKey(g, key)) || null;
+      const r = completeAmbition(g, key, catalog(), spellReward ? { spell: pick } : pick);
+      rewardPicks.delete(pickKey(g, key));
+      if (r.treasure) setPending(g, { kind: r.treasure, ambition: r.ambition });
       return true;
     }
     case "t-roll": {
@@ -88,19 +115,20 @@ export function campaignClick(act, el, g) {
       // scenario or a house rule: it never counts as a greater treasure
       // claimed from ambitions. A re-roll in the pending strip keeps what
       // the pending treasure was for.
-      const keep = el.dataset.manual ? {} : (pending || { greater: el.dataset.kind === "greater" });
-      pending = { ...keep, kind: el.dataset.kind, choices: rollTreasure(catalog(), el.dataset.kind) };
+      const keep = el.dataset.manual ? {} : (pendingOf(g) || { greater: el.dataset.kind === "greater" });
+      setPending(g, { ...keep, kind: el.dataset.kind, choices: rollTreasure(catalog(), el.dataset.kind) });
       return true;
     }
-    case "t-claim-greater": pending = { kind: "greater", greater: true }; return true;
+    case "t-claim-greater": setPending(g, { kind: "greater", greater: true }); return true;
     case "t-take": {
+      const pending = pendingOf(g);
       const to = document.getElementById(`t-to-${el.dataset.take}`)?.value || null;
       giveTreasure(g, key, to, { greaterClaim: !!pending?.greater, ambition: pending?.ambition || null });
       if (pending?.source === "rewards" && g.campaign.afterBattle) g.campaign.afterBattle.treasuresLeft -= 1;
-      pending = null;
+      setPending(g, null);
       return true;
     }
-    case "t-cancel":       pending = null; return true;
+    case "t-cancel":       setPending(g, null); return true;
     case "g-sell":         sellStashedGear(g, catalog(), Number(i)); return true;
     case "g-discard":      discardStashedGear(g, Number(i)); return true;
     case "t-del": {
@@ -137,7 +165,7 @@ export function campaignHtml(g, ev) {
   ensureCampaign(g, catalog());
   if (!campaignStarted(g)) {
     const left = (ev.budget ?? 0) - ev.total;
-    return `
+    return `${noticeHtml(g)}
       <div class="bd-panel">
         <p>${esc(L("notStarted"))} <b>${left} ${esc(L("obols"))}</b>.</p>
         <button type="button" class="primary" data-act="start">${esc(L("startCampaign"))}</button>
@@ -152,14 +180,15 @@ export function campaignHtml(g, ev) {
     .filter(x => ["ambition", "malady", "manual"].includes(x.type)).length, 0);
   return [
     lead,
+    noticeHtml(g),
     pendingHtml(g),
-    fold("treasury", deploymentHtml(g, ev)),
-    fold("ambitions", ambitionsHtml(g)),
-    fold("treasures", treasuresHtml(g)),
-    fold("upgrades", upgradesHtml(g), `${g.lair.upgrades.length} ${L("ownedCount")}`),
-    fold("improvements", improvementsHtml(g, ev), changes ? `${changes} ${L(changes === 1 ? "changesCount1" : "changesCount")}` : ""),
-    fold("history", historyHtml(g)),
-    fold("log", battleLogHtml(g), `${g.history.length} ${L(g.history.length === 1 ? "battleCount1" : "battleCount")}`),
+    fold("treasury", deploymentPanel(g, ev)),
+    fold("ambitions", ambitionsPanel(g)),
+    fold("treasures", treasuresPanel(g)),
+    fold("upgrades", upgradesPanel(g), `${g.lair.upgrades.length} ${L("ownedCount")}`),
+    fold("improvements", improvementsPanel(g, ev), changes ? `${changes} ${L(changes === 1 ? "changesCount1" : "changesCount")}` : ""),
+    fold("history", historyPanel(g)),
+    fold("log", battleLogPanel(g), `${g.history.length} ${L(g.history.length === 1 ? "battleCount1" : "battleCount")}`),
   ].join("");
 }
 
@@ -168,13 +197,17 @@ export function campaignHtml(g, ev) {
 const openFolds = new Set(["treasury", "ambitions", "treasures", "log"]);
 export function setFold(id, open) { if (open) openFolds.add(id); else openFolds.delete(id); }
 
-/** Turn a `.bd-panel` with an <h3> into a folding section. */
-function fold(id, html, meta = "") {
-  const m = /^\s*<div class="bd-panel">\s*<h3>([\s\S]*?)<\/h3>([\s\S]*)<\/div>\s*$/.exec(html);
-  if (!m) return html;
+/** A panel's parts, {title, body} (the title as HTML), as a `.bd-panel`. */
+const panel = ({ title, body }) => `<div class="bd-panel"><h3>${title}</h3>${body}</div>`;
+/** The Ambitions and Lair upgrades panels, which the after-battle steps show too. */
+export const ambitionsHtml = (g) => panel(ambitionsPanel(g));
+export const upgradesHtml = (g) => panel(upgradesPanel(g));
+
+/** A panel's parts as a folding section. */
+function fold(id, { title, body }, meta = "") {
   return `<details class="bd-fold" data-fold="${id}"${openFolds.has(id) ? " open" : ""}>
-    <summary><h3>${m[1]}</h3>${meta ? `<span class="bd-fold-meta">${esc(meta)}</span>` : ""}</summary>
-    <div class="bd-fold-body">${m[2]}</div></details>`;
+    <summary><h3>${title}</h3>${meta ? `<span class="bd-fold-meta">${esc(meta)}</span>` : ""}</summary>
+    <div class="bd-fold-body">${body}</div></details>`;
 }
 
 /** Purchases and sales, one line each: "Bought Blade (Aberrant Husk) −10". */
@@ -192,7 +225,7 @@ export function transactionsHtml(g, list) {
   }).join("")}</ul>`;
 }
 
-function deploymentHtml(g, ev) {
+function deploymentPanel(g, ev) {
   const lm = lairMods(g, catalog());
   const base = g.deploymentLimit ?? catalog().rules.gathering?.deployment_limit ?? 350;
   const over = ev.fielded > ev.deploymentLimit;
@@ -211,9 +244,7 @@ function deploymentHtml(g, ev) {
   const free = freeSellsword(g, catalog());
   const rabble = free && !g.campaign.freeRabbleUsed
     ? `<button type="button" class="secondary" data-act="free-rabble">${esc(L("freeRabble"))}</button>` : "";
-  return `
-    <div class="bd-panel">
-      <h3>${esc(L("treasuryAndBattle"))}</h3>
+  return { title: `${esc(L("treasuryAndBattle"))}`, body: `
       <div class="bd-grid2">
       <div>
         <h4>${esc(L("treasury"))}</h4>
@@ -228,14 +259,14 @@ function deploymentHtml(g, ev) {
         <label class="bd-check"><input type="checkbox" data-act="opp-higher" data-fid="c-opp"${g.campaign.opponentHigher ? " checked" : ""}> ${esc(L("oppHigher"))}</label>
         ${free ? `<p class="bd-good">${esc(L("freeSellsword"))}</p>${rabble}` : ""}
         <div class="bd-fielded">${fieldRows}</div>
-        <select data-act="hire" data-fid="c-hire"><option value="">${esc(L("hire"))}</option>${hires}</select>
+        <select data-act="hire" data-fid="c-hire" aria-label="${esc(L("hire"))}"><option value="">${esc(L("hire"))}</option>${hires}</select>
       </div>
-      </div>
-    </div>`;
+      </div>` };
 }
 
 /** Modal-ish strip for a treasure waiting to be handed out. */
 export function pendingHtml(g) {
+  const pending = pendingOf(g);
   const owed = greaterOwed(g);
   const owedHtml = owed > 0 && !pending
     ? `<div class="bd-panel bd-callout"><b>${owed}</b> ${esc(L("greaterOwed"))}
@@ -246,7 +277,7 @@ export function pendingHtml(g) {
     ...g.models.map(m => `<option value="${esc(m.uid)}">${esc(modelTitle(m))}</option>`)].join("");
   const choices = (pending.choices || []).map((k, n) => `
       <span class="bd-choice">${esc(name(k))}
-        <select id="t-to-${n}">${recipients}</select>
+        <select id="t-to-${n}" aria-label="${esc(L("treasureFor").replace("{item}", name(k)))}">${recipients}</select>
         <button type="button" class="secondary" data-act="t-take" data-key="${esc(k)}" data-take="${n}">${esc(L("add").replace("…", ""))}</button>
       </span>`).join("");
   const table = treasureTable(catalog(), kind).map((k, n) =>
@@ -256,14 +287,14 @@ export function pendingHtml(g) {
       <h3>${esc(L("treasureToTake"))} (${esc(L(kind === "greater" ? "greaterT" : "minorT"))})</h3>
       <div class="bd-inline">
         <button type="button" class="secondary" data-act="t-roll" data-kind="${kind}">${icon("dices")} ${esc(L(kind === "greater" ? "rollGreater" : "rollMinor"))}</button>
-        <select data-act="t-pick" data-fid="c-tpick"><option value="">${esc(L("pickTreasure"))}</option>${table}</select>
+        <select data-act="t-pick" data-fid="c-tpick" aria-label="${esc(L("pickTreasure"))}"><option value="">${esc(L("pickTreasure"))}</option>${table}</select>
         <button type="button" class="secondary" data-act="t-cancel" aria-label="${esc(L("cancel"))}" title="${esc(L("cancel"))}">${icon("x")}</button>
       </div>
       ${choices ? `<div class="bd-choices">${choices}</div>` : ""}
     </div>`;
 }
 
-export function ambitionsHtml(g) {
+function ambitionsPanel(g) {
   const a = g.ambitions;
   const active = a.active.map(key => {
     const r = catalog().row(key) || {};
@@ -279,11 +310,16 @@ export function ambitionsHtml(g) {
       : eff.target === "spell"
         ? spellTargets(g, catalog(), key).map(s => [s, name(s)])
         : [];
-    const pick = chooses ? `<select data-act="amb-target" data-key="${esc(key)}" data-fid="c-amb-${esc(key)}">
-        <option value="">${esc(L(eff.target === "spell" ? "chooseSpell" : "chooseModel_"))}</option>
-        ${targets.map(([v, t]) => `<option value="${esc(v)}"${rewardPick[key] === v ? " selected" : ""}>${esc(t)}</option>`).join("")}
+    // A pick only counts while it's still one of the choices (a model can
+    // be removed, a spell forgotten, after it was picked).
+    const picked = rewardPicks.get(pickKey(g, key));
+    const chosen = targets.some(([v]) => v === picked) ? picked : null;
+    const choose = L(eff.target === "spell" ? "chooseSpell" : "chooseModel_");
+    const pick = chooses ? `<select data-act="amb-target" data-key="${esc(key)}" data-fid="c-amb-${esc(key)}" aria-label="${esc(choose)}">
+        <option value="">${esc(choose)}</option>
+        ${targets.map(([v, t]) => `<option value="${esc(v)}"${chosen === v ? " selected" : ""}>${esc(t)}</option>`).join("")}
       </select>` : "";
-    const canComplete = done && (!chooses || rewardPick[key]);
+    const canComplete = done && (!chooses || chosen);
     return `
       <div class="bd-amb${done ? " done" : ""}">
         <div class="bd-amb-head">
@@ -306,16 +342,13 @@ export function ambitionsHtml(g) {
     groups.get(path).push(`<option value="${esc(k)}">${esc(pickField(r, "name", lang()))} (${r.goal})</option>`);
   }
   const add = [...groups].map(([p, os]) => `<optgroup label="${esc(p)}">${os.join("")}</optgroup>`).join("");
-  return `
-    <div class="bd-panel">
-      <h3>${esc(L("ambitions"))}</h3>
+  return { title: `${esc(L("ambitions"))}`, body: `
       <p class="bd-hint">${a.active.length} ${esc(L("ofFourActive"))}, ${a.completed} ${esc(L("completed"))}.</p>
       ${active}
-      <select data-act="amb-add" data-fid="c-amb-add"><option value="">${esc(L("addAmbition"))}</option>${add}</select>
-    </div>`;
+      <select data-act="amb-add" data-fid="c-amb-add" aria-label="${esc(L("addAmbition"))}"><option value="">${esc(L("addAmbition"))}</option>${add}</select>` };
 }
 
-function treasuresHtml(g) {
+function treasuresPanel(g) {
   const dests = (from) => [`<option value="">${esc(L("moveTo"))}</option>`,
     ...(from ? [`<option value="stash">${esc(L("stash"))}</option>`] : []),
     ...g.models.filter(m => m.uid !== from).map(m => `<option value="${esc(m.uid)}">${esc(modelTitle(m))}</option>`)].join("");
@@ -325,14 +358,14 @@ function treasuresHtml(g) {
       <select data-act="t-move" data-from="${esc(from || "")}" data-i="${idx}" aria-label="${esc(L("moveTo"))}">${dests(from)}</select>
       <button type="button" data-act="t-del" data-from="${esc(from || "")}" data-i="${idx}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button></span>`;
   };
-  const holders = [
+  // Who holds treasures, the stash first: only those holding any.
+  const shownHolders = [
     [L("stash"), null, g.stash],
     ...g.models.map(m => [modelTitle(m), m.uid, m.treasures || []]),
-  ].filter(([, uid, list]) => list.length || uid === null);
+  ].filter(([, , list]) => list.length);
   const all = ["minor-treasures", "greater-treasures", "potions", "throwing-pots"].map(cat =>
     `<optgroup label="${esc(catalog().bundle.categories[cat]?.title || cat)}">` +
     rows(cat).map(([k, r]) => `<option value="${esc(k)}">${esc(pickField(r, "name", lang()))}</option>`).join("") + `</optgroup>`).join("");
-  const shownHolders = holders.filter(([, , list]) => list.length);
   // The gear stash (not in the rulebook; see builder/campaign.js).
   const givers = (n, list) => `<select data-act="g-give" data-i="${n}" data-list="${list}" data-fid="c-gg-${n}" aria-label="${esc(L("giveTo"))}">` +
     `<option value="">${esc(L("giveTo"))}…</option>` +
@@ -348,25 +381,22 @@ function treasuresHtml(g) {
       <div class="bd-list bd-gear-stash"><h4>${esc(L("gearStash"))}</h4>
         <p class="bd-hint">${esc(L("gearStashHint"))}</p>
         <div class="bd-items">${gear || `<span class="bd-none">${esc(L("gearStashEmpty"))}</span>`}</div></div>`;
-  return `
-    <div class="bd-panel">
-      <h3>${esc(L("treasures"))}</h3>
+  return { title: `${esc(L("treasures"))}`, body: `
       ${shownHolders.length ? shownHolders.map(([title, uid, list]) => `
         <div class="bd-list"><h4>${esc(title)}</h4>
           <div class="bd-items">${list.map((k, n) => chip(k, n, uid)).join("")}</div></div>`).join("")
         : `<p class="bd-hint">${esc(L("noTreasures"))}</p>`}
       <div class="bd-inline">
-        <select data-act="t-add" data-fid="c-tadd"><option value="">${esc(L("addTreasure"))}</option>${all}</select>
+        <select data-act="t-add" data-fid="c-tadd" aria-label="${esc(L("addTreasure"))}"><option value="">${esc(L("addTreasure"))}</option>${all}</select>
         <button type="button" class="secondary" data-act="t-roll" data-kind="minor" data-manual="1">${icon("dices")} ${esc(L("rollMinorTreasure"))}</button>
         <button type="button" class="secondary" data-act="t-roll" data-kind="greater" data-manual="1">${icon("dices")} ${esc(L("rollGreaterTreasure"))}</button>
       </div>
       ${greaterOwed(g) > 0 ? `<p class="bd-hint bd-owed">${esc(L("greaterOwedNote").replace("{n}", greaterOwed(g)))}
         <button type="button" class="link" data-act="t-claim-greater">${esc(L("claimIt"))}</button></p>` : ""}
-      ${gearHtml}
-    </div>`;
+      ${gearHtml}` };
 }
 
-export function upgradesHtml(g) {
+function upgradesPanel(g) {
   const owned = new Set(g.lair.upgrades);
   const items = rows("lair-upgrades").map(([k, r]) => `
     <div class="bd-upgrade${owned.has(k) ? " owned" : ""}">
@@ -376,7 +406,7 @@ export function upgradesHtml(g) {
         ? `<div class="bd-upgrade-act"><span class="bd-good">${icon("check")} ${esc(L("owned"))}</span> <button type="button" class="link" data-act="upgrade-refund" data-key="${esc(k)}">${esc(L("refundUpgrade"))}</button></div>`
         : `<button type="button" class="secondary" data-act="upgrade-buy" data-key="${esc(k)}">${esc(L("buy"))} · ${r.obols}</button>`}
     </div>`).join("");
-  return `<div class="bd-panel"><h3>${esc(L("lairUpgrades"))}</h3><div class="bd-upgrades">${items}</div></div>`;
+  return { title: esc(L("lairUpgrades")), body: `<div class="bd-upgrades">${items}</div>` };
 }
 
 /** Who or what a stat change comes from, in words. */
@@ -399,7 +429,7 @@ const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
  * (W5-4). Manual entries can be removed here; an ambition's come off with
  * its Undo in the history, a malady's with the Soul Binder.
  */
-function improvementsHtml(g, ev) {
+function improvementsPanel(g, ev) {
   const shown = (st, v) => (v == null ? "—" : (st === "violence" || st === "ranged") ? `${v}+` : String(v));
   const CAMPAIGN = ["ambition", "malady", "manual", "lair"];
   const unchanged = [];
@@ -436,9 +466,7 @@ function improvementsHtml(g, ev) {
     .map(m => `<option value="${esc(m.uid)}">${esc(modelTitle(m))}</option>`).join("");
   const statOpts = ["ap", "move", "violence", "ranged", "hp", "mana", "spells"]
     .map(st => `<option value="${st}">${esc(L(st))}</option>`).join("");
-  return `
-    <div class="bd-panel">
-      <h3>${esc(L("improvements"))}</h3>
+  return { title: `${esc(L("improvements"))}`, body: `
       <p class="bd-hint">${esc(L("improvementsHint"))}</p>
       ${cards}
       ${unchanged.length ? `<p class="bd-hint">${esc(L("noChangesYet"))} ${esc(unchanged.join(", "))}.</p>` : ""}
@@ -446,17 +474,16 @@ function improvementsHtml(g, ev) {
         <select id="led-model" aria-label="${esc(L("modelsLabel"))}">${models}</select>
         <select id="led-stat" aria-label="${esc(L("stat"))}">${statOpts}</select>
         <input type="number" id="led-amt" value="1" class="bd-die" aria-label="${esc(L("amount"))}">
-        <input type="text" id="led-note" placeholder="${esc(L("reason"))}">
+        <input type="text" id="led-note" placeholder="${esc(L("reason"))}" aria-label="${esc(L("reason"))}">
         <button type="button" class="secondary" data-act="led-add">${esc(L("addChange"))}</button>
-      </div>
-    </div>`;
+      </div>` };
 }
 
 /**
  * Completed ambitions (with Undo), maladies carried, and the progress kept
  * on ambitions that aren't active (W5-5).
  */
-function historyHtml(g) {
+function historyPanel(g) {
   const log = [...g.ambitions.log].reverse().map(e => {
     const to = e.to ? g.models.find(m => m.uid === e.to) : null;
     const target = to ? modelTitle(to)
@@ -476,19 +503,16 @@ function historyHtml(g) {
     .filter(([k, n]) => n > 0 && !g.ambitions.active.includes(k))
     .map(([k, n]) => `<li>${esc(name(k))} · ${n} / ${Number(catalog().row(k)?.goal) || 1}
       <button type="button" class="secondary" data-act="amb-activate" data-key="${esc(k)}">${esc(L("makeActive"))}</button></li>`).join("");
-  return `
-    <div class="bd-panel">
-      <h3>${esc(L("history"))}</h3>
+  return { title: `${esc(L("history"))}`, body: `
       <h4>${esc(L("completedAmbitions"))}</h4>
       ${log ? `<div class="bd-table-wrap"><table class="bd-table">${log}</table></div>` : `<small>—</small>`}
       <h4>${esc(L("maladies"))}</h4>
       ${maladies ? `<ul class="bd-plain">${maladies}</ul>` : `<small>${esc(L("noMaladies"))}</small>`}
       <h4>${esc(L("inactiveProgress"))}</h4>
-      ${inactive ? `<ul class="bd-plain">${inactive}</ul>` : `<small>—</small>`}
-    </div>`;
+      ${inactive ? `<ul class="bd-plain">${inactive}</ul>` : `<small>—</small>`}` };
 }
 
-function battleLogHtml(g) {
+function battleLogPanel(g) {
   const opt = (cat, none) => `${none ? `<option value="">${esc(L("none"))}</option>` : ""}` +
     rows(cat).map(([k, r]) => `<option value="${esc(k)}">${esc(pickField(r, "name", lang()))}</option>`).join("");
   const res = (r) => (r ? L(r) : "—");
@@ -498,9 +522,7 @@ function battleLogHtml(g) {
       <td>${esc(res(e.result))}</td><td>${e.obols || 0}</td><td>${esc(e.notes || "")}</td>
       <td><button type="button" class="secondary" data-act="battle-del" data-i="${n}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button></td></tr>
     ${(e.transactions || []).length ? `<tr class="bd-tx-row"><td></td><td colspan="7">${transactionsHtml(g, e.transactions)}</td></tr>` : ""}`).join("");
-  return `
-    <div class="bd-panel">
-      <h3>${esc(L("battleLog"))}</h3>
+  return { title: `${esc(L("battleLog"))}`, body: `
       <div class="bd-table-wrap"><table class="bd-table bd-log">
         <tr><th>${esc(L("date"))}</th><th>${esc(L("environment"))}</th><th>${esc(L("mission"))}</th><th>${esc(L("omen"))}</th>
             <th>${esc(L("result"))}</th><th>${esc(L("obolsGained"))}</th><th>${esc(L("notes"))}</th><th></th></tr>
@@ -516,6 +538,5 @@ function battleLogHtml(g) {
         <label>${esc(L("obolsGained"))} <input type="number" id="bl-obols" value="0"></label>
         <label class="bd-log-notes">${esc(L("notes"))} <input type="text" id="bl-notes"></label>
       </div>
-      <p><button type="button" class="secondary" data-act="battle-add">${esc(L("logBattle"))}</button></p>
-    </div>`;
+      <p><button type="button" class="secondary" data-act="battle-add">${esc(L("logBattle"))}</button></p>` };
 }
