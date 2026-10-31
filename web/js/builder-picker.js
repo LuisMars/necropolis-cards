@@ -19,7 +19,7 @@
 
 import { icon } from "./lucide.js";
 import { state } from "./state.js";
-import { escapeHtml } from "./util.js";
+import { escapeHtml, foldText as norm } from "./util.js";
 import { pickField } from "./i18n.js";
 import { slug, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./builder/catalog.js";
 import { campaignStarted } from "./builder/rules.js";
@@ -31,7 +31,6 @@ const lang = () => state.lang || "en";
 const L = (k) => label(k, lang());
 const fill = (s, vars) => s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
 const catalog = () => state.catalog;
-const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 const improvised = (key) => /improvised-weapon$/.test(key);
 
 /** Category headings, as on the cards. */
@@ -264,7 +263,9 @@ function drawList() {
   const list = dlg.querySelector(".bd-picker-list");
   list.innerHTML = html || `<p class="bd-picker-empty">${esc(L("pickerNone"))}</p>`;
   rows = [...list.querySelectorAll(".bd-picker-row")].map(el => ({ value: el.dataset.value, el }));
-  setActive(rows.find(r => r.value === ctx.active) || rows[0] || null, false);
+  const at = ctx.addedAt ?? -1;
+  ctx.addedAt = null;
+  setActive(rows.find(r => r.value === ctx.active) || (at >= 0 ? rows[Math.min(at, rows.length - 1)] : null) || rows[0] || null, false);
   dlg.querySelectorAll('[data-pk="chip"]').forEach(b => b.setAttribute("aria-pressed", String(b.dataset.chip === ctx.chip)));
   dlg.querySelector(".bd-picker-status").textContent = ctx.status || "";
 }
@@ -280,8 +281,10 @@ function setActive(r, scroll = true) {
 function add(value) {
   const r = rows.find(x => x.value === value);
   const name = r?.el.querySelector(".bd-pk-name")?.textContent || "";
-  // A stash row's index moves once taken: keep the cursor on its neighbour.
+  // The cursor stays on the row added; a stash row taken is gone (or its
+  // value now names the next stash item), so the row now in its place.
   ctx.active = value;
+  ctx.addedAt = rows.indexOf(r);
   ctx.status = fill(L("addedItem"), { item: name });
   dlg.querySelector(".bd-picker-status").textContent = ctx.status;
   hooks.add(ctx.uid, value);   // the Builder redraws, then refreshPicker()

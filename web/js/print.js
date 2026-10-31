@@ -8,7 +8,7 @@
 
 import { icon } from "./lucide.js";
 import { state, saveQueue, printedCount, addPrinted, cardId } from "./state.js";
-import { $, escapeHtml } from "./util.js";
+import { $, escapeHtml, whenPointerFree } from "./util.js";
 import { renderCardSvg } from "./templates.js";
 
 const $queueList   = $("queue-list");
@@ -225,18 +225,18 @@ function renderQueueLabel(i) {
   if (nameSpan && nameSpan !== document.activeElement) nameSpan.textContent = label;
 }
 
+/* Unchanged, nothing redraws (a redraw on every blur swallowed the click
+ * that caused the blur); emptied, the old name comes back. A rename redraws
+ * once the pointer is released, so the button being pressed still gets it. */
 function commitName(i, next, prev) {
-  if (next === prev || !next) {
-    renderPrint();
-    return;
-  }
+  if (next === prev || !next) { renderQueueLabel(i); return; }   // only the text
   const q = state.queue[i];
   const cat = state.bundle.categories[q.key];
   q.override = q.override || {};
   if (cat && PROFILE_TEMPLATES.has(cat.template)) q.override.header = next;
   else q.override.name = next;
   saveQueue();
-  renderPrint();
+  whenPointerFree(renderPrint);
 }
 
 function move(i, delta) {
@@ -291,7 +291,6 @@ export function renderSheetsInto(wrap, list) {
   const withBacks = $backs.checked;
   const fronts  = Math.ceil(list.length / CARDS_PER_SHEET);
   const totals  = withBacks ? fronts * 2 : fronts;
-  const $sheetsWrap = wrap;
 
   for (let s = 0; s < fronts; s++) {
     // Fronts sheet — 9 cards from the effective print list.
@@ -309,7 +308,7 @@ export function renderSheetsInto(wrap, list) {
       if (q) card.innerHTML = renderCardSvg(q);
       sheet.appendChild(card);
     }
-    $sheetsWrap.appendChild(sheet);
+    wrap.appendChild(sheet);
 
     if (!withBacks) continue;
 
@@ -336,6 +335,6 @@ export function renderSheetsInto(wrap, list) {
       if (filled && backHtml) card.innerHTML = backHtml;
       back.appendChild(card);
     }
-    $sheetsWrap.appendChild(back);
+    wrap.appendChild(back);
   }
 }

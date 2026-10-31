@@ -70,10 +70,15 @@ test("enhances eligible selects and leaves the rest native", async () => {
 
 test("mouse selection fires change on the native select", async () => {
   const { page, errors } = await open();
+  // aria-controls points at the listbox only while it's in the DOM.
+  assert.equal(await page.locator(trig("short")).getAttribute("aria-controls"), null);
   await page.click(trig("short"));
   assert.equal(await page.locator(trig("short")).getAttribute("aria-expanded"), "true");
+  const controls = await page.locator(trig("short")).getAttribute("aria-controls");
+  assert.equal(await page.locator(`[id="${controls}"][role="listbox"]`).count(), 1);
   await page.click(".nc-select-pop .nc-select-option >> text=Loss");
   assert.equal(await page.locator(".nc-select-pop").count(), 0);
+  assert.equal(await page.locator(trig("short")).getAttribute("aria-controls"), null);
   assert.equal(await page.inputValue("#short"), "loss");
   assert.equal(await page.locator(trig("short")).textContent(), "Loss");
   assert.deepEqual(await changes(page), [{ id: "short", act: "result", value: "loss" }]);

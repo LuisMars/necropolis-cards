@@ -28,7 +28,7 @@ import { SAMPLE_JSON } from "./sample.js";
 import { isLink, decodeLink, encodeLink } from "./builder/codec.js";
 import { fromAppJson, toAppJson } from "./builder/appjson.js";
 import { FORMAT } from "./builder/gathering.js";
-import { store } from "./gatherings.js";
+import { store, drafts } from "./gatherings.js";
 import { label } from "./builder/messages.js";
 
 /** Open or close the panel; the toggle button says which it is. */
@@ -44,7 +44,13 @@ function showPanel(open) {
  */
 export function initImport({ onChange, onImported, openQueue, onPanel }) {
   $toggleBtn.addEventListener("click", () => { showPanel($panel.hidden); onPanel?.(); });
-  $closeBtn.addEventListener("click", () => { showPanel(false); onPanel?.(); $toggleBtn.focus(); });
+  $closeBtn.addEventListener("click", () => {
+    showPanel(false);
+    onPanel?.();
+    // With no gathering open the toggle hides: the empty state's Import
+    // button takes the focus instead.
+    ($toggleBtn.hidden ? document.querySelector('#bd-body [data-act="import"]') : $toggleBtn)?.focus();
+  });
   // Load the gathering only: queueing 20-odd cards is a separate decision.
   $loadBtn.addEventListener("click", () => {
     const { matches, notes } = importJson($jsonIn.value, { queue: false });
@@ -89,10 +95,20 @@ function importJson(text, { queue = true } = {}) {
   } else {
     try { data = JSON.parse(text); }
     catch (e) { alert("Invalid JSON: " + e.message); return { matches: [], notes }; }
-    if (data?.format === FORMAT) {
+    // Valid JSON that isn't an object (null, a number, a list) is no gathering.
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      alert(label("notAGathering", state.lang || "en"));
+      return { matches: [], notes };
+    }
+    if (data.format === FORMAT) {
       // A Builder backup: restore it as it was (same id), and show its roster.
+      // Its unsaved draft would hide the restore, so the backup replaces it.
       store.save(data);
       notes.unshift(`Restored the Builder backup "${data.name || "Untitled gathering"}".`);
+      if (drafts.get(data.id)) {
+        drafts.remove(data.id);
+        notes.push(label("backupReplacedDraft", state.lang || "en"));
+      }
       data = toAppJson(data, state.catalog);
     } else {
       const { gathering, unmatched } = fromAppJson(data, state.catalog);

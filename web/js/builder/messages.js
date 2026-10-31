@@ -342,6 +342,26 @@ const UI = {
   violence:       ["Violence", "Violencia"],
   ranged:         ["Ranged", "A Dist."],
   hp:             ["HP", "HP"],
+  // Checks before an action, and why one didn't happen
+  diceInvalid:    ["Enter each die as a whole number from 1 to 10.", "Escribe cada dado como un número entero del 1 al 10."],
+  chooseStatFirst:["Choose Move, Violence or Ranged first.", "Elige primero Movimiento, Violencia o A Distancia."],
+  chooseRewardFirst: ["Choose who gets the reward first.", "Elige primero quién recibe la recompensa."],
+  actionFailed:   ["That didn't work:", "No se pudo hacer:"],
+  // After-battle steps on a phone
+  stepOf:         ["Step {n} of {total}: {name}", "Paso {n} de {total}: {name}"],
+  afterBattleSteps: ["After-battle steps", "Pasos tras la batalla"],
+  prevStep:       ["Previous step", "Paso anterior"],
+  nextStep:       ["Next step", "Paso siguiente"],
+  // Names for fields that show no label
+  itemToBuy:      ["Item to buy", "Objeto a comprar"],
+  buyFor:         ["Buy for", "Comprar para"],
+  minionToRecruit:["Minion to recruit", "Secuaz a reclutar"],
+  treasureFor:    ["Give {item} to", "Dar {item} a"],
+  // Import
+  backupReplacedDraft: ["Its unsaved changes on this device were replaced by the backup.",
+                        "Sus cambios sin guardar en este dispositivo se han sustituido por la copia."],
+  notAGathering:  ["That JSON isn't a gathering: expected an object with a covenant and models.",
+                   "Ese JSON no es un séquito: se esperaba un objeto con un pacto y miniaturas."],
 };
 
 /** A row key's card name in the given language. */

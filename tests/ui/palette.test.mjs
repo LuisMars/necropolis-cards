@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
-const PORT = 8767;
+const PORT = 8769;
 const URL_ = `http://localhost:${PORT}/`;
 const KEY = "necropolis-ui-palette-v56";
 const EXPORT = readFileSync(new URL("../fixtures/companion-export.json", import.meta.url), "utf8");

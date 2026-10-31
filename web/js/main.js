@@ -157,9 +157,14 @@ function refreshHeader() {
   $printBtn.querySelector(".pb-rest").textContent = ` ${rest}`;
   // Phones show only the verb; the name still says what it prints.
   $printBtn.setAttribute("aria-label", `${verb} ${rest}`);
-  $printBtn.disabled = !!reason;
+  // Unavailable, it stays focusable (aria-disabled, not disabled) so the
+  // keyboard reaches it and hears why; the reason shows beside it
+  // (#print-reason: a tooltip on hover or focus, plain text on phones).
+  if (reason) $printBtn.setAttribute("aria-disabled", "true");
+  else $printBtn.removeAttribute("aria-disabled");
   $printBtn.title = reason;
   $printReason.textContent = reason;
+  $printReason.hidden = !reason;
 }
 
 document.addEventListener("click", (e) => {
@@ -184,6 +189,7 @@ document.addEventListener("pointerdown", (e) => {
 // a snapshot of hidden tabs and print them as blank), then open the dialog
 // on the next frame: the roster on Gatherings, the card sheets on Cards.
 $printBtn.addEventListener("click", () => {
+  if ($printBtn.getAttribute("aria-disabled") === "true") return;
   const roster = ROUTES[current]?.dest === "gatherings";
   navigate(roster ? (ROUTES[current].part === "cards" ? "gatherings/roster/cards" : "gatherings/roster") : "cards/queue");
   if (roster) document.body.classList.add("printing-warband");
@@ -297,7 +303,7 @@ document.querySelectorAll("[data-icon]").forEach(el => {
 
 // Themed dropdowns for every select, now and as views redraw (select.js;
 // touch keeps the native picker). Its strings follow the Language setting:
-// read when a list first opens, and per select from data-* where set.
+// read each time a list opens, and per select from data-* where set.
 observeSelects(document, {
   get filterPlaceholder() { return L("filterOptions"); },
   get noMatches() { return L("noMatches"); },

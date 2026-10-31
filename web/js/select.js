@@ -24,6 +24,8 @@
  * label and exposed as the option's accessible description.
  */
 
+import { foldText as norm } from "./util.js";
+
 const SKIP = "[data-native],[multiple],[size]";
 const FILTER_OVER = 12;          // > this many options: show the filter field
 const MARGIN = 8;                // keep the popup this far from viewport edges
@@ -40,8 +42,6 @@ const proto = HTMLSelectElement.prototype;
 const VALUE = Object.getOwnPropertyDescriptor(proto, "value");
 const INDEX = Object.getOwnPropertyDescriptor(proto, "selectedIndex");
 
-const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
-  .toLowerCase().replace(/\s+/g, " ").trim();
 const optText = o => String(o.label || o.text || "").replace(/\s+/g, " ").trim();
 const isCoarse = () => typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
 const el = (tag, cls, attrs = {}) => {
@@ -111,7 +111,7 @@ function enhance(select, opts) {
   const wrap = el("span", "nc-select");
   const trigger = el("div", "nc-select-trigger", {
     id: `${id}-trigger`, role: "combobox", tabindex: "0",
-    "aria-haspopup": "listbox", "aria-expanded": "false", "aria-controls": `${id}-list`,
+    "aria-haspopup": "listbox", "aria-expanded": "false",
   });
   // `hidden` + a screen-only display rule in select.css: in print (or if
   // select.css is missing) the trigger stays hidden and the native select shows.
@@ -179,6 +179,8 @@ const isDisabled = inst => inst.select.disabled || !!inst.select.closest("fields
 
 function sync(inst, force) {
   const { select, trigger, value } = inst;
+  // A hidden select hides its stand-in too (.nc-select's display beats [hidden]).
+  inst.wrap.style.display = select.hidden ? "none" : "";
   const opt = select.options[INDEX.get.call(select)];
   value.textContent = opt ? optText(opt) || " " : " ";
   trigger.toggleAttribute("data-placeholder", !opt || opt.value === "");
@@ -364,11 +366,18 @@ function open(inst, seed = "") {
   if (current === inst || isDisabled(inst)) return;
   if (current) close(current, false);
   if (!inst.pop) build(inst);
+  // The strings can follow a language switch (getters in opts): read them
+  // on every open, not only when the popup is first built.
+  const { select, opts } = inst;
+  if (inst.filter) inst.filter.placeholder = select.dataset.filterPlaceholder || opts.filterPlaceholder || "Filter…";
+  inst.empty.textContent = select.dataset.noMatches || opts.noMatches || "No matches";
   inst.width = 0;
   if (inst.filter) inst.filter.value = "";
   render(inst);
   document.body.append(inst.pop);
   current = inst;
+  // aria-controls only while the listbox is in the DOM.
+  inst.trigger.setAttribute("aria-controls", inst.list.id);
   inst.trigger.setAttribute("aria-expanded", "true");
   inst.wrap.classList.add("is-open");
   place(inst);                          // measures the unfiltered width
@@ -390,6 +399,7 @@ function close(inst, refocus) {
   inst.active?.el.classList.remove("is-active");
   inst.active = null;
   inst.trigger.setAttribute("aria-expanded", "false");
+  inst.trigger.removeAttribute("aria-controls");
   inst.trigger.removeAttribute("aria-activedescendant");
   inst.wrap.classList.remove("is-open");
   inst.typed = "";
