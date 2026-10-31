@@ -32,9 +32,12 @@ import { newGathering, newModel } from "./builder/gathering.js";
 import { toAppJson } from "./builder/appjson.js";
 import { linkUrl, defaultWeapon } from "./builder/codec.js";
 import { categoryOf, slug } from "./builder/catalog.js";
-import { describe, label, itemName, plural } from "./builder/messages.js";
-import { buyGear, sellGear, recruit, record, stashGear, takeGear, channelBonuses } from "./builder/campaign.js";
-import { initPicker, openPicker, openRemove, refreshPicker, stashable } from "./builder-picker.js";
+import { describe, label, itemName, plural, fill } from "./builder/messages.js";
+import {
+  buyGear, sellGear, discardGear, recruitPrice, recruit, record, stashGear, takeGear, channelBonuses, startingWeapon,
+  weaponLocked, buyPrice, deployCosts, payDeployment,
+} from "./builder/campaign.js";
+import { initPicker, openPicker, openRemove, openChoice, refreshPicker, stashable } from "./builder-picker.js";
 import { campaignHtml, campaignChange, campaignClick, setFold, setNotice, failText } from "./builder-campaign.js";
 import { afterBattleHtml, afterBattleChange, afterBattleClick, syncRequired } from "./builder-afterbattle.js";
 
@@ -123,10 +126,7 @@ export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRoste
     remove: (uid, list, i, how) => edit(g => {
       if (how === "sell") sellGear(g, catalog(), uid, list, i);
       else if (how === "stash") stashGear(g, catalog(), uid, list, i);
-      else {   // equipment: it can't be sold (p.72)
-        const [k] = findModel(g, uid)[list].splice(Number(i), 1);
-        record(g, "discard", { item: k, uid });
-      }
+      else discardGear(g, catalog(), uid, list, i);
     }),
   });
   $body.addEventListener("click", onClick);
@@ -181,7 +181,7 @@ function addModel(g, key) {
   const m = newModel(g, {
     profile: key,
     affinity: allowed.length === 1 ? allowed[0] : (lock && allowed.includes(lock) ? lock : null),
-    weapons: [defaultWeapon(catalog(), key)],
+    weapons: [startingWeapon(catalog(), key)],
   });
   if (isLeaderKey(key)) {
     // Every leader gains Summon, and its covenant's leader trait.
@@ -210,6 +210,7 @@ function setCovenant(g, key) {
 
 function changeProfile(g, m, key) {
   const wasLeader = isLeaderKey(m.profile);
+  const started = m.weapons.length === 1 ? startingWeapon(catalog(), m.profile) : null;
   m.profile = key;
   const allowed = allowedAffinities(key);
   if (!allowed.includes(m.affinity)) m.affinity = allowed.length === 1 ? allowed[0] : null;
@@ -218,8 +219,16 @@ function changeProfile(g, m, key) {
     const cov = catalog().covenant(g.covenant);
     if (cov?.leader_trait && !m.traits.includes(cov.leader_trait)) m.traits.unshift(cov.leader_trait);
   }
-  // Swap a free default weapon for the new type's (colossal or not).
-  if (m.weapons.length === 1 && /improvised-weapon$/.test(m.weapons[0])) m.weapons = [defaultWeapon(catalog(), key)];
+  // A model still on the weapon it started with gets the new type's (colossal,
+  // a beast's Claws and Fangs, or the free Improvised one). In a campaign only
+  // the free one is swapped: a paid weapon stays, and a weapon that costs is bought.
+  if (m.weapons.length !== 1) return;
+  const next = startingWeapon(catalog(), key);
+  const free = /improvised-weapon$/.test(m.weapons[0]);
+  const inCampaign = campaignStarted(g);
+  if (m.weapons[0] === next || !(free || (!inCampaign && m.weapons[0] === started))) return;
+  if (inCampaign && buyPrice(g, catalog(), next)) buyGear(g, catalog(), m.uid, "weapons", next);
+  else m.weapons = [next];
 }
 
 const GEAR = ["weapons", "armour", "equipment"];
@@ -253,20 +262,53 @@ function onChange_(e) {
       case "add-model":
         if (!v) break;
         // In a campaign a new minion is recruited at the Bazaar price (p.72).
-        if (campaignStarted(g) && categoryOf(v) === "minions") recruit(g, catalog(), v, defaultWeapon(catalog(), v));
+        if (campaignStarted(g) && categoryOf(v) === "minions") recruit(g, catalog(), v);
         else addModel(g, v);
         break;
       case "m-name":     m.name = v.trim(); break;
       case "m-profile":  changeProfile(g, m, v); break;
       case "m-aff":      m.affinity = v || null; break;
-      case "m-add": {
-        const [list, key] = v.split("|");
-        if (list && key) addItem(g, m, list, key);
-        break;
-      }
       case "m-mana":     m.mana = { ...m.mana, [aff]: Math.max(0, parseInt(v, 10) || 0) }; break;
     }
   }, act);
+}
+
+/**
+ * Campaign and after-battle actions change a clone; only a handled one is
+ * kept. One that throws (a die left blank, a reward with no model) keeps
+ * nothing and says why where it was pressed. `before` runs on the clone first.
+ * @returns {boolean} true when the action was theirs
+ */
+function campaignAct(act, el, g, before = null) {
+  const clone = g ? structuredClone(g) : null;
+  let handled = false;
+  try {
+    before?.(clone);
+    handled = !!clone && (afterBattleClick(act, el, clone) || campaignClick(act, el, clone));
+  } catch (err) {
+    setNotice(g, failText(act, err));
+    redraw();
+    return true;
+  }
+  if (handled) {
+    setNotice(null);
+    keep(clone);
+    redraw();
+  }
+  return handled;
+}
+
+/** The prompt before a battle is logged: pay for the sellsword, or don't. */
+function askDeployment(g, act, el) {
+  const { due, total } = deployCosts(g, catalog());
+  const names = due.map(x => { const m = findModel(g, x.uid); return m.name || itemName(catalog(), x.key, lang()); }).join(", ");
+  openChoice({
+    title: L("deployPayTitle"),
+    note: fill(L("deployPayNote"), { names }),
+    choices: [{ how: "pay", text: fill(L("deployPay"), { n: total }) }, { how: "skip", text: L("deployNoPay") }],
+    fid: el.dataset.fid,
+    onPick: (how) => campaignAct(act, el, working(), how === "pay" ? (c) => payDeployment(c, catalog()) : null),
+  });
 }
 
 function onClick(e) {
@@ -282,44 +324,46 @@ function onClick(e) {
     case "save":    store.save(drafts.get(g.id)); drafts.remove(g.id); status = esc(L("saved")); renderBuilder(); return;
     case "discard": if (confirm(L("confirmDiscardDraft"))) { drafts.remove(g.id); status = ""; renderBuilder(); } return;
   }
-  // Campaign and after-battle actions change a clone; only a handled one is
-  // kept. One that throws (a die left blank, a reward with no model) keeps
-  // nothing and says why where it was pressed.
-  const clone = g ? structuredClone(g) : null;
-  let handled = false;
-  try {
-    handled = !!clone && (afterBattleClick(act, el, clone) || campaignClick(act, el, clone));
-  } catch (err) {
-    setNotice(g, failText(act, err));
-    redraw();
+  // Logging a battle with a sellsword deployed asks whether to pay for it
+  // first (p.74). Nothing is charged unless the player chooses to.
+  if (g && (act === "battle-add" || act === "ab-finish") && deployCosts(g, catalog()).total) {
+    askDeployment(g, act, el);
     return;
   }
-  if (handled) {
-    setNotice(null);
-    keep(clone);
-    redraw();
-    return;
-  }
+  if (campaignAct(act, el, g)) return;
   switch (act) {
     case "m-pick":     openPicker(uid, list, el.dataset.fid); break;
-    case "m-del-item":
-      // In a campaign, gear coming off a model is sold, kept in the stash
-      // or thrown away: ask which (the free Improvised Weapon just goes).
-      if (campaignStarted(g) && GEAR.includes(list) && stashable(findModel(g, uid)[list][Number(i)])) {
+    case "m-del-item": {
+      const m = findModel(g, uid);
+      // A beast's last weapon stays (its ✕ isn't drawn).
+      if (weaponLocked(catalog(), m, list, i)) break;
+      // In a campaign, gear coming off a model is sold or kept in the stash:
+      // ask which (the free Improvised Weapon just goes).
+      if (campaignStarted(g) && GEAR.includes(list) && stashable(m[list][Number(i)])) {
         openRemove(uid, list, i, `${uid}-add-${list}`);
         break;
       }
-      edit(g => {
-                         // In a campaign weapons and armour sell for half (p.72).
-                         if (campaignStarted(g) && (list === "weapons" || list === "armour")) sellGear(g, catalog(), uid, list, i);
-                         else {
-                           const m = findModel(g, uid);
-                           const [k] = m[list].splice(Number(i), 1);
-                           // A model always has a weapon: the free Improvised one comes back (as in the engine).
-                           if (list === "weapons" && !m.weapons.length) m.weapons.push(defaultWeapon(catalog(), m.profile));
-                           if (campaignStarted(g) && list === "equipment") record(g, "discard", { item: k, uid });
-                         }
-                       }); break;
+      const remove = () => edit(g => {
+        const m = findModel(g, uid);
+        m[list].splice(Number(i), 1);
+        // A model always has a weapon: the free Improvised one comes back (as in the engine).
+        if (list === "weapons" && !m.weapons.length) m.weapons.push(defaultWeapon(catalog(), m.profile));
+      });
+      // p.17: traits can't be removed once taken, but a campaign can have a
+      // mistake to fix, so it asks rather than refuses. Before it, try freely.
+      if (list === "traits" && campaignStarted(g)) {
+        openChoice({
+          title: fill(L("removeTitle"), { item: itemName(catalog(), m.traits[Number(i)], lang()), model: m.name || itemName(catalog(), m.profile, lang()) }),
+          note: L("removeTraitNote"),
+          choices: [{ how: "remove", text: L("removeAnyway") }],
+          fid: `${uid}-add-traits`,
+          onPick: remove,
+        });
+        break;
+      }
+      remove();
+      break;
+    }
     case "m-remove":   edit(g => {
                          const m = findModel(g, uid);
                          if (campaignStarted(g)) record(g, "dismiss", { item: m.profile, uid });
@@ -810,8 +854,10 @@ function chipsHtml(m, list, g) {
     const name = itemName(catalog(), key, lang());
     const cost = Number(catalog().row(key)?.obols) || 0;
     const bonus = channel[key] ? `<small class="bd-bonus">${esc(L("channelBonus").replace("{n}", channel[key]))}</small>` : "";
-    return `<span class="bd-item">${esc(name)}${cost ? `<small>${cost}</small>` : ""}${bonus}` +
-      `<button type="button" data-act="m-del-item" data-uid="${uid}" data-list="${list}" data-i="${i}" aria-label="${esc(L("remove"))} ${esc(name)}">${icon("x")}</button></span>`;
+    // A beast's last weapon has no ✕: it needs one, and no free one replaces it.
+    const locked = weaponLocked(catalog(), m, list, i);
+    return `<span class="bd-item"${locked ? ` title="${esc(L("weaponLocked"))}"` : ""}>${esc(name)}${cost ? `<small>${cost}</small>` : ""}${bonus}` +
+      (locked ? "" : `<button type="button" data-act="m-del-item" data-uid="${uid}" data-list="${list}" data-i="${i}" aria-label="${esc(L("remove"))} ${esc(name)}">${icon("x")}</button>`) + `</span>`;
   }).join("");
 }
 
@@ -862,7 +908,7 @@ function addReasons(uid, values) {
   return out;
 }
 
-/** What the picker adds: "list|key" through addItem (the m-add path), or
+/** What the picker adds: "list|key" through addItem, or
  *  "stash|i" from the campaign's gear stash, free. */
 function pickerAdd(g, uid, value) {
   const [list, key] = value.split("|");
@@ -880,8 +926,11 @@ function manaHtml(m) {
 
 function addModelHtml(g) {
   const hasLeader = g.models.some(m => isLeaderKey(m.profile));
-  const opts = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r =>
-    `<option value="${esc(`${cat}/${slug(r.name)}`)}">${esc(pickField(r, "name", lang()))} (${Number(r.obols) || 0})</option>`).join("");
+  // The price includes the weapon a new model starts with (a beast's Claws and Fangs).
+  const opts = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r => {
+    const key = `${cat}/${slug(r.name)}`;
+    return `<option value="${esc(key)}">${esc(pickField(r, "name", lang()))} (${recruitPrice(campaignStarted(g) ? g : {}, catalog(), key)})</option>`;
+  }).join("");
   return `
     <div class="bd-add-model">
       <select data-act="add-model" data-fid="add-model" class="bd-add" aria-label="${esc(L(hasLeader ? "addModel" : "addLeader"))}">

@@ -18,14 +18,13 @@ import { pickField } from "./i18n.js";
 import { slug } from "./builder/catalog.js";
 import { treasureKind, evaluate } from "./builder/rules.js";
 import { label, itemName } from "./builder/messages.js";
-import { defaultWeapon } from "./builder/codec.js";
 import {
   d, ensureCampaign, startAfterBattle, maladyFor, applyMalady, applyVictoryRewards, incomeUpgrades,
-  applyLairIncome, applyPurloiner, buyGear, buyPrice, recruit, sellGear, sellValue, sellTreasure,
+  applyLairIncome, applyPurloiner, buyGear, buyPrice, recruit, recruitPrice, sellGear, sellValue, sellTreasure,
   soulBinder, tombRobber, hasAlchemy, buyAlchemy, price, rollScenarioPart, canRerollOmen,
-  finishAfterBattle, greaterOwed, rollTreasure, treasureTable,
+  finishAfterBattle, greaterOwed, rollTreasure, treasureTable, weaponLocked,
 } from "./builder/campaign.js";
-import { ambitionsHtml, pendingHtml, upgradesHtml, setPending, pendingTreasure, noticeHtml, uiError } from "./builder-campaign.js";
+import { ambitionsHtml, pendingHtml, upgradesHtml, setPending, pendingTreasure, noticeHtml, uiError, deployNoteHtml } from "./builder-campaign.js";
 import { maladiesOf } from "./builder/ledger.js";
 
 const esc = escapeHtml;
@@ -117,7 +116,7 @@ export function afterBattleClick(act, el, g) {
       if (lst && k && val("ab-buy-model")) buyGear(g, catalog(), val("ab-buy-model"), lst, k);
       return true;
     }
-    case "ab-recruit": if (val("ab-recruit-key")) recruit(g, catalog(), val("ab-recruit-key"), defaultWeapon(catalog(), val("ab-recruit-key"))); return true;
+    case "ab-recruit": if (val("ab-recruit-key")) recruit(g, catalog(), val("ab-recruit-key")); return true;
     case "ab-sell":    sellGear(g, catalog(), uid, list, i); return true;
     case "ab-sell-t":  sellTreasure(g, catalog(), el.dataset.from || null, i); return true;
     case "ab-soul":    soulBinder(g, catalog(), uid, el.dataset.ref); return true;
@@ -204,7 +203,8 @@ function battleStep(g, a) {
       <label>${esc(L("result"))} ${select("ab-result", ["win", "loss", "draw"].map(r => [r, L(r)]), b.result, { act: "ab-field", attrs: field("result") })}</label>
       <label class="bd-check"><input type="checkbox" data-act="ab-field"${field("leaderShattered")}${b.leaderShattered ? " checked" : ""}> ${esc(L("leaderShattered"))}</label>
       <label>${esc(L("notes"))} <input type="text" data-act="ab-field"${field("notes")} value="${esc(b.notes || "")}"></label>
-    </div>`;
+    </div>
+    ${deployNoteHtml(g)}`;
 }
 
 function stepText(key) {
@@ -299,9 +299,12 @@ function bazaarStep(g, a) {
     .flatMap(([lst, cats]) => cats.flatMap(cat => rows(cat)
       .filter(([k]) => buyPrice(g, catalog(), k) > 0)       // nothing to buy in a free Improvised Weapon
       .map(([k, r]) => [`${lst}|${k}`, `${pickField(r, "name", lang())} · ${buyPrice(g, catalog(), k)}`])));
-  const recruits = rows("minions").map(([k, r]) => [k, `${pickField(r, "name", lang())} · ${price(r)}`]);
-  const sells = g.models.flatMap(m => ["weapons", "armour"].flatMap(lst => (m[lst] || []).map((k, n) =>
-    sellValue(catalog(), k) > 0 ? `<span class="bd-item">${esc(modelTitle(m))}: ${esc(name(k))}
+  // The price includes the weapon a new minion starts with (a beast's Claws and Fangs).
+  const recruits = rows("minions").map(([k, r]) => [k, `${pickField(r, "name", lang())} · ${recruitPrice(g, catalog(), k)}`]);
+  // Anything with a cost sells (the house rule at campaign.js `sellValue`), but
+  // not a beast's last weapon.
+  const sells = g.models.flatMap(m => ["weapons", "armour", "equipment"].flatMap(lst => (m[lst] || []).map((k, n) =>
+    sellValue(catalog(), k) > 0 && !weaponLocked(catalog(), m, lst, n) ? `<span class="bd-item">${esc(modelTitle(m))}: ${esc(name(k))}
       <button type="button" class="bd-sell" data-act="ab-sell" data-uid="${esc(m.uid)}" data-list="${lst}" data-i="${n}">${esc(L("sell"))} ${sellValue(catalog(), k)}</button></span>` : "")));
   const b = catalog().rules.bazaar || {};
   const tVal = (k) => treasureKind(catalog(), k) === "greater" ? b.sell_greater_treasure : b.sell_minor_treasure;
@@ -360,5 +363,6 @@ function scenarioStep(g, a) {
     <label class="bd-check"><input type="checkbox" data-act="ab-omen-agree"${a.omenAgreed ? " checked" : ""}> ${esc(L("bothAgree"))}</label>
     ${a.omenAgreed ? part("dread-omens", "omen", reroll) : ""}
     ${a.treasuresLeft > 0 ? `<p class="bd-warn-line">${a.treasuresLeft} ${esc(L("treasureRolls"))} — ${esc(L("rollsLost"))}</p>` : ""}
-    <p><button type="button" class="primary" data-act="ab-finish">${esc(L("finish"))}</button></p>`;
+    ${deployNoteHtml(g)}
+    <p><button type="button" class="primary" data-act="ab-finish" data-fid="ab-finish">${esc(L("finish"))}</button></p>`;
 }

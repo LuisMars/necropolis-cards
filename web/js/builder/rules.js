@@ -215,8 +215,12 @@ export function evaluateModel(model, catalog, gathering = {}) {
   // Traits per model: leaders up to 3 (one Basic Leader Trait), minions 1.
   const maxTraits = isLeader ? (rules.gathering?.leader_max_traits ?? 3)
                              : (rules.gathering?.minion_max_traits ?? 1);
-  if (traitRows.length > maxTraits) {
-    warn("too-many-traits", { params: { count: traitRows.length, max: maxTraits } });
+  // The covenant's own leader trait comes "in addition to any others" (p.19),
+  // so it doesn't count towards the 3.
+  const ownLeaderTrait = isLeader ? catalog.covenant(gathering.covenant)?.leader_trait : null;
+  const counted = traitRows.filter(t => t.key !== ownLeaderTrait).length;
+  if (counted > maxTraits) {
+    warn("too-many-traits", { params: { count: counted, max: maxTraits } });
   }
   if (isLeader) {
     const basic = traitRows.filter(t => categoryOf(t.key) === "basic-leader-traits").length;

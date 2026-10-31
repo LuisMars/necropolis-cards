@@ -979,3 +979,220 @@ test("the picker's cursor stays in place after taking from the stash", async () 
   assert.notEqual(await active(), rows[0]);
   assert.deepEqual(errors, []);
 });
+
+/* ---- the user's rules decisions (beasts' weapons, selling, sellswords, traits) --- */
+
+/** Set a dropdown (themed or not) the way a player's choice does. */
+const choose = (page, sel, value) => page.$eval(sel, (el, v) => {
+  el.value = v;
+  el.dispatchEvent(new Event("change", { bubbles: true }));
+}, value).then(() => page.waitForTimeout(150));
+const CLAWS = "melee-weapons/claws-and-fangs";
+
+/** The example gathering in a campaign with 200 obols, on the Campaign view. */
+async function inCampaign(page) {
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.fill('[data-act="treasury"]', "200");
+  await page.press('[data-act="treasury"]', "Tab");
+  await page.waitForTimeout(150);
+}
+/** Hire a sellsword and field it for the next battle. */
+async function fieldSellsword(page, key = "sellswords/blightblade-beast-hunter") {
+  await choose(page, '[data-act="hire"]', key);
+  const uid = (await working(page)).models.at(-1).uid;
+  await page.click(`[data-act="field"][data-uid="${uid}"]`);
+  await page.waitForTimeout(150);
+  return uid;
+}
+
+test("a new beast starts with Claws and Fangs, keeps them, and swaps them when its type changes", async () => {
+  const { page, errors } = await open();
+  await go(page, "gatherings");
+  await page.click('#bd-body [data-act="new"]');
+  await page.waitForTimeout(150);
+  await choose(page, '[data-act="add-model"]', "leaders/lich");
+  await choose(page, '[data-act="add-model"]', "minions/small-beast");
+  const { uid, weapons } = (await working(page)).models.at(-1);
+  assert.deepEqual(weapons, [CLAWS]);
+  const card = `#bd-model-${uid}`;
+  assert.match(await text(page, `${card} .bd-model-cost`), /^65/);       // 60 + 5
+  // The dropdown shows that total before it's picked.
+  assert.match(await text(page, '[data-act="add-model"] option[value="minions/small-beast"]'), /\(65\)/);
+  // Its only allowed weapon has no ✕.
+  assert.equal(await page.locator(`${card} [data-act="m-del-item"][data-list="weapons"]`).count(), 0);
+  assert.equal(await page.locator(`${card} .bd-item[title]`).count(), 1);
+  // No warning about the weapon, unlike a linked beast on the free one.
+  assert.ok(!(await text(page, card)).includes("can't use"));
+  // A type with a free weapon takes that instead, and back again.
+  await choose(page, `${card} [data-act="m-profile"]`, "minions/corpse-husk");
+  assert.deepEqual((await modelOf(page, uid)).weapons, ["melee-weapons/improvised-weapon"]);
+  await choose(page, `${card} [data-act="m-profile"]`, "minions/large-beast");
+  assert.deepEqual((await modelOf(page, uid)).weapons, [CLAWS]);
+  // A second weapon brings the ✕ back, so Large Claws can replace them.
+  await pick(page, uid, "weapons", "weapons|melee-weapons/large-claws");
+  await page.click(`${card} [data-act="m-del-item"][data-list="weapons"][data-i="0"]`);
+  await page.waitForTimeout(150);
+  assert.deepEqual((await modelOf(page, uid)).weapons, ["melee-weapons/large-claws"]);
+  assert.equal(await page.locator(`${card} [data-act="m-del-item"][data-list="weapons"]`).count(), 0);
+  assert.deepEqual(errors, []);
+});
+
+test("in a campaign a recruited beast pays for its weapon and can't sell or stash it", async () => {
+  const { page, errors } = await open();
+  await inCampaign(page);
+  await page.click('[data-act="ab-open"]');
+  await page.click('[data-act="ab-goto"][data-step="6"]');
+  assert.match(await text(page, '#ab-recruit-key option[value="minions/small-beast"]'), /· 65$/);
+  assert.match(await text(page, '#ab-recruit-key option[value="minions/corpse-husk"]'), /· 50$/);
+  await choose(page, "#ab-recruit-key", "minions/small-beast");
+  await page.click('[data-act="ab-recruit"]');
+  await page.waitForTimeout(150);
+  let g = await working(page);
+  assert.equal(g.treasury, 135);
+  const { uid, weapons } = g.models.at(-1);
+  assert.deepEqual(weapons, [CLAWS]);
+  // Not on offer in the Markets' sell list.
+  assert.equal(await page.locator(`[data-act="ab-sell"][data-uid="${uid}"]`).count(), 0);
+  // Nor on the card.
+  await page.click('[data-act="view"][data-view="gathering"]');
+  assert.equal(await page.locator(`#bd-model-${uid} [data-act="m-del-item"][data-list="weapons"]`).count(), 0);
+  // A model on the free weapon that becomes a beast buys its Claws and Fangs.
+  await choose(page, '[data-act="add-model"]', "minions/corpse-husk");
+  g = await working(page);
+  assert.equal(g.treasury, 85);
+  const husk = g.models.at(-1).uid;
+  await choose(page, `#bd-model-${husk} [data-act="m-profile"]`, "minions/familiar");
+  assert.deepEqual((await modelOf(page, husk)).weapons, [CLAWS]);
+  assert.equal((await working(page)).treasury, 80);
+  assert.deepEqual(errors, []);
+});
+
+test("equipment and thrown weapons sell for half, from a model or the stash", async () => {
+  const { page, errors } = await open();
+  await inCampaign(page);
+  await page.click('[data-act="view"][data-view="gathering"]');
+  await pick(page, "m3", "equipment", "equipment|miscellaneous-equipment/banner");
+  const treasury = async () => Number((await working(page)).treasury);
+  assert.equal(await treasury(), 180);
+  // The prompt offers the sale and the stash, and no discard for something with a cost.
+  await page.click('#bd-model-m3 [data-act="m-del-item"][data-list="equipment"]');
+  assert.match(await text(page, '[data-pk="rm"][data-how="sell"]'), /Sell for 10 obols/);
+  assert.ok(await page.isVisible('[data-pk="rm"][data-how="stash"]'));
+  assert.equal(await page.locator('[data-pk="rm"][data-how="discard"]').count(), 0);
+  assert.match(await text(page, ".bd-picker-note"), /house rule/);
+  await page.click('dialog.bd-picker [data-pk="close"]');   // Cancel changes nothing
+  assert.deepEqual((await modelOf(page, "m3")).equipment, ["miscellaneous-equipment/banner"]);
+  await page.click('#bd-model-m3 [data-act="m-del-item"][data-list="equipment"]');
+  await page.click('[data-pk="rm"][data-how="sell"]');
+  await page.waitForTimeout(150);
+  assert.equal(await treasury(), 190);
+  assert.deepEqual((await modelOf(page, "m3")).equipment, []);
+  // A thrown weapon: kept in the stash, then sold from there (half of 5).
+  await pick(page, "m3", "equipment", "equipment|thrown-weapons/wardart");
+  assert.equal(await treasury(), 185);
+  await page.click('#bd-model-m3 [data-act="m-del-item"][data-list="equipment"]');
+  await page.click('[data-pk="rm"][data-how="stash"]');
+  await page.waitForTimeout(150);
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.click('[data-act="g-sell"][data-i="0"]');
+  await page.waitForTimeout(150);
+  assert.equal(await treasury(), 187);
+  assert.deepEqual((await working(page)).gearStash, []);
+  assert.deepEqual(errors, []);
+});
+
+test("removing a trait asks once the campaign has started (p.17), and not before", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  const traits = async () => (await modelOf(page, "m1")).traits;
+  const before = await traits();
+  // Before the campaign: straight off, no question.
+  await page.click('#bd-model-m1 [data-act="m-del-item"][data-list="traits"][data-i="1"]');
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator("dialog.bd-picker[open]").count(), 0);
+  assert.equal((await traits()).length, before.length - 1);
+  // Started: it cites p.17, Cancel keeps it, the other choice removes it.
+  await page.click('[data-act="start-built"]');
+  await page.waitForTimeout(150);
+  await page.click('#bd-model-m1 [data-act="m-del-item"][data-list="traits"][data-i="0"]');
+  assert.match(await text(page, ".bd-picker-note"), /cannot be removed or sold \(p\.17\)/);
+  await page.click('dialog.bd-picker [data-pk="close"]');
+  assert.equal((await traits()).length, before.length - 1);
+  await page.click('#bd-model-m1 [data-act="m-del-item"][data-list="traits"][data-i="0"]');
+  await page.click('[data-pk="choice"][data-how="remove"]');
+  await page.waitForTimeout(150);
+  assert.equal((await traits()).length, before.length - 2);
+  assert.deepEqual(errors, []);
+});
+
+test("logging a battle asks whether to pay for a deployed sellsword (p.74)", async () => {
+  const { page, errors } = await open();
+  await inCampaign(page);
+  const uid = await fieldSellsword(page);                         // 30 to the roster: 170
+  const g0 = await working(page);
+  assert.equal(g0.treasury, 170);
+  assert.match(await text(page, ".bd-log-form ~ .bd-deploy-note"), /20 obols to deploy/);
+
+  // Cancel: nothing logged, nothing charged.
+  await page.click('[data-act="battle-add"]');
+  assert.match(await text(page, '[data-pk="choice"][data-how="pay"]'), /Pay 20 obols to deploy/);
+  await page.click('dialog.bd-picker [data-pk="close"]');
+  await page.waitForTimeout(150);
+  assert.equal((await working(page)).history.length, 0);
+  assert.equal((await working(page)).treasury, 170);
+
+  // Log without paying: logged, not charged.
+  await page.click('[data-act="battle-add"]');
+  await page.click('[data-pk="choice"][data-how="skip"]');
+  await page.waitForTimeout(150);
+  let g = await working(page);
+  assert.equal(g.history.length, 1);
+  assert.equal(g.treasury, 170);
+  assert.ok(!g.history[0].transactions.some(t => t.type === "deploy"));
+
+  // Pay: charged, and the transaction is in the battle's entry.
+  await page.fill("#bl-obols", "7");
+  await page.click('[data-act="battle-add"]');
+  await page.click('[data-pk="choice"][data-how="pay"]');
+  await page.waitForTimeout(150);
+  g = await working(page);
+  assert.equal(g.history.length, 2);
+  assert.equal(g.treasury, 170 - 20 + 7);                         // the form's fields survived the prompt
+  assert.deepEqual(g.history[1].transactions.map(t => [t.type, t.uid, t.obols]), [["deploy", uid, -20]]);
+
+  // Waived by the opponent's limit: says so and doesn't ask.
+  await page.click('[data-act="opp-higher"]');
+  await page.waitForTimeout(150);
+  assert.match(await text(page, ".bd-log-form ~ .bd-deploy-note"), /no cost to deploy.*100\+ higher \(p\.74\)/);
+  await page.click('[data-act="battle-add"]');
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator("dialog.bd-picker[open]").count(), 0);
+  g = await working(page);
+  assert.equal(g.history.length, 3);
+  assert.equal(g.treasury, 157);
+  assert.deepEqual(errors, []);
+});
+
+test("finishing the after-battle sequence asks the same, in Spanish too", async () => {
+  const { page, errors } = await open();
+  await choose(page, "#lang-select", "es");
+  await page.waitForTimeout(200);
+  await inCampaign(page);
+  await fieldSellsword(page);
+  await page.click('[data-act="ab-open"]');
+  assert.match(await text(page, ".bd-step .bd-deploy-note"), /20 óbolos por desplegar/);
+  await page.click('[data-act="ab-goto"][data-step="7"]');
+  assert.match(await text(page, ".bd-step .bd-deploy-note"), /20 óbolos por desplegar/);
+  await page.click('[data-act="ab-finish"]');
+  assert.match(await text(page, '[data-pk="choice"][data-how="pay"]'), /Pagar 20 óbolos por desplegar/);
+  await page.click('[data-pk="choice"][data-how="pay"]');
+  await page.waitForTimeout(150);
+  const g = await working(page);
+  assert.equal(g.campaign.afterBattle, undefined);
+  assert.equal(g.history.length, 1);
+  assert.equal(g.treasury, 150);
+  assert.deepEqual(g.history[0].transactions.map(t => t.type), ["hire", "deploy"]);
+  assert.deepEqual(errors, []);
+});

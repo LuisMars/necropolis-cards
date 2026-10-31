@@ -107,7 +107,7 @@ test("the Markets: buying (with the Forgotten Forge), recruiting, selling", () =
   assert.equal(sellGear(g, catalog, "m3", "weapons", 0), 5);            // its only weapon, a Blade
   assert.deepEqual(g.models[2].weapons, ["melee-weapons/improvised-weapon"]);
   g.treasury -= 5;
-  assert.throws(() => sellGear(g, catalog, "m1", "equipment", 0));
+  assert.equal(sellGear(g, catalog, "m1", "equipment", 0), 0);          // it carries none
   giveTreasure(g, "greater-treasures/cinder-ash-bolts", null);
   giveTreasure(g, "potions/mana-bottle", null);
   assert.equal(sellTreasure(g, catalog, null, 0), 50);

@@ -143,7 +143,7 @@ export function openPicker(uid, list, fid) {
 
 /** After every Builder redraw: the open picker follows the working copy. */
 export function refreshPicker() {
-  if (!ctx || !dlg.open) return;
+  if (!ctx || !dlg.open || ctx.mode === "choice") return;
   const g = hooks.working();
   if (!g || !g.models.some(m => m.uid === ctx.uid)) { dlg.close(); return; }
   if (ctx.mode === "add") drawList();
@@ -156,14 +156,16 @@ export function openRemove(uid, list, i, fid) {
   const m = g.models.find(x => x.uid === uid);
   const key = m[list][ctx.i];
   const who = m.name || itemName(catalog(), m.profile, lang());
-  const sells = list === "weapons" || list === "armour";
+  // Anything with a cost sells (the house rule at campaign.js `sellValue`);
+  // only an item that sells for nothing can be thrown away from here.
+  const sells = sellValue(catalog(), key) > 0;
   dlg.className = "bd-picker bd-picker-small";
   dlg.innerHTML = `
     <div class="bd-picker-box">
       <header class="bd-picker-head">
         <h2 id="bd-picker-title">${esc(fill(L("removeTitle"), { item: itemName(catalog(), key, lang()), model: who }))}</h2>
       </header>
-      <p class="bd-picker-note">${esc(L(sells ? "removeHint" : "removeHintEquipment"))}</p>
+      <p class="bd-picker-note">${esc(L(sells ? "removeHint" : "removeHintFree"))}</p>
       <div class="bd-picker-choices">
         ${sells ? `<button type="button" class="primary" data-pk="rm" data-how="sell">${esc(fill(L("sellFor"), { n: sellValue(catalog(), key) }))}</button>` : ""}
         <button type="button" class="${sells ? "secondary" : "primary"}" data-pk="rm" data-how="stash">${esc(L("keepInStash"))}</button>
@@ -173,6 +175,27 @@ export function openRemove(uid, list, i, fid) {
     </div>`;
   dlg.showModal();
   dlg.querySelector('[data-pk="rm"]')?.focus();
+}
+
+/**
+ * The same small dialog for any other question: a title, a note, the choices
+ * ({how, text}; the first is the main one) and Cancel, which does nothing.
+ * `onPick(how)` runs after the dialog has closed.
+ */
+export function openChoice({ title, note, choices, fid, onPick }) {
+  ctx = { mode: "choice", fid, onPick };
+  dlg.className = "bd-picker bd-picker-small";
+  dlg.innerHTML = `
+    <div class="bd-picker-box">
+      <header class="bd-picker-head"><h2 id="bd-picker-title">${esc(title)}</h2></header>
+      <p class="bd-picker-note">${esc(note)}</p>
+      <div class="bd-picker-choices">
+        ${choices.map((c, n) => `<button type="button" class="${n ? "secondary" : "primary"}" data-pk="choice" data-how="${esc(c.how)}">${esc(c.text)}</button>`).join("")}
+        <button type="button" class="link" data-pk="close">${esc(L("cancel"))}</button>
+      </div>
+    </div>`;
+  dlg.showModal();
+  dlg.querySelector('[data-pk="choice"]')?.focus();
 }
 
 function model() {
@@ -302,6 +325,12 @@ function onClick(e) {
       const { uid, list, i } = ctx;
       dlg.close();
       hooks.remove(uid, list, i, el.dataset.how);
+      break;
+    }
+    case "choice": {
+      const { onPick } = ctx;
+      dlg.close();
+      onPick(el.dataset.how);
       break;
     }
   }

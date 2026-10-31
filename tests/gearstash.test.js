@@ -71,17 +71,23 @@ test("buying costs obols; selling, from a model or the stash, gives half, rounde
   ]);
 });
 
-test("equipment can't be sold (p.72), only discarded", () => {
+test("equipment with a cost sells for half (house rule), from a model or the stash, or can be discarded", () => {
   const g = campaign();
+  buyGear(g, catalog, "m2", "equipment", "miscellaneous-equipment/banner");   // 20
+  buyGear(g, catalog, "m3", "equipment", "thrown-weapons/wardart");           // 5
+  const before = g.treasury;
+  assert.equal(sellGear(g, catalog, "m3", "equipment", 0), 2);                // half of 5, rounded down
+  assert.equal(g.treasury, before + 2);
+  stashGear(g, catalog, "m2", "equipment", 0);
+  assert.equal(sellStashedGear(g, catalog, 0), 10);
+  assert.deepEqual(g.gearStash, []);
+  assert.equal(g.treasury, before + 12);
   buyGear(g, catalog, "m2", "equipment", "miscellaneous-equipment/banner");
   stashGear(g, catalog, "m2", "equipment", 0);
-  const before = g.treasury;
-  assert.throws(() => sellStashedGear(g, catalog, 0), /Only weapons and armour/);
-  assert.equal(g.gearStash.length, 1);                                 // still there
-  assert.throws(() => sellGear(g, catalog, "m2", "equipment", 0));
+  const held = g.treasury;
   assert.equal(discardStashedGear(g, 0), "miscellaneous-equipment/banner");
   assert.deepEqual(g.gearStash, []);
-  assert.equal(g.treasury, before);
+  assert.equal(g.treasury, held);
   assert.deepEqual(tx(g).at(-1), ["discard", "miscellaneous-equipment/banner", null, 0]);
 });
 

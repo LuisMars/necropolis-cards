@@ -23,7 +23,7 @@ import {
   greaterOwed, rewardTargets, rollTreasure, treasureTable, giveTreasure, moveTreasure,
   freeSellsword, hireSellsword, addBattle, removeBattle, undoAmbition, addManualEntry, removeLedgerEntry,
   takeGear, sellStashedGear, discardStashedGear, sellValue, spellTargets,
-  setDeploymentBase, today,
+  setDeploymentBase, today, deployCosts,
 } from "./builder/campaign.js";
 import { maladiesOf } from "./builder/ledger.js";
 
@@ -65,6 +65,15 @@ export function failText(act, err) {
     "ab-apply-rewards": "diceInvalid", "ab-income": "diceInvalid", "ab-purl": "diceInvalid",
   }[act];
   return k ? L(k) : `${L("actionFailed")} ${err?.message || err}`;
+}
+
+/** Above a Log button: what a deployed sellsword costs, or why it's free (p.74). */
+export function deployNoteHtml(g) {
+  const { waived, models, due, total } = deployCosts(g, catalog());
+  const names = (list) => list.map(x => modelTitle(g.models.find(m => m.uid === x.uid))).join(", ");
+  if (waived && models.length) return `<p class="bd-hint bd-deploy-note">${esc(L("deployWaived").replace("{names}", names(models)))}</p>`;
+  if (!due.length) return "";
+  return `<p class="bd-hint bd-deploy-note">${esc(L("deployDueNote").replace("{names}", names(due)).replace("{n}", total))}</p>`;
 }
 
 /* ---- events ---------------------------------------------------------------- */
@@ -371,7 +380,7 @@ function treasuresPanel(g) {
     `<option value="">${esc(L("giveTo"))}…</option>` +
     g.models.filter(m => !m.profile.startsWith("sellswords/")).map(m => `<option value="${esc(m.uid)}">${esc(modelTitle(m))}</option>`).join("") + `</select>`;
   const gear = (g.gearStash || []).map((e, n) => {
-    const sells = e.list === "weapons" || e.list === "armour";
+    const sells = sellValue(catalog(), e.key) > 0;
     return `<span class="bd-item">${esc(name(e.key))} <small>${esc(L(e.list))}</small>
       ${givers(n, e.list)}
       ${sells ? `<button type="button" class="bd-sell" data-act="g-sell" data-i="${n}">${esc(L("sell"))} +${sellValue(catalog(), e.key)}</button>` : ""}
@@ -538,5 +547,6 @@ function battleLogPanel(g) {
         <label>${esc(L("obolsGained"))} <input type="number" id="bl-obols" value="0"></label>
         <label class="bd-log-notes">${esc(L("notes"))} <input type="text" id="bl-notes"></label>
       </div>
-      <p><button type="button" class="secondary" data-act="battle-add">${esc(L("logBattle"))}</button></p>` };
+      ${deployNoteHtml(g)}
+      <p><button type="button" class="secondary" data-act="battle-add" data-fid="battle-add">${esc(L("logBattle"))}</button></p>` };
 }

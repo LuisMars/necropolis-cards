@@ -313,6 +313,34 @@ export function hireSellsword(g, key, catalog, { free = false } = {}) {
   return m;
 }
 
+/**
+ * What deploying the active sellswords costs (p.74: "Each time they are
+ * deployed an additional cost must be paid", unless the opponent's deployment
+ * limit is 100+ higher). Paying is the player's choice when a battle is logged;
+ * nothing here charges anything.
+ * @returns {{waived: boolean, models: {uid, key, obols, paid}[], due: object[], total: number}}
+ *          `due`: the models still to pay for; `total`: what that comes to.
+ */
+export function deployCosts(g, catalog) {
+  const waived = freeSellsword(g);
+  const paid = new Set((g.campaign?.transactions || []).filter(t => t.type === "deploy").map(t => t.uid));
+  const models = (g.models || [])
+    .filter(m => categoryOf(m.profile) === "sellswords" && (m.status || "active") === "active")
+    .map(m => ({ uid: m.uid, key: m.profile, obols: Number(catalog.row(m.profile)?.deploy_obols) || 0, paid: paid.has(m.uid) }));
+  const due = waived ? [] : models.filter(x => x.obols > 0 && !x.paid);
+  return { waived, models, due, total: due.reduce((n, x) => n + x.obols, 0) };
+}
+
+/** Pay what `deployCosts` says is due, one transaction per sellsword. */
+export function payDeployment(g, catalog) {
+  const { due, total } = deployCosts(g, catalog);
+  for (const x of due) {
+    pay(g, -x.obols);
+    record(g, "deploy", { item: x.key, uid: x.uid, obols: -x.obols });
+  }
+  return total;
+}
+
 /* ---- battle log ------------------------------------------------------------ */
 
 /** Log a battle; the obols it brought in go into the treasury. */
@@ -502,30 +530,87 @@ export function buyGear(g, catalog, uid, list, key) {
   return cost;
 }
 
-/** Recruit a new minion in the Markets. */
-export function recruit(g, catalog, key, defaultWeapon) {
+/**
+ * The weapon a model starts with when the Builder or the Markets create it.
+ * A type limited to named weapons (Familiar and the beasts: pp.33-35) starts
+ * with the first of them; Claws and Fangs cost 5, so they count towards its
+ * cost. Everything else gets its free Improvised Weapon (p.36). Decoding a
+ * share link or an import doesn't come through here (codec.js `defaultWeapon`):
+ * those keep what they say.
+ */
+export function startingWeapon(catalog, profileKey) {
+  const only = catalog.profileRules(profileKey).weapons_only || [];
+  const named = only.find(sel => !sel.endsWith("/*"));
+  return only.some(sel => sel.endsWith("/*")) || !named ? defaultWeapon(catalog, profileKey) : named;
+}
+
+/**
+ * Is this the last weapon of a model that can't fall back on a free one? A
+ * beast must keep one of its named weapons: if it could sell or stash its
+ * last one and be handed a free Improvised Weapon, that would be free obols.
+ */
+export function weaponLocked(catalog, m, list, index) {
+  if (list !== "weapons" || (m.weapons || []).length !== 1) return false;
+  const key = m.weapons[Number(index)];
+  return !!key && startingWeapon(catalog, m.profile) !== defaultWeapon(catalog, m.profile) &&
+    (catalog.profileRules(m.profile).weapons_only || []).includes(key);
+}
+const refuseLocked = (catalog, m, list, index) => {
+  if (m && weaponLocked(catalog, m, list, index)) {
+    throw Object.assign(new Error("A model limited to named weapons must keep its last one"), { code: "weaponLocked" });
+  }
+};
+
+/** What recruiting costs: the minion and the weapon it starts with. */
+export const recruitPrice = (g, catalog, key, weapon = startingWeapon(catalog, key)) =>
+  price(catalog.row(key)) + discounted(g, catalog, weapon);
+
+/** Recruit a new minion in the Markets, paying for the weapon it starts with. */
+export function recruit(g, catalog, key, weapon = startingWeapon(catalog, key)) {
   const rules = catalog.profileRules(key);
-  const m = newModel(g, { profile: key, weapons: [defaultWeapon],
+  const m = newModel(g, { profile: key, weapons: [weapon],
     affinity: (rules.affinity || []).length === 1 ? rules.affinity[0] : null });
   g.models.push(m);
   const cost = price(catalog.row(key));
   pay(g, -cost);
   record(g, "recruit", { item: key, uid: m.uid, obols: -cost });
+  const gear = discounted(g, catalog, weapon);
+  if (gear) {
+    pay(g, -gear);
+    record(g, "buy", { item: weapon, uid: m.uid, obols: -gear });
+  }
   return m;
 }
 
-/** Sell a weapon or armour for half its value, rounding down. */
+/**
+ * Half the item's value, rounding down. House rule (the user's): anything
+ * with a cost sells this way, miscellaneous equipment and thrown weapons too;
+ * p.72 itself names only weapons and armour. A free item sells for nothing.
+ * Treasures keep their fixed prices (`sellTreasure`, p.72).
+ */
 export const sellValue = (catalog, key) => Math.floor(price(catalog.row(key)) / 2);
+/** Sell a model's gear. An item with no sale value stays where it is (returns 0). */
 export function sellGear(g, catalog, uid, list, index) {
-  if (list !== "weapons" && list !== "armour") throw new Error("Only weapons and armour sell");
+  if (!GEAR_LISTS[list]) throw new Error("Not a gear list");
   const m = g.models.find(x => x.uid === uid);
+  refuseLocked(catalog, m, list, index);
+  const v = sellValue(catalog, m?.[list]?.[Number(index)]);
+  if (!v) return 0;
   // A model always has at least its free Improvised Weapon.
   const key = unequip(catalog, m, list, index);
-  if (!key) return 0;
-  const v = sellValue(catalog, key);
   pay(g, v);
   record(g, "sell", { item: key, uid, obols: v });
   return v;
+}
+
+/** Throw away a model's gear, for items with no sale value. */
+export function discardGear(g, catalog, uid, list, index) {
+  if (!GEAR_LISTS[list]) throw new Error("Not a gear list");
+  const m = g.models.find(x => x.uid === uid);
+  refuseLocked(catalog, m, list, index);
+  const key = unequip(catalog, m, list, index);
+  if (key) record(g, "discard", { item: key, uid, obols: 0 });
+  return key;
 }
 
 /* ---- the gear stash ---------------------------------------------------------
@@ -536,10 +621,10 @@ export function sellGear(g, catalog, uid, list, index) {
  * gear stash is an app convenience for that: `g.gearStash` holds
  * `{ key, list }` entries (list = "weapons" | "armour" | "equipment", the list
  * it came off), separate from the treasure stash `g.stash`. Moving gear in and
- * out is free; from the stash, weapons and armour can still be sold for half
- * their value, and anything can be discarded. Each move is recorded like a
- * purchase, so it shows in the battle log and the ledger. Like buying and
- * selling, these moves have no undo of their own: the Builder's draft
+ * out is free; from the stash, anything with a cost can be sold for half its
+ * value (see `sellValue`), and anything can be discarded. Each move is recorded
+ * like a purchase, so it shows in the battle log and the ledger. Like buying
+ * and selling, these moves have no undo of their own: the Builder's draft
  * (Discard) covers that.
  */
 
@@ -554,6 +639,7 @@ export function stashGear(g, catalog, uid, list, index) {
   ensureCampaign(g, catalog);
   const m = g.models.find(x => x.uid === uid);
   if (!m?.[list]?.[Number(index)]) return null;
+  refuseLocked(catalog, m, list, index);
   const key = unequip(catalog, m, list, index);
   if (isImprovised(key)) return null;
   g.gearStash.push({ key, list });
@@ -573,14 +659,14 @@ export function takeGear(g, uid, stashIndex) {
   return e.key;
 }
 
-/** Sell a stashed weapon or armour for half its value; equipment can't be sold (p.72). */
+/** Sell stashed gear for half its value (see `sellValue`); a free item stays. */
 export function sellStashedGear(g, catalog, stashIndex) {
   ensureCampaign(g, catalog);
   const e = g.gearStash[Number(stashIndex)];
   if (!e) return 0;
-  if (e.list !== "weapons" && e.list !== "armour") throw new Error("Only weapons and armour sell");
-  g.gearStash.splice(Number(stashIndex), 1);
   const v = sellValue(catalog, e.key);
+  if (!v) return 0;
+  g.gearStash.splice(Number(stashIndex), 1);
   pay(g, v);
   record(g, "sell", { item: e.key, uid: null, obols: v });
   return v;
