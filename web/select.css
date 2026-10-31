@@ -14,11 +14,11 @@
   }
   /* The native select stays in the form as the source of truth. */
   .nc-select > select.nc-select-src {
-    position:absolute !important; left:0 !important; top:0 !important;
-    width:1px !important; height:1px !important; min-width:0 !important; min-height:0 !important;
-    margin:0 !important; padding:0 !important; border:0 !important;
-    opacity:0 !important; pointer-events:none !important;
-    clip-path:inset(50%) !important; overflow:hidden !important;
+    position:absolute; left:0; top:0;
+    width:1px; height:1px; min-width:0; min-height:0;
+    margin:0; padding:0; border:0;
+    opacity:0; pointer-events:none;
+    clip-path:inset(50%); overflow:hidden;
   }
 
   /* Trigger: same shape as the native app select (44px end cap). */
@@ -51,7 +51,7 @@
   .nc-select-trigger:focus { border-color:var(--nc-bone) }
   .nc-select-trigger:focus { outline:none }
   .nc-select-trigger:focus-visible { outline:2px solid var(--nc-bone); outline-offset:2px }
-  .nc-select-trigger[aria-disabled="true"] { opacity:.45; cursor:not-allowed; background:var(--nc-control-bg, var(--nc-raised)) }
+  .nc-select-trigger[aria-disabled="true"] { color:var(--nc-disabled); cursor:not-allowed; background:transparent; border-color:var(--nc-line-soft) }
   .nc-select-trigger[aria-invalid="true"] { border-color:var(--nc-error) }
 
   /* Popup: a portal in <body>, fixed-positioned by select.js. */
@@ -60,16 +60,15 @@
     display:flex; flex-direction:column; width:max-content;
     color:var(--nc-bone); background:var(--nc-surface);
     border:1px solid var(--nc-line); border-radius:3px;
-    /* Two layers: a tight contact shadow and a soft drop. Low-alpha black
-       reads on bone paper and on coal alike; --nc-shadow can override. */
-    box-shadow:var(--nc-shadow, 0 1px 2px rgb(0 0 0 / .18), 0 10px 28px -6px rgb(0 0 0 / .45));
+    /* Two layers, a tight contact shadow and a soft drop (palette token). */
+    box-shadow:var(--nc-shadow);
     font:16px/1.35 'Alegreya',Georgia,serif;
     font-variant-numeric:lining-nums tabular-nums;
     overflow:hidden;
   }
   .nc-select-filter { flex:none; padding:8px; border-bottom:1px solid var(--nc-line-soft) }
   .nc-select-filter-input {
-    box-sizing:border-box; width:100%; min-height:40px; margin:0; padding:7px 11px;
+    box-sizing:border-box; width:100%; min-height:44px; margin:0; padding:7px 11px;
     color:var(--nc-bone); background:var(--nc-control-bg, var(--nc-raised));
     border:1px solid var(--nc-control-line, var(--nc-line)); border-radius:3px;
     font:16px/1.35 'Alegreya',Georgia,serif;
