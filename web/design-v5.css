@@ -194,8 +194,7 @@
   .queue-item button{min-width:var(--nc-target-xs);min-height:var(--nc-target-xs)}
   footer.app-foot{border-color:var(--nc-line-soft)}
 
-  /* Legibility pass: existing builder CSS uses 12–13px !important on some
-     action controls. The integrated app must override those, not only the demo. */
+  /* Legibility pass: action controls in the builder keep readable sizes. */
   .bd-items .nc-select-trigger{font-size:15px}
   #bd-body .bd-items select:not(.nc-select-src) {
     font-size:15px; min-height:44px;
