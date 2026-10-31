@@ -15,6 +15,11 @@ import {
 } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { pickField } from "./i18n.js";
+import { label, plural, categoryTitle } from "./builder/messages.js";
+
+const lang = () => state.lang || "en";
+const L = (k) => label(k, lang());
+const catName = (key, cat) => categoryTitle("cat", key, cat.title, lang());
 
 const $search = $("lib-search");
 const $cat    = $("lib-category");
@@ -54,20 +59,26 @@ export function initLibrary({ onChange }) {
   $invPasteApply.addEventListener("click", applyPaste);
 }
 
-/** Called when the bundle has loaded so we can populate the category select. */
+/** Called when the bundle has loaded so we can populate the category select
+ *  (again when the language changed, keeping the chosen category). */
+let catLang = null;
 export function renderLibrary() {
-  if ($cat.options.length <= 1) {
+  if ($cat.options.length <= 1 || catLang !== lang()) {
+    catLang = lang();
+    const chosen = $cat.value;
+    $cat.querySelectorAll("optgroup").forEach(og => og.remove());
     for (const g of state.bundle.groups) {
       const og = document.createElement("optgroup");
-      og.label = g.title;
+      og.label = categoryTitle("group", g.title, g.title, lang());
       for (const it of g.items) {
         const opt = document.createElement("option");
         opt.value = it.key;
-        opt.textContent = it.title;
+        opt.textContent = categoryTitle("cat", it.key, it.title, lang());
         og.appendChild(opt);
       }
       $cat.appendChild(og);
     }
+    $cat.value = chosen;
   }
   renderGrid();
 }
@@ -92,7 +103,7 @@ function previewText(row) {
 
 /** Card name in the selected card language (English fallback). */
 function displayName(row) {
-  return pickField(row, "name", state.lang) || row.name || "(unnamed)";
+  return pickField(row, "name", state.lang) || row.name || L("unnamed");
 }
 
 /** How many copies of (key, name) are already in the print queue. */
@@ -124,11 +135,10 @@ function renderGrid() {
   }
 
   const queuedInView = inView.reduce((s, it) => s + (queuedCount(it.key, it.row.name) ? 1 : 0), 0);
-  $count.textContent =
-    `${inView.length} item${inView.length === 1 ? "" : "s"}` +
-    (queuedInView ? ` · ${queuedInView} in queue` : "");
+  $count.textContent = plural("libCount", inView.length, lang()) +
+    (queuedInView ? ` · ${plural("libInQueue", queuedInView, lang())}` : "");
   $addAll.disabled = inView.length === 0;
-  $addAll.innerHTML = `${icon("plus")} Add all in view (${inView.length})`;
+  $addAll.innerHTML = `${icon("plus")} ${escapeHtml(plural("libAddAll", inView.length, lang()))}`;
 }
 
 function buildTile(key, cat, row) {
@@ -141,23 +151,23 @@ function buildTile(key, cat, row) {
   t.className = "lib-tile" + (printed ? " has-printed" : "");
   t.innerHTML = `
     <div class="tile-head">
-      <span class="cat">${escapeHtml(cat.title)}</span>
-      ${queued ? `<span class="in-queue">${queued} queued</span>` : ""}
-      <span class="add">+ Add</span>
+      <span class="cat">${escapeHtml(catName(key, cat))}</span>
+      ${queued ? `<span class="in-queue">${escapeHtml(plural("libQueued", queued, lang()))}</span>` : ""}
+      <span class="add">${escapeHtml(L("libAdd"))}</span>
     </div>
     <span class="name">${escapeHtml(displayName(row))}</span>
     ${preview ? `<span class="preview">${escapeHtml(preview)}</span>` : ""}
     <div class="tile-foot">
-      <span class="printed-ctl" title="How many you've already printed">
-        <button type="button" class="dec" aria-label="One fewer printed">−</button>
+      <span class="printed-ctl" title="${escapeHtml(L("libPrintedTitle"))}">
+        <button type="button" class="dec" aria-label="${escapeHtml(L("libPrintedLess"))}">−</button>
         <span class="printed-n">${printed}</span>
-        <button type="button" class="inc" aria-label="One more printed">+</button>
-        <span class="printed-lbl">printed</span>
+        <button type="button" class="inc" aria-label="${escapeHtml(L("libPrintedMore"))}">+</button>
+        <span class="printed-lbl">${escapeHtml(L("libPrinted"))}</span>
       </span>
       ${queued
         ? (need > 0
-            ? `<span class="need">need ${need}</span>`
-            : `<span class="need done">${icon("check")} all printed</span>`)
+            ? `<span class="need">${escapeHtml(plural("libNeed", need, lang()))}</span>`
+            : `<span class="need done">${icon("check")} ${escapeHtml(plural("libAllPrinted", queued, lang()))}</span>`)
         : ""}
     </div>`;
 
@@ -224,20 +234,20 @@ function exportToFile() {
   a.remove();
   URL.revokeObjectURL(url);
   const count = inventoryObject().printed.length;
-  status(`Exported ${count} card${count === 1 ? "" : "s"}.`);
+  status(plural("invExported", count, lang()));
 }
 
 async function copyToClipboard() {
   const text = inventoryJSON();
   try {
     await navigator.clipboard.writeText(text);
-    status("Copied inventory JSON to clipboard.");
+    status(L("invCopied"));
   } catch {
     // Clipboard API blocked (e.g. non-secure context) — fall back to paste box.
     togglePastePanel(true);
     $invPasteArea.value = text;
     $invPasteArea.select();
-    status("Clipboard blocked — JSON shown below; copy it manually.", false);
+    status(L("invClipBlocked"), false);
   }
 }
 
@@ -246,7 +256,7 @@ function importFromFile(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = () => applyImportText(String(reader.result));
-  reader.onerror = () => status("Could not read file.", false);
+  reader.onerror = () => status(L("invReadFailed"), false);
   reader.readAsText(file);
   e.target.value = "";  // allow re-importing the same file
 }
@@ -268,7 +278,7 @@ function applyPaste() {
 function applyImportText(text) {
   let data;
   try { data = JSON.parse(text); }
-  catch { status("Invalid JSON — nothing imported.", false); return; }
+  catch { status(L("invBadJson"), false); return; }
 
   let entries;
   if (Array.isArray(data)) entries = data;
@@ -278,7 +288,7 @@ function applyImportText(text) {
       const sp = String(id).indexOf(" ");
       return sp < 0 ? null : { key: id.slice(0, sp), name: id.slice(sp + 1), printed: n };
     }).filter(Boolean);
-  } else { status("Unrecognised format — nothing imported.", false); return; }
+  } else { status(L("invBadFormat"), false); return; }
 
   const next = {};
   let count = 0;
@@ -291,5 +301,5 @@ function applyImportText(text) {
   savePrinted();
   renderGrid();
   onChangeCb?.();
-  status(`Imported ${count} card${count === 1 ? "" : "s"}.`);
+  status(plural("invImported", count, lang()));
 }

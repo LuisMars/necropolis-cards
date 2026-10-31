@@ -113,7 +113,7 @@ test("the Roster's Cards part prints the same sheets as the queue would", async 
   const count = await p.textContent(".bd-roster-count");
   const fromRoster = await sheets(p, "#roster-sheets .sheet", true);
   assert.ok(fromRoster.length > 0);
-  assert.match(count, new RegExp(`, ${fromRoster.length} sheets`));
+  assert.match(count, new RegExp(`Sheets: ${fromRoster.length}$`));
   // The roster sheet itself isn't printed alongside.
   await p.emulateMedia({ media: "print" });
   assert.equal(await p.isVisible("#wb-pages"), false);

@@ -35,7 +35,7 @@
   <details class="nav-settings" id="nav-settings">
     <summary><span class="nav-ico" data-icon="settings"></span><span id="nav-settings-label">Settings</span><span class="nav-chev" data-icon="chevron-down"></span></summary>
     <div class="nav-settings-panel">
-      <label class="lang-picker" title="Card language (English by default)">
+      <label class="lang-picker" title="Language of the app and of the printed cards and roster">
         <span id="lang-label">Language</span>
         <select id="lang-select">
           <option value="en" selected>English</option>
@@ -45,8 +45,8 @@
       <label class="nc-theme-picker" for="nc-theme-select"><span id="theme-label">Theme</span>
         <select id="nc-theme-select" data-nc-palette-control>
           <option value="auto">Match device</option>
-          <option value="obsidian">Obsidian</option><option value="ink-bone">Ink &amp; Bone</option>
-          <option value="soft-ash">Soft Ash</option><option value="slate">Slate</option><option value="vellum">Vellum</option>
+          <option value="obsidian" data-i18n="themeObsidian">Obsidian</option><option value="ink-bone" data-i18n="themeInkBone">Ink &amp; Bone</option>
+          <option value="soft-ash" data-i18n="themeSoftAsh">Soft Ash</option><option value="slate" data-i18n="themeSlate">Slate</option><option value="vellum" data-i18n="themeVellum">Vellum</option>
         </select>
       </label>
     </div>
@@ -68,17 +68,17 @@
       </span>
     </div>
     <div class="bd-panel bd-import" id="bd-import-panel" hidden>
-      <p class="bd-import-intro">
+      <p class="bd-import-intro" data-i18n-html="importIntro">
         Paste a JSON export or a share link from the
         <a href="https://necropolis28.vercel.app/" target="_blank" rel="noopener">Necropolis Companion App</a>, or a Builder backup.
-        <strong>Load warband</strong> opens it here as a gathering;
-        <strong>Load &amp; add cards to queue</strong> also queues every card it matched.
+        <strong>Load gathering</strong> opens it here;
+        <strong>Load and add cards to queue</strong> also queues every card it matched.
       </p>
-      <textarea id="json-in" class="json-in" aria-label="Companion App JSON or share link" placeholder='{"covenant": "…", "gathering": [...]}  or  https://necropolis28.vercel.app/gathering-creation?id=…'></textarea>
+      <textarea id="json-in" class="json-in" data-i18n-aria-label="importInput" data-i18n-placeholder="importPh" aria-label="Companion App JSON or share link" placeholder='{"covenant": "…", "gathering": [...]}  or  https://necropolis28.vercel.app/gathering-creation?id=…'></textarea>
       <div class="bd-import-actions">
-        <button class="primary" id="load-warband-btn"><span data-icon="flag"></span> Load warband</button>
-        <button class="secondary" id="parse-btn">Load &amp; add cards to queue</button>
-        <button class="secondary" id="sample-btn">Load sample</button>
+        <button class="primary" id="load-warband-btn" data-i18n="loadGathering"><span data-icon="flag"></span> Load gathering</button>
+        <button class="secondary" id="parse-btn" data-i18n="loadAndQueue">Load and add cards to queue</button>
+        <button class="secondary" id="sample-btn" data-i18n="loadSample">Load sample</button>
         <button class="link" id="bd-import-close">Close</button>
       </div>
       <div class="bd-status" id="import-status" hidden></div>
@@ -103,26 +103,26 @@
       <div class="bd-views nav-local" role="group" data-local="cards"></div>
     </div>
     <div class="lib-toolbar">
-      <input type="text" id="lib-search" placeholder="Filter by name…">
-      <select id="lib-category"><option value="">All categories</option></select>
+      <input type="text" id="lib-search" data-i18n-placeholder="libFilter" placeholder="Filter by name…">
+      <select id="lib-category"><option value="" data-i18n="libAllCats">All categories</option></select>
       <span style="color:var(--muted); font-size:11px;" id="lib-count"></span>
       <span class="spacer" style="flex:1;"></span>
       <button class="secondary" id="lib-add-all"><span data-icon="plus"></span> Add all in view</button>
     </div>
     <div class="lib-inv-bar">
-      <span class="inv-label">Printed inventory:</span>
-      <button class="secondary" id="inv-export-file"><span data-icon="download"></span> Export file</button>
-      <button class="secondary" id="inv-copy"><span data-icon="copy"></span> Copy JSON</button>
-      <button class="secondary" id="inv-import-file"><span data-icon="upload"></span> Import file</button>
-      <button class="secondary" id="inv-paste-toggle">Paste JSON…</button>
+      <span class="inv-label" data-i18n="invLabel">Printed inventory:</span>
+      <button class="secondary" id="inv-export-file" data-i18n="invExportFile"><span data-icon="download"></span> Export file</button>
+      <button class="secondary" id="inv-copy" data-i18n="invCopy"><span data-icon="copy"></span> Copy JSON</button>
+      <button class="secondary" id="inv-import-file" data-i18n="invImportFile"><span data-icon="upload"></span> Import file</button>
+      <button class="secondary" id="inv-paste-toggle" data-i18n="invPaste">Paste JSON…</button>
       <input type="file" id="inv-file-input" accept="application/json,.json" hidden>
       <span class="inv-status muted" id="inv-status"></span>
     </div>
     <div class="lib-inv-paste" id="inv-paste-panel" hidden>
-      <textarea id="inv-paste-area" placeholder="Paste exported inventory JSON here, then Apply…"></textarea>
+      <textarea id="inv-paste-area" data-i18n-placeholder="invPastePh" placeholder="Paste an exported inventory here, then choose Apply…"></textarea>
       <div class="inv-paste-actions">
-        <button class="secondary" id="inv-paste-apply">Apply</button>
-        <button class="secondary" id="inv-paste-cancel">Cancel</button>
+        <button class="secondary" id="inv-paste-apply" data-i18n="apply">Apply</button>
+        <button class="secondary" id="inv-paste-cancel" data-i18n="cancel">Cancel</button>
       </div>
     </div>
     <div id="lib-grid" class="lib-grid"></div>
@@ -134,14 +134,14 @@
       <div class="bd-views nav-local" role="group" data-local="cards"></div>
     </div>
     <div class="print-toolbar">
-      <label><input type="checkbox" id="bleed-toggle"> add gap between cards</label>
-      <label><input type="checkbox" id="backs-toggle"> print card backs</label>
-      <label title="Skip cards you've already printed enough of (queue − printed)"><input type="checkbox" id="need-toggle"> only what I still need</label>
+      <label data-i18n="gapToggle"><input type="checkbox" id="bleed-toggle"> Add gap between cards</label>
+      <label data-i18n="backsToggle"><input type="checkbox" id="backs-toggle"> Print card backs</label>
+      <label data-i18n="needToggle" data-i18n-title="needToggleTitle" title="Skip cards you've already printed enough of (queued minus printed)"><input type="checkbox" id="need-toggle"> Only what I still need</label>
       <span style="color:var(--muted)">·</span>
       <span id="sheet-count"></span>
       <span class="spacer" style="flex:1;"></span>
-      <button class="secondary" id="mark-printed-btn" title="Add this run's cards to your printed inventory"><span data-icon="check"></span> Mark this run as printed</button>
-      <button class="secondary" id="clear-queue-btn-2">Clear queue</button>
+      <button class="secondary" id="mark-printed-btn" data-i18n="markPrinted" data-i18n-title="markPrintedTitle" title="Add this run's cards to your printed inventory"><span data-icon="check"></span> Mark this run as printed</button>
+      <button class="secondary" id="clear-queue-btn-2" data-i18n="clearQueue">Clear queue</button>
     </div>
     <div class="queue-panel">
       <div class="queue-list" id="queue-list"></div>
@@ -154,7 +154,7 @@
 </main>
 
 <footer class="app-foot">
-  <p>
+  <p data-i18n-html="footerCredit">
     A fan-made print companion for
     <strong>Necropolis: A Diorama Skirmish Game</strong>
     by Peter Vigors —
@@ -162,7 +162,7 @@
     Card art and rules text are taken from the WIP v0.9 rulebook for
     personal reference only; please support the author.
   </p>
-  <p class="muted">
+  <p class="muted" data-i18n="footerNotice">
     Not affiliated with or endorsed by Owl Shield Games. No commercial use.
     Card layouts and rules may change as the rulebook is finalised.
   </p>

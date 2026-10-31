@@ -28,7 +28,7 @@ import { initBuilder, renderBuilder, setView, rosterPayload } from "./builder-ta
 import { initPrint, renderPrint, printList, renderSheetsInto, sheetCount, stillNeeded } from "./print.js";
 import { payloadCards }       from "./import.js";
 import { store }              from "./gatherings.js";
-import { label }              from "./builder/messages.js";
+import { label, fill }        from "./builder/messages.js";
 import { $, escapeHtml }      from "./util.js";
 import { observeSelects }     from "./select.js";
 import { icon }               from "./lucide.js";
@@ -102,9 +102,27 @@ const $printBtn   = $("global-print-btn");
 const $printReason = $("print-reason");
 const $settings   = $("nav-settings");
 
-/** Labels follow the card language, as the Builder does. */
+/** Static markup names its strings in data-i18n (the text after any icon
+ *  or checkbox), data-i18n-html (trusted markup from messages.js) and
+ *  data-i18n-{placeholder,title,aria-label}. */
+function translateStatic() {
+  document.title = L("appTitle");
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const text = L(el.dataset.i18n);
+    if (!el.children.length) { el.textContent = text; return; }
+    const node = [...el.childNodes].reverse().find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
+    if (node) node.textContent = ` ${text}`; else el.append(` ${text}`);
+  });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = L(el.dataset.i18nHtml); });
+  for (const a of ["placeholder", "title", "aria-label"]) {
+    document.querySelectorAll(`[data-i18n-${a}]`).forEach(el => el.setAttribute(a, L(el.getAttribute(`data-i18n-${a}`))));
+  }
+}
+
+/** Every label follows the Language setting. */
 function refreshLabels() {
   document.documentElement.lang = state.lang || "en";
+  translateStatic();
   $nav.setAttribute("aria-label", L("mainNav"));
   $nav.querySelector('a[data-dest="gatherings"]').textContent = L("navGatherings");
   $nav.querySelector('a[data-dest="cards"]').textContent = L("navCards");
@@ -321,8 +339,8 @@ Promise.all([loadFonts(), loadBundle()]).then(() => {
   applyRoute(current);
   if (ROUTES[current].dest !== "gatherings") renderBuilder();   // keeps the roster ready
 }).catch(e => {
+  console.error(e);
   document.querySelector("main").innerHTML =
-    `<div class="empty-msg">Failed to load <code>data.json</code>: ${e.message}<br><br>` +
-    `Run <code style="background:var(--nc-raised, var(--panel2));padding:2px 6px;border-radius:3px;">python3 web/bundle.py</code> ` +
-    `from the project root to generate it.</div>`;
+    `<div class="empty-msg">${escapeHtml(L("loadFailed"))}` +
+    `<br><br><small class="muted">${escapeHtml(fill(L("loadFailedTech"), { error: e.message }))}</small></div>`;
 });
