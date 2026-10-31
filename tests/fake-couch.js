@@ -7,7 +7,7 @@
 export const BASE = "https://couch.test";
 const hex = (s) => [...new TextEncoder().encode(s)].map(b => b.toString(16).padStart(2, "0")).join("");
 
-export function createFakeCouch() {
+export function createFakeCouch(base = BASE) {
   const users = new Map();      // name -> password
   const dbs = new Map();        // db -> Map(id -> doc)
   const server = {
@@ -18,7 +18,7 @@ export function createFakeCouch() {
       const browser = { user: null };
       return async (url, init = {}) => {
         if (server.down) throw new TypeError("network down");
-        if (!url.startsWith(BASE)) throw new Error(`request to an unexpected host: ${url}`);
+        if (!url.startsWith(base)) throw new Error(`request to an unexpected host: ${url}`);
         if (init.credentials !== "include") throw new Error("request without credentials: include");
         const u = new URL(url), method = init.method || "GET";
         const body = init.body ? JSON.parse(init.body) : undefined;
