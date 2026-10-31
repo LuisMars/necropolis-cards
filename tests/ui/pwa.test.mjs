@@ -197,6 +197,54 @@ test("an update waits behind a notice, keeps typed data, and Update reloads once
   } finally { await ctx.close(); await srv.stop(); }
 });
 
+test("a tab opened on the first install still reloads when Update is pressed later", async () => {
+  const dir = copyWeb(); temps.push(dir);
+  bundleSw(dir);
+  const srv = await serve(dir, 8786);
+  const ctx = await browser.newContext();
+  try {
+    const page = await ctx.newPage();
+    let loads = 0;
+    page.on("load", () => loads++);
+    await page.goto(srv.url);
+    await ready(page);
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+    await sleep(300);
+    assert.equal(loads, 1, "the first install does not reload");
+    const v1 = swVersion(dir);
+    appendFileSync(join(dir, "styles.css"), "\n/* v2 */\n");
+    bundleSw(dir);
+    assert.notEqual(swVersion(dir), v1);
+    await page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).update());
+    await page.waitForSelector("#nc-update:not([hidden])");
+    await page.click("#nc-update-btn");
+    await page.waitForFunction(() => document.readyState === "complete" && document.getElementById("nc-update")?.hidden, null, { timeout: 15000 });
+    await sleep(500);
+    assert.equal(loads, 2, "Update reloads exactly once");
+  } finally { await ctx.close(); await srv.stop(); }
+});
+
+test("other pages are not replaced by the app, and fall back to it only offline", async () => {
+  const srv = await serve(WEB, 8787);
+  const ctx = await browser.newContext();
+  try {
+    const page = await ctx.newPage();
+    await page.goto(srv.url);
+    await ready(page);
+    await page.reload();
+    await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+    const ref = await page.goto(new URL("design-reference.html", srv.url).href);
+    assert.equal(ref.status(), 200);
+    assert.equal(await page.locator("#nav-settings").count(), 0, "design reference, not the app");
+    const missing = await page.goto(new URL("no-such-page", srv.url).href);
+    assert.equal(missing.status(), 404);
+    await page.goto(srv.url);
+    await srv.stop();    // the worker's own fetches must fail, as they do offline
+    await page.goto(new URL("no-such-page", srv.url).href);
+    assert.equal(await page.locator("#nav-settings").count(), 1, "offline fallback is the app");
+  } finally { await ctx.close(); await srv.stop(); }
+});
+
 test("Settings > Check for updates reports checking, up to date, available and offline", async () => {
   const dir = copyWeb(); temps.push(dir);
   const srv = await serve(dir, 8784);

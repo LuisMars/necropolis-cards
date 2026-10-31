@@ -19,9 +19,9 @@ export function initPwa({ lang = () => "en" } = {}) {
   let reg = null;
   let result = "";            // "", checking, uptodate, available, offline, unsupported
   let version = "";
-  const hadController = supported && !!navigator.serviceWorker.controller;   // false on the very first install
+  let controlled = supported && !!navigator.serviceWorker.controller;   // false on the very first install
 
-  const waitingWorker = () => (hadController || navigator.serviceWorker.controller) ? reg?.waiting || null : null;
+  const waitingWorker = () => (controlled || navigator.serviceWorker.controller) ? reg?.waiting || null : null;
 
   async function readVersion() {
     const w = reg?.active || navigator.serviceWorker.controller;
@@ -111,11 +111,13 @@ export function initPwa({ lang = () => "en" } = {}) {
   if (!supported) { result = ""; }
   else {
     // The worker taking over reloads the page once: after the player pressed
-    // Update here, or in another tab. Never on the first install (no
-    // previous controller), never twice.
+    // Update here, or in another tab. The first takeover of an uncontrolled
+    // page is the first install, so it only marks the page as controlled; an
+    // update later in that same tab still reloads. Never twice.
     let reloaded = false;
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (!hadController || reloaded) return;
+      if (!controlled) { controlled = true; return; }
+      if (reloaded) return;
       reloaded = true;
       location.reload();
     });

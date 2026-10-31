@@ -49,15 +49,18 @@ self.addEventListener("message", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
-  if (new URL(req.url).origin !== self.location.origin) return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const hit = await cache.match(req, { ignoreSearch: true });
     if (hit) return hit;
-    if (req.mode === "navigate") {
-      const page = await cache.match("index.html");
-      if (page) return page;
-    }
-    return fetch(req);
+    if (req.mode !== "navigate") return fetch(req);
+    // The app lives at the scope root (routes are in the hash). Any other page
+    // (the design reference, a mistyped path) is the server's answer; the app
+    // is only the fallback when offline.
+    const page = await cache.match("index.html");
+    if (page && url.pathname === new URL(self.registration.scope).pathname) return page;
+    try { return await fetch(req); } catch (err) { if (page) return page; throw err; }
   })());
 });
