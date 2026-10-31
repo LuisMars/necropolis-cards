@@ -697,3 +697,20 @@
     #bd-body .bd-ghead .bd-lair-tools :is(select,.nc-select){flex:1 1 100%}
   }
 }
+/* Settings > Sync (device sync). Screen only: nothing here reaches print. */
+@media screen {
+  .nc-sync{border-top:1px solid var(--nc-line-soft);padding-top:12px;display:flex;flex-direction:column;gap:10px;max-width:340px}
+  .nc-sync[hidden],.nc-sync [hidden]{display:none}
+  .nc-sync h2{margin:0;font-family:'Alegreya SC',Georgia,serif;font-size:16px;color:var(--nc-secondary)}
+  .nc-sync p,.nc-sync dl,.nc-sync dd{margin:0;font-size:14px;line-height:1.35}
+  .nc-sync-note{color:var(--nc-secondary)}
+  .nc-sync form{display:flex;flex-direction:column;gap:10px}
+  .nc-sync input{width:100%;box-sizing:border-box;min-height:var(--nc-target);font-size:16px}
+  .nc-sync-actions{display:flex;flex-wrap:wrap;gap:8px}
+  .nc-sync-error{color:var(--nc-error);font-weight:600}
+  .nc-sync-status{color:var(--nc-secondary);min-height:1.35em}
+  .nc-sync-conflict{border:1px solid var(--nc-warning);border-radius:3px;margin:0;padding:8px 10px;display:flex;flex-direction:column;gap:8px}
+  .nc-sync-conflict legend{font-weight:700;padding:0 4px}
+  .nc-sync-conflict dt{font-weight:700;margin-top:4px}
+  .nc-sync-conflict dd{overflow-wrap:anywhere}
+}

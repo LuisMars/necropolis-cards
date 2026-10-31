@@ -13,10 +13,13 @@
  *               effective stats and the player's custom model name.
  */
 
-const LS_KEY = "necropolis-card-printer-queue-v1";
-const LS_PRINTED = "necropolis-card-printer-printed-v1";
-const LS_LANG = "necropolis-card-printer-lang-v1";
-const LS_WARBAND = "necropolis-card-printer-warband-v1";
+import { LS } from "./sync/keys.js";
+import { localChanged } from "./sync/bus.js";
+
+const LS_KEY = LS.queue;
+const LS_PRINTED = LS.printed;
+const LS_LANG = LS.lang;
+const LS_WARBAND = LS.warband;
 
 export const state = {
   bundle: null,        // parsed data.json
@@ -39,6 +42,7 @@ export const state = {
 
 export function saveQueue() {
   try { localStorage.setItem(LS_KEY, JSON.stringify(state.queue)); } catch {}
+  localChanged("queue");
 }
 
 export function loadQueue() {
@@ -58,6 +62,7 @@ export function cardId(key, name) {
 
 export function savePrinted() {
   try { localStorage.setItem(LS_PRINTED, JSON.stringify(state.printed)); } catch {}
+  localChanged("printed");
 }
 
 export function loadPrinted() {
@@ -87,6 +92,7 @@ export function addPrinted(key, name, delta) {
 
 export function saveLang() {
   try { localStorage.setItem(LS_LANG, state.lang); } catch {}
+  localChanged("prefs");
 }
 
 export function loadLang() {
@@ -105,6 +111,7 @@ export function saveWarband() {
     if (state.warband) localStorage.setItem(LS_WARBAND, JSON.stringify(state.warband));
     else localStorage.removeItem(LS_WARBAND);
   } catch {}
+  localChanged("warband");
 }
 
 export function loadWarband() {
