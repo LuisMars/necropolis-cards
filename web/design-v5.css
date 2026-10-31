@@ -3,27 +3,13 @@
  * the original PDF-derived SVG cards and A4 roster renderer are immutable.
  *
  * Components actually used in the app:
- *  .app, .tabs, .bd-head, .bd-model, .bd-list, .bd-views,
- *  .bd-affinity-control, .bd-warn, .bd-summary, .lib-tile,
+ *  .app, .tabs, .bd-ghead, .bd-model, .bd-list, .bd-views,
+ *  .bd-affinity-control, .bd-warn, .lib-tile,
  *  .queue-panel, .bd-panel, .bd-wizard, native selects and input fields.
  */
 @media screen {
-  :root {
-    color-scheme:dark;
-    --bg:#171512; --panel:#302d28; --panel2:#3a3630; --panel3:#49443d;
-    --border:#958777; --text:#f2ecdf; --muted:#cfc2b1;
-    --accent:#ddd3c1; --good:#94d2af; --bad:#e9968c; --warn:#efc17f;
-    --nc-bg:#171512; --nc-chrome:#1e1c19; --nc-surface:#302d28;
-    --nc-raised:#3a3630; --nc-hover:#49443d; --nc-line:#958777;
-    --nc-line-soft:#675f52; --nc-bone:#f2ecdf; --nc-secondary:#e0d5c5;
-    --nc-muted:#cfc2b1; --nc-primary:#e6dccb; --nc-on-primary:#201c18;
-    --nc-success:#94d2af; --nc-success-bg:#294135;
-    --nc-warning:#efc17f; --nc-warning-bg:#4c3825;
-    --nc-error:#e9968c; --nc-error-bg:#4a2c2a;
-  }
-  html,body {background:var(--nc-bg);color:var(--nc-bone)}
   body {font-family:'Alegreya',Georgia,serif;font-size:16px;line-height:1.45}
-  header.app {background:var(--nc-chrome);border-bottom:1px solid var(--nc-line-soft);padding:12px 19px;gap:15px}
+  header.app {border-bottom:1px solid;padding:12px 19px}
   header.app h1 {
     font-family:var(--gothic);
     font-size:30px;letter-spacing:0;white-space:nowrap;font-weight:400;
@@ -37,9 +23,6 @@
     display:inline-flex;align-items:center;min-height:42px;padding:0 13px;
     font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;
   }
-  nav.tabs .nav-item:not(.active):hover{background:var(--nc-hover);border-color:var(--nc-line-soft)}
-  nav.tabs .nav-item.active{background:var(--nc-raised);border-color:var(--nc-line);box-shadow:none}
-  nav.tabs .nav-item.active a{color:var(--nc-bone)}
   nav.tabs a.nav-count{
     display:inline-flex;align-items:center;justify-content:center;min-height:26px;margin:0 9px 0 -5px;
     background:var(--nc-bg);color:var(--nc-bone);border:1px solid var(--nc-line-soft);
@@ -55,23 +38,21 @@
   .nav-settings > summary:hover,.nav-settings[open] > summary{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}
   .nav-settings .nav-chev{font-size:13px;line-height:1}
   .nav-settings-panel{
-    background:var(--nc-surface);border:1px solid var(--nc-line);border-radius:3px;
+    border:1px solid;border-radius:3px;
     min-width:230px;box-sizing:border-box;
   }
   .nav-settings-panel :is(select,.nc-select){width:100%;max-width:none}
   header.app .lang-picker {color:var(--nc-secondary);font-family:'Alegreya SC',Georgia,serif;font-size:14px;font-weight:700}
   button.primary,header.app button.print-btn{
-    color:var(--nc-on-primary);background:var(--nc-primary);border:1px solid var(--nc-primary);
+    border:1px solid;
     min-height:42px;border-radius:3px;font-family:'Alegreya SC',Georgia,serif;
     font-size:16px;font-weight:700;padding:8px 16px;
   }
-  button.primary:hover,header.app button.print-btn:hover{background:var(--nc-bone)}
   button.secondary{
-    color:var(--nc-bone);background:var(--nc-raised);border:1px solid var(--nc-line);
+    border:1px solid;
     border-radius:3px;min-height:42px;font-family:'Alegreya SC',Georgia,serif;
     font-size:15px;font-weight:600;padding:8px 13px;
   }
-  button.secondary:hover{background:var(--nc-hover)}
   button:disabled{opacity:.45;cursor:not-allowed}
   :is(button,input,select,textarea,[role="button"]):focus-visible{
     outline:2px solid var(--nc-bone);outline-offset:2px;
@@ -82,8 +63,7 @@
   #bd-body select,.bd-toolbar select,.lib-toolbar select,
   header.app .lang-picker select,.print-toolbar select{
     -webkit-appearance:none;appearance:none;min-height:44px;
-    padding:9px 49px 9px 13px;color:var(--nc-bone);
-    background-color:var(--nc-control-bg,var(--nc-raised));
+    padding:9px 49px 9px 13px;
     /* Chevron in currentColor (as select.css draws it), so every palette,
        light included, gets a visible one: two half-filled squares. */
     background-image:
@@ -91,36 +71,31 @@
       linear-gradient(135deg,currentColor 50%,transparent 50%);
     background-position:calc(100% - 22px) 50%,calc(100% - 17px) 50%;
     background-size:5px 5px,5px 5px;background-repeat:no-repeat;
-    border:1px solid var(--nc-line);border-radius:3px;
+    border:1px solid;border-radius:3px;
     font-family:'Alegreya',Georgia,serif;font-size:16px;text-overflow:ellipsis;
   }
   #bd-body input[type="text"],#bd-body input[type="number"],#bd-body input[type="date"],
   #bd-body input[type="search"],.bd-toolbar input,.lib-toolbar input[type="text"],
   textarea.json-in,.lib-inv-paste textarea{
-    color:var(--nc-bone);background:var(--nc-control-bg,var(--nc-raised));border:1px solid var(--nc-control-line,var(--nc-line));
+    border:1px solid;
     border-radius:3px;min-height:44px;padding:9px 12px;
     font:16px/1.35 'Alegreya',Georgia,serif;
   }
   #bd-body input:focus,#bd-body select:focus{border-color:var(--nc-bone)}
-  #bd-body label,.bd-head label,.bd-form label{color:var(--nc-secondary)}
+  #bd-body label,.bd-form label{color:var(--nc-secondary)}
   :is(.bd-list h4,.bd-panel h3,.bd-sum h4,.bd-step h4,.bd-ledger h4,.bd-model .bd-type){
     font-family:'Alegreya SC',Georgia,serif;letter-spacing:.035em;
   }
-  .bd-head{gap:14px;margin-bottom:17px}
-  .bd-head label{font-size:14px}
-  .bd-model,.bd-panel{background:var(--nc-surface);border:1px solid var(--nc-line-soft);border-radius:3px}
+  .bd-model,.bd-panel{border:1px solid;border-radius:3px}
   .bd-model.leader,.bd-wizard{border-color:var(--nc-line)}
   .bd-model{padding:15px 17px}
   .bd-model-head{gap:10px}
   .bd-model-head button.secondary{min-width:42px;padding:6px 10px}
-  .bd-stats{gap:18px;font-size:15px;font-variant-numeric:tabular-nums}
+  .bd-stats{font-size:15px;font-variant-numeric:tabular-nums}
   .bd-stats i{color:var(--nc-secondary)}
   .bd-stats b,.bd-panel h3,.bd-sum h4{color:var(--nc-bone)}
   .bd-list h4{font-size:15px;color:var(--nc-secondary)}
-  .bd-item,.bd-tag,.bd-choice{
-    color:var(--nc-bone);background:var(--nc-raised);
-    border-color:var(--nc-line-soft);border-radius:3px;
-  }
+  .bd-item,.bd-tag,.bd-choice{border-radius:3px}
   .bd-item small{color:var(--nc-secondary)}
   .bd-item button{min-width:30px;min-height:30px;color:var(--nc-secondary)}
   /* View switches (Gathering / Campaign / Roster, Library / Print queue):
@@ -167,7 +142,6 @@
     outline:2px solid var(--nc-bone);outline-offset:2px;z-index:2;position:relative;
   }
   .bd-affinity-option:hover span{border-color:var(--nc-line)}
-  .bd-summary{gap:8px}
   .wb-chip{border:1px solid var(--nc-line-soft);border-radius:3px;background:var(--nc-raised);color:var(--nc-bone);padding:6px 10px}
   .wb-chip.good{color:var(--nc-success);background:var(--nc-success-bg);border-color:var(--nc-success)}
   .wb-chip.over{color:var(--nc-error);background:var(--nc-error-bg);border-color:var(--nc-error)}
@@ -193,26 +167,16 @@
   .bd-sum .bd-sum-group + .bd-sum-group{border-top:1px solid var(--nc-warn-line);padding-top:10px}
   .bd-sum button{color:var(--nc-bone)}
   .bd-sum button:hover{text-decoration:underline;text-decoration-color:var(--nc-warning)}
-  .bd-status{color:var(--nc-success)}
-  .bd-upgrade{background:var(--nc-raised);border-color:var(--nc-line-soft)}
   .bd-crumbs button{min-height:36px}
   .lib-toolbar{gap:10px}
   .lib-grid{gap:10px}
-  .lib-tile{background:var(--nc-surface);border-color:var(--nc-line-soft);border-radius:3px;padding:13px 15px}
-  .lib-tile:hover{background:var(--nc-raised);border-color:var(--nc-line)}
+  .lib-tile{border-radius:3px;padding:13px 15px}
   .lib-tile .name{font-family:'Alegreya',Georgia,serif;font-size:20px}
-  .lib-tile .preview{font-size:13px;color:var(--nc-secondary)}
-  .lib-tile .cat{background:var(--nc-raised);color:var(--nc-secondary);font-family:'Alegreya SC',Georgia,serif;font-size:12px}
+  .lib-tile .preview{font-size:14px;color:var(--nc-secondary)}
+  .lib-tile .cat{font-family:'Alegreya SC',Georgia,serif}
   .lib-tile .in-queue{background:var(--nc-primary);color:var(--nc-on-primary)}
-  .lib-tile .add{color:var(--nc-success)}
-  .lib-tile.has-printed{border-color:var(--nc-success)}
-  .lib-tile .printed-ctl button{min-width:34px;min-height:34px;border-radius:3px;color:var(--nc-bone);background:var(--nc-raised);border-color:var(--nc-line)}
-  .lib-tile .need{background:var(--nc-warning);color:var(--nc-on-primary);border-radius:3px}
-  .lib-tile .need.done{background:var(--nc-success);color:var(--nc-on-primary)}
-  .match-row.matched{border-left-color:var(--nc-success)}
-  .match-row.fuzzy{border-left-color:var(--nc-warning)}
-  .match-row.unmatched{border-left-color:var(--nc-error)}
-  .queue-list{background:var(--nc-surface);border-color:var(--nc-line-soft)}
+  .lib-tile .printed-ctl button{min-width:36px;min-height:36px;border-radius:3px}
+  .lib-tile .need{border-radius:3px}
   .queue-item .name:focus{outline-color:var(--nc-bone);background:var(--nc-raised)}
   .queue-item button{min-width:32px;min-height:32px}
   footer.app-foot{border-color:var(--nc-line-soft)}
@@ -221,8 +185,8 @@
      action controls. The integrated app must override those, not only the demo. */
   .bd-items .nc-select-trigger{font-size:15px}
   #bd-body .bd-items select:not(.nc-select-src) {
-    font-size:15px !important; min-height:44px !important;
-    padding:9px 49px 9px 13px !important; max-width:100%;
+    font-size:15px; min-height:44px;
+    padding:9px 49px 9px 13px; max-width:100%;
   }
   #bd-body .bd-list h4 {font-size:16px; color:var(--nc-secondary)}
   #bd-body .bd-model-head input[type=text] {font-size:16px}
@@ -232,7 +196,6 @@
   #bd-body .bd-amb-text,#bd-body .bd-src small,#bd-body .bd-tx,
   #bd-body .bd-field-row,#bd-body .bd-hint {font-size:15px;color:var(--nc-secondary)}
   #bd-body .bd-amb-head,#bd-body .bd-model-head {color:var(--nc-bone)}
-  .lib-tile .preview {font-size:14px}
   .lib-tile .printed-lbl,.lib-tile .need {font-size:13px}
   /* Stat block uses actual semantic dl/dt/dd markup from builder-tab.js. */
   .bd-stats {
@@ -254,29 +217,10 @@
     font:700 23px/1.1 'Alegreya',Georgia,serif;
     font-variant-numeric:tabular-nums;
   }
-  #bd-body .bd-model {
-    background:var(--nc-surface);border-color:var(--nc-line-soft);
-    box-shadow:none;
-  }
-  #bd-body .bd-panel{background:var(--nc-surface);border-color:var(--nc-line-soft)}
-  #bd-body .bd-list {border-color:var(--nc-line-soft)}
-  #bd-body .bd-affinity-option span{background:var(--nc-raised)}
-  #bd-body .bd-affinity-option input:checked+span {background:var(--nc-primary)}
   #bd-body .bd-callout{border-left-color:var(--nc-primary)}
   #bd-body .bd-prog{color:var(--nc-bone)}
-  #bd-body .bd-amb.done .bd-prog{color:var(--nc-success)}
-  #bd-body .bd-choice {background:var(--nc-raised);border-color:var(--nc-line-soft)}
-  #bd-body .bd-step {border-color:var(--nc-line-soft)}
-  .lib-tile {background:var(--nc-surface);border-color:var(--nc-line-soft)}
-  .lib-tile:hover{background:var(--nc-raised);border-color:var(--nc-line)}
-  .lib-tile.has-printed{border-color:var(--nc-success)}
   .lib-tile .tile-head{gap:10px}
-  .lib-tile .printed-ctl button{min-width:36px;min-height:36px}
   .lib-tile .printed-n{color:var(--nc-bone)}
-  .lib-tile .need.done {background:var(--nc-success);color:var(--nc-on-primary)}
-  .match-row.matched{border-left-color:var(--nc-success)}
-  .match-row.fuzzy{border-left-color:var(--nc-warning)}
-  .match-row.unmatched{border-left-color:var(--nc-error)}
 
   @media(max-width:900px){
     header.app{flex-wrap:wrap;gap:8px 12px}
@@ -289,8 +233,6 @@
     header.app{padding:10px 13px}
     header.app h1{font-size:23px}
     main{padding:12px}
-    .bd-head .bd-lair{min-width:0;width:100%}
-    .bd-head input[type=text]{min-width:0;width:100%}
     .bd-model-head input[type=text]{min-width:0;flex:1 1 100%}
     .lib-grid{grid-template-columns:1fr}
     .lib-toolbar input[type=text]{min-width:0;width:100%}
@@ -366,7 +308,7 @@
   .bd-table td button.secondary{min-height:36px;min-width:36px;padding:4px 8px}
 
   /* After-battle wizard: breathing room on every side, nested panels inset. */
-  #bd-body .bd-wizard{padding:16px 20px 18px;border-left-width:1px}
+  #bd-body .bd-wizard{padding:16px 20px 18px}
   .bd-wizard .bd-panel{margin-top:10px}
   .bd-wizard .bd-step > .bd-inline{margin:10px 0}
   .bd-crumbs{gap:2px}
@@ -408,7 +350,7 @@
   /* Import actions wrap whole; Close stands apart. */
   @media (max-width:540px){
     .bd-import-actions > button{flex:1 1 auto;white-space:nowrap}
-    #load-warband-btn{flex-basis:100% !important}
+    #load-warband-btn{flex-basis:100%}
   }
 }
 @media screen and (max-width:900px){
@@ -511,10 +453,10 @@
     width:min(680px,calc(100vw - 32px));max-height:min(86vh,820px);padding:0;
     color:var(--nc-bone);background:var(--nc-surface);
     border:1px solid var(--nc-line);border-radius:4px;
-    box-shadow:0 1px 2px rgb(0 0 0 / .18),0 18px 48px -12px rgb(0 0 0 / .5);
+    box-shadow:var(--nc-shadow-lg);
   }
   dialog.bd-picker.bd-picker-small{width:min(460px,calc(100vw - 32px))}
-  dialog.bd-picker::backdrop{background:rgb(0 0 0 / .55)}
+  dialog.bd-picker::backdrop{background:var(--nc-scrim)}
   .bd-picker-box{display:flex;flex-direction:column;gap:10px;max-height:inherit;box-sizing:border-box;padding:16px 18px}
   dialog.bd-picker[open] .bd-picker-box{max-height:min(86vh,820px)}
   .bd-picker-head{display:flex;align-items:flex-start;gap:12px}
@@ -601,7 +543,7 @@
   .bd-gfield :is(input,select,.nc-select){width:100%;max-width:none;box-sizing:border-box}
   .bd-ghead .bd-lair-tools{display:flex;align-items:center;gap:6px 10px;flex:1 1 260px;min-width:0}
   .bd-ghead .bd-lair-tools > button.link{white-space:nowrap;padding:0}
-  #bd-body .bd-ghead .bd-lair-tools :is(select,.nc-select){flex:1 1 0;min-width:0;font-size:15px !important}
+  #bd-body .bd-ghead .bd-lair-tools :is(select,.nc-select){flex:1 1 0;min-width:0;font-size:15px}
   .bd-ghead .bd-lair-tools .nc-select-trigger{font-size:15px}
   .bd-ghead .bd-figs{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 26px;margin:4px 0 0}
   .bd-ghead .bd-fig{display:flex;align-items:baseline;gap:8px;margin:0}
@@ -626,7 +568,7 @@
   .bd-share[open] summary .nc-icon{transform:rotate(180deg)}
   .bd-share-menu{position:absolute;z-index:15;left:0;top:calc(100% + 4px);display:flex;flex-direction:column;
     min-width:200px;padding:6px 12px;background:var(--nc-surface);border:1px solid var(--nc-line);border-radius:3px;
-    box-shadow:0 10px 28px -6px rgb(0 0 0 / .35)}
+    box-shadow:var(--nc-shadow)}
   .bd-share-menu button.link{text-align:left;padding:4px 0}
   .bd-ghead .bd-status{margin:0}
   .bd-sum{margin:-8px 0 18px}
