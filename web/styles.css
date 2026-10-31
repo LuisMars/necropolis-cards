@@ -281,11 +281,6 @@ textarea.json-in { resize: vertical; }
 }
 .print-toolbar label { display: inline-flex; align-items: center; cursor: pointer; }
 
-.empty-msg {
-  color: var(--muted); text-align: center; padding: 60px 20px;
-  background: var(--panel); border-radius: 4px; border: 1px dashed var(--border);
-}
-
 /* === A4 sheets — same markup is used on-screen and in the print dialog.
  *
  * Card size is always 63 × 88 mm (the trim — what the player sees after

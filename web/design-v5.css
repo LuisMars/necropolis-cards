@@ -53,7 +53,13 @@
     border-radius:3px;min-height:42px;font-family:'Alegreya SC',Georgia,serif;
     font-size:15px;font-weight:600;padding:8px 13px;
   }
-  button:disabled{opacity:.45;cursor:not-allowed}
+  /* Disabled: no fill and quieter words, at least 3:1 on every surface. Never
+     opacity, which took the text under that. html/header prefixes outrank the
+     button skins in design-palettes.css, which loads later. */
+  html button:disabled,html button:disabled:hover,
+  header.app button.print-btn:disabled,header.app button.print-btn:disabled:hover{
+    color:var(--nc-disabled);background:transparent;border-color:var(--nc-line-soft);cursor:not-allowed;
+  }
   :is(button,input,select,textarea,[role="button"]):focus-visible{
     outline:2px solid var(--nc-bone);outline-offset:2px;
   }
@@ -81,6 +87,9 @@
     border-radius:3px;min-height:44px;padding:9px 12px;
     font:16px/1.35 'Alegreya',Georgia,serif;
   }
+  /* These hold JSON and share links: monospace, so codes read character by character. */
+  textarea.json-in,.lib-inv-paste textarea{font:14px/1.45 ui-monospace,Menlo,monospace}
+  .lib-inv-paste textarea{min-height:120px}
   #bd-body input:focus,#bd-body select:focus{border-color:var(--nc-bone)}
   #bd-body label,.bd-form label{color:var(--nc-secondary)}
   :is(.bd-list h4,.bd-panel h3,.bd-sum h4,.bd-step h4,.bd-ledger h4,.bd-model .bd-type){
@@ -295,7 +304,7 @@
     display:flex;flex-direction:column;gap:6px;padding:12px 14px;margin:0;
     background:var(--nc-raised);border:1px solid var(--nc-line-soft);border-radius:3px;
   }
-  #bd-body .bd-upgrade.owned{border-color:var(--nc-success);box-shadow:inset 3px 0 var(--nc-success)}
+  #bd-body .bd-upgrade.owned{border-color:var(--nc-success);border-left-width:4px;padding-left:11px}
   .bd-upgrade .bd-amb-text{flex:1;margin:0}
   .bd-upgrade-act,.bd-upgrade > button{margin-top:4px;align-self:flex-start}
   .bd-upgrade .bd-good{margin:0}
@@ -439,7 +448,6 @@
   }
   #bd-body .bd-add-btn:hover{background:var(--nc-hover);border-style:solid;color:var(--nc-bone)}
   .bd-model-foot{margin-top:10px}
-  .bd-lists .bd-list:has(.bd-mana){grid-column:auto}
   .bd-list .bd-mana{gap:6px 12px}
   .bd-gear-stash{margin-top:14px}
   .bd-gear-stash .bd-hint{margin:0 0 6px}
@@ -478,9 +486,9 @@
   .bd-picker-group-title{margin:10px 0 2px;font:600 14px 'Alegreya SC',Georgia,serif;letter-spacing:.04em;color:var(--nc-muted)}
   .bd-picker-row{
     display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 12px;
-    padding:7px 10px;margin:0 -10px;border-radius:3px;cursor:pointer;
+    padding:6px 9px;margin:0 -10px;border:1px solid transparent;border-radius:3px;cursor:pointer;
   }
-  .bd-picker-row.is-active{background:var(--nc-raised);box-shadow:inset 0 0 0 1px var(--nc-line-soft)}
+  .bd-picker-row.is-active{background:var(--nc-raised);border-color:var(--nc-line-soft)}
   .bd-picker-row:hover{background:var(--nc-hover)}
   .bd-pk-name{font-weight:600}
   .bd-pk-cost{color:var(--nc-secondary);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
@@ -634,6 +642,13 @@
 }
 @media screen {
   .wb-toolbar[hidden],.sheets-wrap[hidden],.wb-pages[hidden]{display:none}
+  .empty-msg{
+    color:var(--nc-muted);text-align:center;padding:60px 20px;
+    background:var(--nc-surface);border:1px dashed var(--nc-line);border-radius:3px;
+  }
+  /* With nothing to show the desk around the sheets falls away, so the box
+     lines up with the queue panel beside it. */
+  :is(.sheets-wrap,.wb-pages):has(> .empty-msg){padding:0;background:none}
 }
 @media screen {
   /* After-battle steps: the current one is raised with a border, no underline. */

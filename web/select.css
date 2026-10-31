@@ -51,7 +51,7 @@
   .nc-select-trigger:focus { border-color:var(--nc-bone) }
   .nc-select-trigger:focus { outline:none }
   .nc-select-trigger:focus-visible { outline:2px solid var(--nc-bone); outline-offset:2px }
-  .nc-select-trigger[aria-disabled="true"] { opacity:.45; cursor:not-allowed; background:var(--nc-control-bg, var(--nc-raised)) }
+  .nc-select-trigger[aria-disabled="true"] { color:var(--nc-disabled); cursor:not-allowed; background:transparent; border-color:var(--nc-line-soft) }
   .nc-select-trigger[aria-invalid="true"] { border-color:var(--nc-error) }
 
   /* Popup: a portal in <body>, fixed-positioned by select.js. */
