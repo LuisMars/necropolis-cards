@@ -59,7 +59,11 @@ export function initImport({ onChange, onImported, openQueue, onPanel }) {
     const { matches, notes } = importJson($jsonIn.value, { queue: false });
     renderMatches(matches, notes);
     showQueued(0);
-    if (matches.length) onImported?.();
+    if (matches.length) {
+      onImported?.();
+      // The open panel is taller than most screens: bring the gathering into view.
+      requestAnimationFrame(() => document.getElementById("bd-body")?.scrollIntoView({ block: "start" }));
+    }
   });
   $parseBtn.addEventListener("click", () => {
     const { matches, notes } = importJson($jsonIn.value);
