@@ -212,7 +212,8 @@ test("queue, warband and prefs: the newer change wins", async () => {
   await a.sync.sync();
   assert.equal(a.json(LS.queue)[0].row.name, "B2");
   assert.equal(b.json(LS.queue)[0].row.name, "B2");
-  assert.equal(a.storage.getItem(LS.lang), "es");
+  assert.equal(a.storage.getItem(LS.lang), "en");   // only A changed it; B only repeated the old value
+  assert.equal(b.storage.getItem(LS.lang), "en");
   assert.equal(b.json(LS.warband).covenant, "a");
 });
 
