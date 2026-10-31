@@ -22,6 +22,8 @@ export const state = {
   bundle: null,        // parsed data.json
   templates: {},       // { stem: svgText }
   index: null,         // name-keyed lookup (built after bundle loads)
+  catalog: null,       // warband-builder catalog: rows by stable key and by
+                       // Companion App ID (web/js/builder/catalog.js)
   queue: [],           // see header
   expanded: null,      // queue index whose edit panel is open, or null
   printed: {},         // inventory: { "<key>\0<name>": count } — how many

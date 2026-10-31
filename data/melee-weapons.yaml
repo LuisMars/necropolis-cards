@@ -4,6 +4,9 @@
 
 - name: Improvised Weapon
   name_es: Arma Improvisada
+  app_id: ewm0
+  obols: 0
+  hands: 1
   category: Melee · 1-handed
   category_es: Cuerpo a cuerpo · 1 mano
   cost: —
@@ -16,6 +19,9 @@
   special_es: —
 - name: Blade
   name_es: Espada
+  app_id: ewm1
+  obols: 10
+  hands: 1
   category: Melee · 1-handed
   category_es: Cuerpo a cuerpo · 1 mano
   cost: 10 obols
@@ -29,6 +35,9 @@
   special_es: +1 a la armadura contra acciones de ataque con armas cuerpo a cuerpo.
 - name: Axe
   name_es: Hacha
+  app_id: ewm2
+  obols: 10
+  hands: 1
   category: Melee · 1-handed
   category_es: Cuerpo a cuerpo · 1 mano
   cost: 10 obols
@@ -42,6 +51,9 @@
   special_es: Ignora 1 de armadura.
 - name: Bludgeon
   name_es: Maza
+  app_id: ewm3
+  obols: 10
+  hands: 1
   category: Melee · 1-handed
   category_es: Cuerpo a cuerpo · 1 mano
   cost: 10 obols
@@ -55,6 +67,9 @@
   special_es: Si impacta, puede Empujar 2" en vez de 1".
 - name: Light Polearm
   name_es: Arma de Asta Ligera
+  app_id: ewm4
+  obols: 10
+  hands: 1
   category: Melee · 1-handed
   category_es: Cuerpo a cuerpo · 1 mano
   cost: 10 obols
@@ -68,6 +83,9 @@
   special_es: —
 - name: Heavy Polearm
   name_es: Arma de Asta Pesada
+  app_id: ewm5
+  obols: 20
+  hands: 2
   category: Melee · 2-handed
   category_es: Cuerpo a cuerpo · 2 manos
   cost: 20 obols
@@ -81,6 +99,9 @@
   special_es: —
 - name: Great Weapon
   name_es: Arma Grande
+  app_id: ewm6
+  obols: 35
+  hands: 2
   category: Melee · 2-handed
   category_es: Cuerpo a cuerpo · 2 manos
   cost: 35 obols
@@ -94,6 +115,9 @@
   special_es: —
 - name: Dual Hand Weapons
   name_es: Armas Dobles
+  app_id: ewm7
+  obols: 35
+  hands: 2
   category: Melee · 2-handed
   category_es: Cuerpo a cuerpo · 2 manos
   cost: 35 obols
@@ -107,6 +131,9 @@
   special_es: −1 a las tiradas de Violencia.
 - name: Claws and Fangs
   name_es: Garras y Colmillos
+  app_id: ewm8
+  obols: 5
+  hands: 2
   category: Melee · 2-handed
   category_es: Cuerpo a cuerpo · 2 manos
   cost: 5 obols
@@ -120,6 +147,9 @@
   special_es: —
 - name: Large Claws
   name_es: Grandes Garras
+  app_id: ewm9
+  obols: 35
+  hands: 2
   category: Melee · 2-handed
   category_es: Cuerpo a cuerpo · 2 manos
   cost: 35 obols

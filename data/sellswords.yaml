@@ -23,6 +23,8 @@
 
 - name: Desperate Rabble
   name_es: Chusma Desesperada
+  obols: 10
+  deploy_obols: 20
   type_keyword: Husk · Remnant · Blood/Bone/Plasm
   type_keyword_es: Cáscara · Remanente · Sangre/Hueso/Plasma
   cost: 10 roster / 20 deploy
@@ -44,6 +46,8 @@
 
 - name: Blightblade, Beast Hunter
   name_es: Hojanegra, el Cazador de Bestias
+  obols: 30
+  deploy_obols: 20
   type_keyword: Husk · Blood/Bone
   type_keyword_es: Cáscara · Sangre/Hueso
   cost: 30 roster / 20 deploy
@@ -65,6 +69,8 @@
 
 - name: Threefold Hunter of the Waste
   name_es: Tríada Cazadora del Yermo
+  obols: 30
+  deploy_obols: 20
   type_keyword: Husk · Blood/Bone
   type_keyword_es: Cáscara · Sangre/Hueso
   cost: 30 roster / 20 deploy
@@ -82,6 +88,8 @@
 
 - name: Neoteric Arcuballista
   name_es: Arcubalista Espectral
+  obols: 30
+  deploy_obols: 30
   type_keyword: Husk · Blood/Bone
   type_keyword_es: Cáscara · Sangre/Hueso
   cost: 30 roster / 30 deploy

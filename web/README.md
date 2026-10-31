@@ -4,22 +4,65 @@ Static page that imports a warband JSON from the
 [Necropolis Companion App](https://necropolis28.vercel.app/) and lays out
 printable A4 sheets of the matching cards from this repo's library.
 
-Four tabs:
+Two destinations in the header, **Gatherings** and **Cards**, each with a
+local switch, and addressed by the URL hash so Back, forward and reload
+keep your place: `#gatherings`, `#gatherings/campaign`,
+`#gatherings/roster`, `#cards`, `#cards/queue`. With no hash the app
+opens where you last were (remembered under its own UI key), else
+Gatherings if one is saved, else Cards. Beside **Cards** is the print
+queue's count (a link to the queue); **Settings** holds Language and
+Theme; the one primary button prints what the page is about —
+**Print roster** on Gatherings, **Print N cards** on Cards — and is
+disabled, with the reason, when there's nothing to print.
 
-1. **Import** — paste the Companion App's JSON. **Load warband** only reads
-   the roster into the Warband tab; **Load & add cards to queue** also matches
-   each trait / spell / weapon / armour / model profile against our card
-   data and appends the hits to the print queue. Per-model `modelName` and
-   the effective (post-modifier) stats from the JSON override the generic
-   card data, so the printed copy reflects the actual model. Either button
-   stores the raw payload, which is what the Warband tab renders from.
-2. **Warband** — the imported gathering as a roster: one block per model
+1. **Import** (a panel on Gatherings, next to New gathering) — paste the
+   Companion App's JSON, a share link or a Builder backup; each import is
+   saved as a builder gathering and opens in the Builder. **Load & add
+   cards to queue** also matches each trait / spell / weapon / armour /
+   model profile against our card data and appends the hits to the print
+   queue. Per-model `modelName` and the effective (post-modifier) stats
+   from the JSON override the generic card data, so the printed copy
+   reflects the actual model.
+2. **Gatherings → Gathering** (the Builder) — create and edit gatherings: covenant, lair name (typed,
+   picked or rolled on the p.42 table), leader (type, keyword, traits,
+   spells, mana split) and minions (type, keyword, trait, weapons, armour,
+   equipment). Costs and stats update as you go, and every rule a choice
+   breaks shows as a warning on its model rather than being blocked; the
+   warning count opens a summary of them all, grouped by model, each one
+   jumping to its model. From
+   there a gathering opens its roster, queues its cards, copies its
+   Companion App link, or downloads as the app's JSON or as a Builder
+   backup. Saved gatherings live in the browser (localStorage). Edits go
+   into a draft first, so options and gear can be tried freely: **Save
+   changes** commits the draft, **Discard changes** puts everything back
+   (treasury included); drafts survive a reload.
+   **Gatherings → Campaign** tracks the gathering between games: treasury and
+   deployment limit (who is fielded, sellswords hired and the free ones the
+   rules allow), lair upgrades, the 4 active ambitions with their rewards
+   applied, treasures (rolled or picked, carried within the limits, moved
+   between models), each model's stats with every change behind them (its
+   keyword, traits, lair upgrades, and a ledger of ambition rewards,
+   maladies and manual changes, each undoable at its source), the history
+   of completed ambitions and maladies, and a battle log. Once the campaign
+   has started, buying gear or minions anywhere in the Builder charges the
+   treasury at Bazaar prices and removing weapons or armour sells them for
+   half (p.72); every purchase and sale is listed until the next battle is
+   logged, then kept in that battle's entry. **After the
+   battle…** runs the rulebook's 7-step after-battle sequence as a wizard
+   (maladies, victory rewards with lair income and Purloiner, ambitions,
+   the greater treasure every 5, the Bazaar with the Alchemy Workshop, and
+   the next scenario), every roll with a Roll button or a typed die; it can
+   be left and resumed, and finishing it writes the battle-log entry.
+3. **Gatherings → Roster** — the gathering open in the Builder (its unsaved
+   draft included) as a roster sheet, rendered from the same Companion App
+   JSON the Builder exports (for a Builder gathering, stats the
+   campaign changed are marked ▲/▼ and listed under CAMPAIGN with their source): one block per model
    with its profile stats, special rules, traits, spells, weapons, armour
    and equipment — each with the rules text and stat line off its card, and
    priced from the library — plus a per-model subtotal and the warband
    total (against the payload's `totalObols` budget when it has one). Drawn in the cards' aesthetic — parchment,
    blackletter, small-caps headings — on A4 pages that print as-is via
-   **⎙ Print roster**.
+   **Print roster**.
 
    A few rules the app exports have no card of their own — four it names
    (Caster, Insubstantial, Unique, Brutal, all of which already print inside
@@ -44,13 +87,13 @@ Four tabs:
    choses the &lt;Affinity&gt; keyword…" effect text. A model that hasn't
    picked a keyword yet (affinity exported as `Blood/Bone/Plasm`) shows
    all of them, unflagged — same as the app.
-3. **Library** — filterable list of every card the bundle ships;
+4. **Cards → Library** — filterable list of every card the bundle ships;
    click to add one to the queue.
-4. **Print** — A4 sheets (3 × 3) with a bleed / no-bleed toggle, rendered
+5. **Cards → Print queue** — the queue (with Clear queue) and A4 sheets (3 × 3) with a bleed / no-bleed toggle, rendered
    as inline SVG and styled for `window.print()`.
 
-Both the cards and the roster follow the header's card-language selector
-(English / Spanish); the surrounding app chrome stays English.
+The cards, the roster, the Builder and the header follow the Language
+setting (English / Spanish); the rest of the app chrome stays English.
 
 ## Building the static bundle
 
@@ -96,27 +139,47 @@ If you'd rather avoid Actions, you can also use the branch approach: run
 
 ```
 web/
-├── index.html              # app shell (header + 4 tab sections)
+├── index.html              # app shell (header + the page sections)
 ├── styles.css              # screen + print CSS
 ├── bundle.py               # data + templates + images builder
 ├── data.json               # generated
 ├── templates/              # generated
 ├── images/                 # generated
 └── js/
-    ├── main.js             # boot + tab switching
+    ├── main.js             # boot, header, hash router
     ├── state.js            # global state + localStorage queue
     ├── data.js             # fetches data.json + templates, builds the name index
     ├── matching.js         # normName + findCard + keyHintFromSource
-    ├── import.js           # JSON import tab + match list
-    ├── warband.js          # warband tab: roster model + A4 roster sheets
+    ├── import.js           # Import panel (app JSON, share link, backup) + match list
+    ├── builder-tab.js      # builder tab: gathering list + editor
+    ├── builder-campaign.js # builder tab, campaign view
+    ├── builder-afterbattle.js # builder tab, after-battle wizard
+    ├── gatherings.js       # the page's saved gatherings (localStorage store)
+    ├── warband.js          # roster view: roster model + A4 roster sheets
     ├── icons.js            # roster glyphs (obol, AP, attacks, HP, …)
     ├── i18n.js             # card/roster language: label maps + field picker
     ├── library.js          # library tab
     ├── print.js            # print tab + queue editor + sheet rendering
     ├── templates.js        # {{KEY}} + BODY_BLOCK substitution into inline SVG
     ├── sample.js           # the "Load sample" payload
-    └── util.js             # escapeHtml, $ helper
+    ├── util.js             # escapeHtml, $ helper
+    └── builder/            # warband builder — pure modules, no DOM
+        ├── catalog.js      # rows by stable key ("melee-weapons/blade") and app ID
+        ├── gathering.js    # the builder's save format
+        ├── rules.js        # costs, effective stats, rule warnings
+        ├── campaign.js     # campaign actions: treasury, upgrades, ambitions, treasures, log
+        ├── ledger.js       # improvement ledger: stat changes with their source
+        ├── codec.js        # Companion App share links
+        ├── appjson.js      # Companion App JSON export ↔ gathering
+        ├── messages.js     # warnings and builder labels, English / Spanish
+        └── store.js        # saved-gatherings store over any Storage
 ```
+
+The builder modules take the bundle as an argument and never touch the
+page, so `tests/` runs them under Node (`python3 web/bundle.py && npm
+test`). `tests/ui/` drives the Builder in headless Chromium against the
+served site (`npm install && npx playwright install chromium && npm run
+test:ui`). CI runs both before each deploy.
 
 No build step, no framework — every file is loaded as an ES module by
 the browser at runtime.

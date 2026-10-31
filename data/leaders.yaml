@@ -8,6 +8,8 @@
 
 - name: Lich
   name_es: Liche
+  app_id: pl0
+  obols: 0
   type_keyword: Leader
   type_keyword_es: Líder
   keyword: Blood/Bone/Plasm
@@ -29,6 +31,8 @@
 
 - name: Revenant
   name_es: Renacido
+  app_id: pl1
+  obols: 0
   type_keyword: Leader
   type_keyword_es: Líder
   keyword: Blood/Bone/Plasm
@@ -54,6 +58,8 @@
 
 - name: Ascended Undead
   name_es: No Muerto Ascendido
+  app_id: pl2
+  obols: 225
   type_keyword: Leader · Colossal
   type_keyword_es: Líder · Colosal
   keyword: Blood/Bone/Plasm

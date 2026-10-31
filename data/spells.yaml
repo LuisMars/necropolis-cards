@@ -8,6 +8,7 @@
   school_es: NIGROMANCIA
   name: Summon
   name_es: Invocación
+  app_id: sn0
   ap: 1
   channel: 6+
   sigil: ""
@@ -22,6 +23,7 @@
   school_es: NIGROMANCIA
   name: Dominate
   name_es: Dominar
+  app_id: sn4
   ap: 1
   channel: 6+
   sigil: ""
@@ -36,6 +38,7 @@
   school_es: NIGROMANCIA
   name: Flare
   name_es: Destello
+  app_id: sn5
   ap: 1
   channel: 6+
   sigil: ""
@@ -50,6 +53,7 @@
   school_es: NIGROMANCIA
   name: Vigour
   name_es: Vigor
+  app_id: sn1
   ap: 1
   channel: 7+
   sigil: ""
@@ -64,6 +68,7 @@
   school_es: NIGROMANCIA
   name: Puppet
   name_es: Marioneta
+  app_id: sn2
   ap: 1
   channel: 6+
   sigil: ""
@@ -78,6 +83,7 @@
   school_es: NIGROMANCIA
   name: Wither
   name_es: Marchitar
+  app_id: sn3
   ap: 1
   channel: 5+
   sigil: ""
@@ -92,6 +98,7 @@
   school_es: SANGRE
   name: Blood Whip
   name_es: Látigo de Sangre
+  app_id: sbl0
   ap: 1
   channel: 7+
   sigil: ""
@@ -106,6 +113,7 @@
   school_es: SANGRE
   name: Congealed Blast
   name_es: Explosión Coagulada
+  app_id: sbl2
   ap: 1
   channel: 7+
   sigil: ""
@@ -120,6 +128,7 @@
   school_es: SANGRE
   name: Invigorate
   name_es: Vigorizar
+  app_id: sbl3
   ap: 1
   channel: 5+
   sigil: ""
@@ -134,6 +143,7 @@
   school_es: SANGRE
   name: Tide of Vermin
   name_es: Marea de alimañas
+  app_id: sbl1
   ap: 1
   channel: 6+
   sigil: ""
@@ -150,6 +160,7 @@
   school_es: HUESO
   name: Bone Armour
   name_es: Armadura de Hueso
+  app_id: sb2
   ap: 1
   channel: 6+
   sigil: ""
@@ -164,6 +175,7 @@
   school_es: HUESO
   name: Bone Spear
   name_es: Lanza de hueso
+  app_id: sb1
   ap: 1
   channel: 6+
   sigil: ""
@@ -178,6 +190,7 @@
   school_es: HUESO
   name: Teeth
   name_es: Dientes
+  app_id: sb0
   ap: 1
   channel: 6+
   sigil: ""
@@ -192,6 +205,7 @@
   school_es: HUESO
   name: Tireless Command
   name_es: Mandato Incansable
+  app_id: sb3
   ap: 1
   channel: 7+
   sigil: ""
@@ -208,6 +222,7 @@
   school_es: PLASMA
   name: Blink
   name_es: Translocar
+  app_id: sp0
   ap: 1
   channel: 7+
   sigil: ""
@@ -222,6 +237,7 @@
   school_es: PLASMA
   name: Phantasm
   name_es: Fantasmagoría
+  app_id: sp4
   ap: 2
   channel: 7+
   sigil: ""
@@ -236,6 +252,7 @@
   school_es: PLASMA
   name: Plasmic Emberburst
   name_es: Explosión de Ascuas Plasmáticas
+  app_id: sp1
   ap: 1
   channel: 6+
   sigil: ""
@@ -250,6 +267,7 @@
   school_es: PLASMA
   name: Plasmic Shield
   name_es: Escudo Plasmático
+  app_id: sp3
   ap: 1
   channel: 5+
   sigil: ""
@@ -264,6 +282,7 @@
   school_es: PLASMA
   name: Spectral Pull
   name_es: Atracción Espectral
+  app_id: sp2
   ap: 1
   channel: 6+
   sigil: ""

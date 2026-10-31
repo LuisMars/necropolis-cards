@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Themed Selects</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="design-v5.css">
+<link rel="stylesheet" href="design-palettes.css">
+<link rel="stylesheet" href="select.css" media="screen">
+<script src="js/design-palettes.js"></script>
+<style>
+  @media screen {
+    .sd-shell{max-width:980px;margin:0 auto;padding:24px 16px 120px}
+    .sd-shell h1{font:400 32px/1.1 'JSL Blackletter','Alegreya SC',serif;margin:0 0 6px}
+    .sd-shell h2{font:700 19px 'Alegreya SC',serif;margin:0 0 10px;color:var(--nc-secondary);letter-spacing:.04em}
+    .sd-lede{color:var(--nc-secondary);margin:0 0 22px}
+    .sd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+    .sd-card{background:var(--nc-surface);border:1px solid var(--nc-line-soft);border-radius:3px;padding:16px;min-width:0}
+    .sd-card label{display:flex;flex-direction:column;gap:5px;color:var(--nc-secondary);font-size:14px}
+    .sd-card .nc-select,.sd-card select{width:100%}
+    .sd-clip{overflow:hidden;height:92px;border:1px dashed var(--nc-line-soft);padding:10px;border-radius:3px}
+    .sd-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    .sd-log{font:14px/1.4 ui-monospace,monospace;color:var(--nc-muted);white-space:pre-wrap;min-height:3em}
+    .sd-bottom{margin-top:60vh}
+  }
+</style>
+</head>
+<body>
+<main class="sd-shell">
+  <h1>Necropolis</h1>
+  <p class="sd-lede">Themed dropdowns over native selects (web/js/select.js). Change the palette to check every theme.</p>
+
+  <div class="sd-row" style="margin-bottom:20px">
+    <label class="nc-theme-picker">Palette
+      <select id="palette" data-nc-palette-control>
+        <option value="auto">Match device</option>
+        <option value="obsidian">Obsidian</option>
+        <option value="vellum">Vellum</option>
+        <option value="ink-bone">Ink &amp; Bone</option>
+        <option value="soft-ash">Soft Ash</option>
+        <option value="slate">Slate</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="sd-grid">
+    <section class="sd-card">
+      <h2>Short</h2>
+      <label>Result
+        <select id="short" data-act="result" name="result">
+          <option value="win">Win</option>
+          <option value="loss">Loss</option>
+          <option value="draw">Draw</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="sd-card">
+      <h2>Placeholder</h2>
+      <label>Covenant
+        <select id="placeholder" data-act="covenant">
+          <option value="">Choose a covenant…</option>
+          <option value="covenants/blood">Covenant of Blood</option>
+          <option value="covenants/bone">Covenant of Bone</option>
+          <option value="covenants/ash">Covenant of Ash</option>
+          <option value="covenants/rot">Covenant of Rot</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="sd-card">
+      <h2>Grouped, long</h2>
+      <select id="grouped" class="bd-add" data-act="m-add" data-uid="m3" data-fid="m3-add">
+        <option value="">Add to this model…</option>
+        <optgroup label="Weapons">
+          <option value="weapon|weapons/hand-weapon">Hand Weapon (0)</option>
+          <option value="weapon|weapons/great-weapon">Great Weapon (10)</option>
+          <option value="weapon|weapons/spear">Spear (6)</option>
+          <option value="weapon|weapons/halberd" data-reason="Two-handed: this model already carries a shield">Halberd (12)</option>
+          <option value="weapon|weapons/bow">Bow (8)</option>
+          <option value="weapon|weapons/crossbow">Crossbow (12)</option>
+          <option value="weapon|weapons/sling" disabled>Sling (4)</option>
+        </optgroup>
+        <optgroup label="Armours">
+          <option value="armour|armours/light-armour">Light Armour (8)</option>
+          <option value="armour|armours/heavy-armour">Heavy Armour (15)</option>
+          <option value="armour|armours/shield">Shield (5)</option>
+          <option value="armour|armours/helm" title="Leaders only">Helm (4)</option>
+        </optgroup>
+        <optgroup label="Spells" disabled>
+          <option value="spell|spells/raise-dead">Raise Dead (–)</option>
+          <option value="spell|spells/bone-ward">Bone Ward (–)</option>
+        </optgroup>
+        <optgroup label="Equipment">
+          <option value="equipment|equipment/rope">Rope (2)</option>
+          <option value="equipment|equipment/lantern">Lantern (3)</option>
+          <option value="equipment|equipment/grave-dust">Grave Dust (5)</option>
+          <option value="equipment|equipment/mana-bottle">Mana Bottle (7)</option>
+          <option value="equipment|equipment/ossuary-key">Ossuary Key (9)</option>
+          <option value="equipment|equipment/eldritch-tome-of-the-unquiet-necropolis-and-its-many-sleepers">Eldritch Tome of the Unquiet Necropolis and its Many Sleepers (25)</option>
+        </optgroup>
+        <optgroup label="Upgrades">
+          <option value="upgrade|upgrades/strength">Strength (12)</option>
+          <option value="upgrade|upgrades/ectoplasm">Ectoplasm (11)</option>
+          <option value="upgrade|upgrades/ectoplasm-vigour">Ectoplasm Vigour (14)</option>
+        </optgroup>
+      </select>
+    </section>
+
+    <section class="sd-card">
+      <h2>Inside overflow:hidden</h2>
+      <div class="sd-clip">
+        <select id="clipped" aria-label="Model type">
+          <option value="leaders/necromancer">Necromancer</option>
+          <option value="leaders/lich">Lich</option>
+          <option value="minions/skeleton">Skeleton</option>
+          <option value="minions/zombie">Zombie</option>
+          <option value="minions/ghoul">Ghoul</option>
+          <option value="minions/wraith">Wraith</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="sd-card">
+      <h2>Disabled and native</h2>
+      <label>Disabled
+        <select id="disabled" disabled><option>Nothing to pick</option></select>
+      </label>
+      <label style="margin-top:10px">data-native (left alone)
+        <select id="native" data-native><option>One</option><option>Two</option></select>
+      </label>
+    </section>
+
+    <section class="sd-card">
+      <h2>Injected later</h2>
+      <div id="inject-here"><p class="sd-lede" style="margin:0">Nothing yet.</p></div>
+      <div class="sd-row"><button type="button" class="secondary" id="inject">Inject a select</button>
+        <button type="button" class="secondary" id="set-value">Set short = draw</button></div>
+    </section>
+  </div>
+
+  <section class="sd-card" style="margin-top:16px">
+    <h2>Change events</h2>
+    <div class="sd-log" id="log" aria-live="polite"></div>
+  </section>
+
+  <section class="sd-card sd-bottom">
+    <h2>Near the bottom</h2>
+    <label>Mission
+      <select id="bottom">
+        <option value="m1">Grave Robbing</option>
+        <option value="m2">Ritual at Midnight</option>
+        <option value="m3">The Long Dark</option>
+        <option value="m4">Ossuary Siege</option>
+        <option value="m5">Last Rites</option>
+        <option value="m6">Plague Pit</option>
+        <option value="m7">Silent Procession</option>
+      </select>
+    </label>
+  </section>
+</main>
+<script type="module">
+  import { observeSelects } from "./js/select.js";
+  const force = new URLSearchParams(location.search).has("force");
+  window.__changes = [];
+  document.addEventListener("change", e => {
+    const s = e.target;
+    window.__changes.push({ id: s.id, act: s.dataset.act || null, value: s.value });
+    document.getElementById("log").textContent = window.__changes.slice(-6)
+      .map(c => `${c.id}${c.act ? ` [${c.act}]` : ""} = ${c.value}`).join("\n");
+  });
+  document.getElementById("inject").addEventListener("click", () => {
+    document.getElementById("inject-here").innerHTML = `<label>Omen
+      <select id="injected" data-act="omen"><option value="">None</option>
+      <option value="o1">Blood Moon</option><option value="o2">Black Rain</option></select></label>`;
+  });
+  document.getElementById("set-value").addEventListener("click", () => {
+    document.getElementById("short").value = "draw";
+  });
+  observeSelects(document, { force });
+</script>
+</body>
+</html>

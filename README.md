@@ -6,6 +6,8 @@ The site at **<https://necropolis.luismars.com>** imports a warband JSON
 from the [Companion App](https://necropolis28.vercel.app/) and lays out
 A4 print sheets of the matching cards, plus a printable roster sheet of
 the warband itself (per-model gear and costs, and the gathering's total).
+Its Builder tab creates and edits gatherings directly, with the rulebook's
+costs, stats and rule warnings.
 
 > Fan-made. Not affiliated with or endorsed by Owl Shield Games. The
 > rulebook PDF is the author's IP and is **not** distributed in this
@@ -18,8 +20,10 @@ the warband itself (per-model gear and costs, and the gathering's total).
 .
 ├── data/             YAML rows for every card category
 │   ├── _categories.yaml   Index — single source of truth
-│   └── app-glossary.yaml  Not a category: Spanish for Companion-App
-│                          text that has no card (see web/README.md)
+│   ├── app-glossary.yaml  Not a category: Spanish for Companion-App
+│   │                      text that has no card (see web/README.md)
+│   └── builder-rules.yaml Not a category: gathering, covenant and model-type
+│                          rules for the warband builder
 ├── templates/        SVG templates (63×88 mm) with {{KEY}} substitutions
 ├── assets/
 │   ├── images/alpha/      Card art (vendored from the rulebook)
@@ -28,6 +32,7 @@ the warband itself (per-model gear and costs, and the gathering's total).
 │   ├── bundle.py          Build script — writes data.json + templates/ + images/ + fonts/
 │   └── CNAME              Custom-domain marker for GitHub Pages
 ├── editor/           Local SVG editor (python3 editor/server.py)
+├── tests/            Builder tests (node --test tests/*.test.js, after bundle.py)
 ├── build.py          CLI to produce printable PDFs (Inkscape required)
 └── .github/workflows/pages.yml   Build + deploy to GitHub Pages on push to main
 ```

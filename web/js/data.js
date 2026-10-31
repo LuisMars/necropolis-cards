@@ -8,6 +8,7 @@
 
 import { state } from "./state.js";
 import { normName } from "./matching.js";
+import { buildCatalog } from "./builder/catalog.js";
 
 export async function loadBundle() {
   const r = await fetch("data.json", { cache: "no-store" });
@@ -19,6 +20,7 @@ export async function loadBundle() {
     state.templates[stem] = await tr.text();
   }
   buildIndex();
+  state.catalog = buildCatalog(state.bundle);
 }
 
 function buildIndex() {

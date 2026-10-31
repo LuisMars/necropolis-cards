@@ -34,6 +34,23 @@ jobs:
       - name: Bundle data + templates + assets
         run: python3 web/bundle.py
 
+      # Builder rules engine, share-link codec and app-JSON converters
+      # (tests/), checked against the data.json just built.
+      - name: Run tests
+        run: node --test tests/*.test.js
+
+      # Browser tests (tests/ui/): the Builder driven in headless Chromium
+      # against the site just bundled.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Run browser tests
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npm run test:ui
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

@@ -14,6 +14,8 @@
 
 - name: Corpse Husk
   name_es: Cáscara de Cadáver
+  app_id: pm0
+  obols: 50
   type_keyword: Husk
   type_keyword_es: Cáscara
   keyword: Blood
@@ -31,6 +33,8 @@
 
 - name: Skeletal Husk
   name_es: Cáscara Esquelética
+  app_id: pm1
+  obols: 50
   type_keyword: Husk
   type_keyword_es: Cáscara
   keyword: Bone
@@ -48,6 +52,8 @@
 
 - name: Ghast Husk
   name_es: Cáscara Espectral
+  app_id: pm2
+  obols: 50
   type_keyword: Husk · Fly
   type_keyword_es: Cáscara · Vuelo
   keyword: Plasm
@@ -67,6 +73,8 @@
 
 - name: Familiar
   name_es: Familiar
+  app_id: pm4
+  obols: 40
   type_keyword: Familiar · Beast · Fly
   type_keyword_es: Familiar · Bestia · Vuelo
   keyword: Blood/Bone/Plasm
@@ -92,6 +100,8 @@
 
 - name: Aberrant Husk
   name_es: Cáscara Aberrante
+  app_id: pm3
+  obols: 90
   type_keyword: Husk
   type_keyword_es: Cáscara
   keyword: Blood/Bone/Plasm
@@ -121,6 +131,8 @@
 
 - name: Necromantic Remnant
   name_es: Remanente Nigromántico
+  app_id: pm5
+  obols: 35
   type_keyword: Beast · Husk · Remnant       # rulebook p.33 (app omits Beast)
   type_keyword_es: Bestia · Cáscara · Remanente
   keyword: Blood/Bone/Plasm
@@ -142,6 +154,8 @@
 
 - name: Small Beast
   name_es: Bestia Pequeña
+  app_id: pm6
+  obols: 60
   type_keyword: Beast
   type_keyword_es: Bestia
   keyword: Blood/Bone/Plasm
@@ -163,6 +177,8 @@
 
 - name: Flying Beast
   name_es: Bestia Voladora
+  app_id: pm7
+  obols: 70
   type_keyword: Beast · Fly
   type_keyword_es: Bestia · Vuelo
   keyword: Blood/Bone
@@ -180,6 +196,8 @@
 
 - name: Large Beast
   name_es: Bestia Grande
+  app_id: pm8
+  obols: 80
   type_keyword: Beast
   type_keyword_es: Bestia
   keyword: Blood/Bone
@@ -201,6 +219,8 @@
 
 - name: Gigantic Horror
   name_es: Horror Colosal
+  app_id: pm9
+  obols: 190
   type_keyword: Colossal                     # rulebook p.35 (app adds Husk)
   type_keyword_es: Colosal
   keyword: Blood/Bone/Plasm
@@ -212,7 +232,7 @@
   flavor: A rotten chimeric horror, the skeleton of a giant knight, a screaming mass of souls.
   flavor_es: Un horror quimérico podrido, el esqueleto de un caballero gigante, una masa gritona de almas.
   special_rules: |
-    Colossal: may only take weapons from the Colossal Melee Weapon list.
+    Colossal: may only take weapons from the Colossal Weapons list.
 
     Unique. Each gathering may take only 1 Gigantic Horror.
 
@@ -220,7 +240,7 @@
 
     Plasm Warrior: gains Fly, -2 HP, cannot wear heavy armour.
   special_rules_es: |
-    Colosal: solo puede coger armas de la lista de Armas Colosales cuerpo a cuerpo.
+    Colosal: solo puede coger armas de la lista de Armas Colosales.
 
     Único. Cada Séquito solo puede llevar 1 Horror Colosal.
 

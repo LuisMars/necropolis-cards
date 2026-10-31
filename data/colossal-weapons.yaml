@@ -2,6 +2,9 @@
 
 - name: Improvised Weapon
   name_es: Arma Improvisada
+  app_id: ewcm0
+  obols: 0
+  hands: 1
   category: Colossal Melee · 1-handed
   category_es: Colosal cuerpo a cuerpo · 1 mano
   cost: —
@@ -14,6 +17,9 @@
   special_es: —
 - name: Massive Hand Weapon
   name_es: Arma de Mano Masiva
+  app_id: ewcm1
+  obols: 10
+  hands: 1
   category: Colossal Melee · 1-handed
   category_es: Colosal cuerpo a cuerpo · 1 mano
   cost: 10 obols
@@ -27,6 +33,9 @@
   special_es: —
 - name: Colossal Weapon
   name_es: Arma Colosal
+  app_id: ewcm2
+  obols: 40
+  hands: 2
   category: Colossal Melee · 2-handed
   category_es: Colosal cuerpo a cuerpo · 2 manos
   cost: 40 obols
@@ -40,6 +49,9 @@
   special_es: —
 - name: Dual Massive Weapons
   name_es: Armas Duales Masivas
+  app_id: ewcm3
+  obols: 40
+  hands: 2
   category: Colossal Melee · 2-handed
   category_es: Colosal cuerpo a cuerpo · 2 manos
   cost: 40 obols
@@ -53,6 +65,9 @@
   special_es: −1 a las tiradas de Violencia.
 - name: Massive Claws
   name_es: Garras Masivas
+  app_id: ewcm4
+  obols: 40
+  hands: 2
   category: Colossal Melee · 2-handed
   category_es: Colosal cuerpo a cuerpo · 2 manos
   cost: 40 obols
@@ -66,6 +81,9 @@
   special_es: —
 - name: Massive Ranged Weapon
   name_es: Arma Colosal a Distancia
+  app_id: ewcr0
+  obols: 40
+  hands: 2
   category: Colossal Ranged · 2-handed
   category_es: Colosal a Distancia · 2 manos
   cost: 40 obols

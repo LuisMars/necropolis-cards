@@ -1,5 +1,5 @@
 /**
- * Companion-App JSON importer.
+ * Companion-App JSON importer: the Import panel on the Gatherings page.
  *
  * Parses a `{covenant, gathering[]}` payload, walks each model entry, and
  * tries to match every profile / trait / spell / weapon / armour / misc
@@ -18,52 +18,146 @@ const $jsonIn    = document.getElementById("json-in");
 const $matchList = document.getElementById("match-list");
 const $parseBtn  = document.getElementById("parse-btn");
 const $loadBtn   = document.getElementById("load-warband-btn");
-const $clearBtn  = document.getElementById("clear-queue-btn");
 const $sampleBtn = document.getElementById("sample-btn");
+const $toggleBtn = document.getElementById("bd-import");
+const $panel     = document.getElementById("bd-import-panel");
+const $closeBtn  = document.getElementById("bd-import-close");
+const $status    = document.getElementById("import-status");
 
 import { SAMPLE_JSON } from "./sample.js";
+import { isLink, decodeLink, encodeLink } from "./builder/codec.js";
+import { fromAppJson, toAppJson } from "./builder/appjson.js";
+import { FORMAT } from "./builder/gathering.js";
+import { store, drafts } from "./gatherings.js";
+import { label, plural, fill, categoryTitle } from "./builder/messages.js";
+import { pickField } from "./i18n.js";
 
-export function initImport({ onChange, switchToPrint, switchToWarband, onWarband }) {
-  // Load the roster only: the Warband tab is the whole point of the import,
-  // and queueing 20-odd cards is a separate decision.
-  $loadBtn.addEventListener("click", () => {
-    const matches = importJson($jsonIn.value, { queue: false });
-    renderMatches(matches);
-    onWarband?.();
-    if (matches.length) setTimeout(switchToWarband, 200);
+const L = (k, vars) => fill(label(k, state.lang || "en"), vars);
+
+/** Open or close the panel; the toggle button says which it is. */
+function showPanel(open) {
+  $panel.hidden = !open;
+  $toggleBtn.setAttribute("aria-expanded", String(open));
+  if (open) { $toggleBtn.hidden = false; $jsonIn.focus(); }
+}
+
+/**
+ * `onImported` opens the imported gathering in the Builder; `openQueue`
+ * goes to the print queue; `onPanel` lets the Builder redraw its toolbar.
+ */
+export function initImport({ onChange, onImported, openQueue, onPanel }) {
+  $toggleBtn.addEventListener("click", () => { showPanel($panel.hidden); onPanel?.(); });
+  $closeBtn.addEventListener("click", () => {
+    showPanel(false);
+    onPanel?.();
+    // With no gathering open the toggle hides: the empty state's Import
+    // button takes the focus instead.
+    ($toggleBtn.hidden ? document.querySelector('#bd-body [data-act="import"]') : $toggleBtn)?.focus();
   });
-  $parseBtn.addEventListener("click", () => {
-    const matches = importJson($jsonIn.value);
-    renderMatches(matches);
-    onChange();
-    onWarband?.();
-    if (matches.some(m => m.target.kind !== "unmatched")) {
-      setTimeout(switchToPrint, 200);
+  // Load the gathering only: queueing 20-odd cards is a separate decision.
+  $loadBtn.addEventListener("click", () => {
+    const { matches, notes } = importJson($jsonIn.value, { queue: false });
+    renderMatches(matches, notes);
+    showQueued(0);
+    if (matches.length) {
+      onImported?.();
+      // The open panel is taller than most screens: bring the gathering into view.
+      requestAnimationFrame(() => document.getElementById("bd-body")?.scrollIntoView({ block: "start" }));
     }
   });
-  $clearBtn.addEventListener("click", () => {
-    state.queue = [];
-    saveQueue();
+  $parseBtn.addEventListener("click", () => {
+    const { matches, notes } = importJson($jsonIn.value);
+    renderMatches(matches, notes);
     onChange();
-    renderMatches([]);
+    showQueued(matches.filter(m => m.target.kind !== "unmatched").length);
+    if (matches.length) onImported?.();
   });
+  $status.addEventListener("click", (e) => { if (e.target.closest("button")) openQueue?.(); });
   $sampleBtn.addEventListener("click", () => { $jsonIn.value = SAMPLE_JSON; });
 }
 
-/** Parse a payload, always refreshing the warband; `queue` decides whether
- *  the matched cards also land in the print queue. */
+/** After queueing: how many cards went in, and a way to the queue. */
+function showQueued(n) {
+  const lang = state.lang || "en";
+  $status.hidden = !n;
+  $status.innerHTML = n ? `${escapeHtml(plural("cardsAddedN", n, lang))} ` +
+    `<button type="button" class="link">${escapeHtml(label("openQueue", lang))}</button>` : "";
+}
+
+/** Parse a payload — the Companion App's JSON export, one of its share
+ *  links, or a Builder backup — and keep it as a builder gathering, then
+ *  hand it to `applyPayload`. Returns the card matches plus `notes` on how
+ *  the import went into the builder. */
 function importJson(text, { queue = true } = {}) {
   let data;
-  try { data = JSON.parse(text); }
-  catch (e) { alert("Invalid JSON: " + e.message); return []; }
+  const notes = [];
+  if (isLink(text)) {
+    // A link only names IDs: build the gathering, then the same JSON the
+    // app would export for it (plus names and totals) for the roster.
+    const { gathering, unknown } = decodeLink(text, state.catalog);
+    if (!gathering.models.length) { alert(L("linkNoModels")); return { matches: [], notes }; }
+    for (const id of unknown) notes.push(L("unknownAppId", { id }));
+    data = toAppJson(gathering, state.catalog);
+    keepGathering(gathering, notes);
+  } else {
+    try { data = JSON.parse(text); }
+    catch (e) { alert(L("badJson", { error: e.message })); return { matches: [], notes }; }
+    // Valid JSON that isn't an object (null, a number, a list) is no gathering.
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      alert(L("notAGathering"));
+      return { matches: [], notes };
+    }
+    if (data.format === FORMAT) {
+      // A Builder backup: restore it as it was (same id), and show its roster.
+      // Its unsaved draft would hide the restore, so the backup replaces it.
+      store.save(data);
+      notes.unshift(L("backupRestored", { name: data.name || L("untitled") }));
+      if (drafts.get(data.id)) {
+        drafts.remove(data.id);
+        notes.push(L("backupReplacedDraft"));
+      }
+      data = toAppJson(data, state.catalog);
+    } else {
+      const { gathering, unmatched } = fromAppJson(data, state.catalog);
+      for (const u of unmatched) notes.push(L("noBuilderMatch", { where: u.where, name: u.name }));
+      if (gathering.models.length) keepGathering(gathering, notes);
+    }
+  }
+  return { matches: applyPayload(data, { queue }), notes };
+}
 
-  const matches = [];
-
+/** Show a Companion App payload as the warband and match its cards; with
+ *  `queue`, the matched cards also land in the print queue. The Builder tab
+ *  calls this with the JSON it exports for a gathering. */
+export function applyPayload(data, { queue = true } = {}) {
   // Keep the payload verbatim: the Warband tab re-derives its roster from it
   // on every render, so it stays in sync with the language selector and any
   // rebuilt data bundle.
   state.warband = data;
   saveWarband();
+
+  const matches = matchPayload(data);
+  if (queue) {
+    state.queue.push(...cardsOf(matches));
+    saveQueue();
+  }
+  return matches;
+}
+
+/** The queue entries for a list of matches: every matched card, in order. */
+const cardsOf = (matches) => matches.filter(m => m.target.kind !== "unmatched")
+  .map(m => ({ key: m.target.key, row: m.target.row, override: m.target.override || null }));
+
+/**
+ * Every card a Companion App payload uses, as print-queue entries, without
+ * touching the queue: the Roster view's Cards part prints these. The same
+ * matching as "Add cards to queue", so the sheets come out the same.
+ */
+export const payloadCards = (data) => (data ? cardsOf(matchPayload(data)) : []);
+
+/** Match a payload's covenant, models, traits, spells and gear to cards. */
+function matchPayload(data) {
+  const matches = [];
 
   // Covenant identity — best-effort match on the first comma-separated segment.
   if (data.covenant) {
@@ -119,16 +213,26 @@ function importJson(text, { queue = true } = {}) {
       matches.push({ source: e.name, sourceType: "equipment", target: findCard(e.name) });
     }
   }
-
-  if (queue) {
-    for (const m of matches) {
-      if (m.target.kind !== "unmatched") {
-        state.queue.push({ key: m.target.key, row: m.target.row, override: m.target.override || null });
-      }
-    }
-    saveQueue();
-  }
   return matches;
+}
+
+/** What makes two imports the same warband: its link (models, gear,
+ *  traits, spells) plus the model names, which the link doesn't carry. */
+const fingerprint = (g) => `${encodeLink(g, state.catalog)}|${g.models.map(m => m.name || "").join("|")}`;
+
+function keepGathering(gathering, notes) {
+  // Importing the same warband again opens the saved one instead of
+  // adding a copy (which would also hide its campaign progress).
+  const fp = fingerprint(gathering);
+  const twin = store.list().find(g => fingerprint(g) === fp);
+  if (twin) {
+    store.save(twin);   // makes it the current gathering
+    notes.unshift(L("alreadySaved", { name: twin.name || L("untitled") }));
+    return;
+  }
+  store.save(gathering);
+  const n = gathering.models.length;
+  notes.unshift(plural("savedGathering", n, state.lang || "en"));
 }
 
 /**
@@ -176,33 +280,47 @@ function buildProfileOverride(entry, p, unmatchedSpecials = null) {
   return o;
 }
 
-function renderMatches(matches) {
+function renderMatches(matches, notes = []) {
   $matchList.innerHTML = "";
+  for (const note of notes) {
+    const row = document.createElement("div");
+    row.className = "match-row";
+    row.innerHTML = `<span class="badge">${escapeHtml(L("badgeBuilder"))}</span><span class="source">${escapeHtml(note)}</span>`;
+    $matchList.appendChild(row);
+  }
   if (!matches.length) return;
 
   const counts = { matched: 0, fuzzy: 0, unmatched: 0 };
   for (const m of matches) counts[m.target.kind]++;
   const summary = document.createElement("div");
   summary.className = "match-row";
-  summary.innerHTML = `<span class="badge">SUMMARY</span>
-    <span class="source">
-      <strong style="color:var(--good)">${counts.matched}</strong> matched ·
-      <strong style="color:var(--warn)">${counts.fuzzy}</strong> fuzzy ·
-      <strong style="color:var(--bad)">${counts.unmatched}</strong> unmatched
-    </span>`;
+  summary.innerHTML = `<span class="badge">${escapeHtml(L("badgeSummary"))}</span>
+    <span class="source">${fill(escapeHtml(L("matchCounts")), {
+      matched: `<strong style="color:var(--good)">${counts.matched}</strong>`,
+      close:   `<strong style="color:var(--warn)">${counts.fuzzy}</strong>`,
+      none:    `<strong style="color:var(--bad)">${counts.unmatched}</strong>`,
+    })}</span>`;
   $matchList.appendChild(summary);
+
+  // The rows themselves fold away: the gathering opens right below.
+  const fold = document.createElement("details");
+  fold.className = "match-fold";
+  fold.innerHTML = `<summary>${escapeHtml(L("showMatches", { n: matches.length }))}</summary>`;
+  $matchList.appendChild(fold);
 
   for (const m of matches) {
     const row = document.createElement("div");
     row.className = "match-row " + m.target.kind;
-    let target = "no match in library";
-    if (m.target.kind === "matched") target = `${m.target.row.name} (${m.target.key})`;
-    else if (m.target.kind === "fuzzy") target = `${m.target.row.name} (${m.target.key}) — fuzzy`;
+    const lang = state.lang || "en";
+    const card = () => `${pickField(m.target.row, "name", lang) || m.target.row.name} (${categoryTitle("cat", m.target.key, m.target.key, lang)})`;
+    let target = L("notInLibrary");
+    if (m.target.kind === "matched") target = card();
+    else if (m.target.kind === "fuzzy") target = `${card()}, ${L("closeMatch")}`;
     row.innerHTML = `
-      <span class="badge">${m.sourceType.toUpperCase()}</span>
-      <span class="source">${escapeHtml(m.source || "(empty)")}</span>
+      <span class="badge">${escapeHtml(label(`src-${m.sourceType}`, state.lang || "en").replace(/^src-/, "").toUpperCase())}</span>
+      <span class="source">${escapeHtml(m.source || L("empty_"))}</span>
       <span class="arrow">→</span>
       <span class="target">${escapeHtml(target)}</span>`;
-    $matchList.appendChild(row);
+    fold.appendChild(row);
   }
 }

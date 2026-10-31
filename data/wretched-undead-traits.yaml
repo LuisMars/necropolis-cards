@@ -6,6 +6,8 @@
   category_es: RASGO
   name: Acolyte
   name_es: Acólito
+  app_id: twu0
+  requires: { affinity: [Blood, Bone, Plasm] }
   restrictions: Blood/Bone/Plasm
   restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
@@ -22,6 +24,8 @@
   category_es: RASGO
   name: Balefire Body
   name_es: Cuerpo de Fuego Fúnebre
+  app_id: twu1
+  requires: { affinity: [Plasm] }
   restrictions: Plasm
   restrictions_es: Plasma
   sigil: ""
@@ -38,6 +42,8 @@
   category_es: RASGO
   name: Breaking Wheel
   name_es: Rueda de Quebrantar
+  app_id: twu12
+  requires: { affinity: [Blood, Bone] }
   restrictions: Blood/Bone
   restrictions_es: Sangre/Hueso
   sigil: ""
@@ -54,6 +60,8 @@
   category_es: RASGO
   name: Filthy or Shrouded
   name_es: Sucio o Envuelto
+  app_id: twu3
+  requires: { affinity: [Blood, Bone, Plasm] }
   restrictions: Blood/Bone/Plasm
   restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
@@ -70,6 +78,8 @@
   category_es: RASGO
   name: Fulminate
   name_es: Fulminar
+  app_id: twu11
+  requires: { affinity: [Blood, Bone, Plasm] }
   restrictions: Blood/Bone/Plasm
   restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
@@ -86,6 +96,8 @@
   category_es: RASGO
   name: Fungal Bloom
   name_es: Floración Fúngica
+  app_id: twu4
+  requires: { affinity: [Blood, Bone] }
   restrictions: Blood/Bone
   restrictions_es: Sangre/Hueso
   sigil: ""
@@ -102,6 +114,8 @@
   category_es: RASGO
   name: Gnarled
   name_es: Nudoso
+  app_id: twu5
+  requires: { affinity: [Blood, Bone] }
   restrictions: Blood/Bone
   restrictions_es: Sangre/Hueso
   sigil: ""
@@ -118,6 +132,8 @@
   category_es: RASGO
   name: Grafted or Many Limbed
   name_es: Injertado o de Múltiples Brazos
+  app_id: twu6
+  requires: { affinity: [Blood, Bone, Plasm] }
   restrictions: Blood/Bone/Plasm
   restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
@@ -134,6 +150,8 @@
   category_es: RASGO
   name: Ineffable Dead
   name_es: Muerto Inefable
+  app_id: twu9
+  requires: { affinity: [Blood, Bone, Plasm] }
   restrictions: Blood/Bone/Plasm
   restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
@@ -150,6 +168,8 @@
   category_es: RASGO
   name: Purloiner
   name_es: Hurtador
+  app_id: twu8
+  requires: { affinity: [Blood, Bone, Plasm] }
   restrictions: Blood/Bone/Plasm
   restrictions_es: Sangre/Hueso/Plasma
   sigil: ""
@@ -166,6 +186,9 @@
   category_es: RASGO
   name: Skitter
   name_es: Escurridizo
+  app_id: twu2
+  requires: { affinity: [Blood, Bone] }
+  modifiers: { move: 1 }
   restrictions: Blood/Bone
   restrictions_es: Sangre/Hueso
   sigil: ""
@@ -182,6 +205,8 @@
   category_es: RASGO
   name: Sluglike or Fleshy Amalgam
   name_es: Baboso o Amalgama Carnosa
+  app_id: twu7
+  requires: { affinity: [Blood, Bone] }
   restrictions: Blood/Bone
   restrictions_es: Sangre/Hueso
   sigil: ""
@@ -198,6 +223,8 @@
   category_es: RASGO
   name: Voices from the Firmament
   name_es: Voces del Firmamento
+  app_id: twu10
+  requires: { keywords: [Leader], affinity: [Blood, Bone, Plasm] }
   restrictions: Leader · Blood/Bone/Plasm
   restrictions_es: Líder · Sangre/Hueso/Plasma
   sigil: ""

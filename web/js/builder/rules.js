@@ -1,0 +1,391 @@
+/**
+ * Builder rules engine — costs, effective stats and warnings for a gathering.
+ *
+ * The builder warns rather than blocks: `evaluate` never refuses a
+ * gathering, it reports every rule it breaks as a warning
+ * `{code, model?, item?, params?}` (model = the model's uid, item = a row key)
+ * and the UI decides how to show it. Nothing here is stored: a save holds
+ * only the player's choices, and this recomputes the rest from data.json.
+ *
+ * Rules: WIP Necropolis Rules 0.9, pp. 17-41 (creation) and p.65 (limits).
+ */
+
+import { categoryOf, matches, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./catalog.js";
+import { ledgerOf } from "./ledger.js";
+
+export const AFFINITIES = ["blood", "bone", "plasm"];
+const STATS = ["ap", "move", "violence", "ranged", "hp"];
+const APPRENTICE = "covenant-wretched-traits/apprentice";
+
+/** "7+" → 7, "—" → null, 3 → 3. */
+function num(v) {
+  if (typeof v === "number") return v;
+  const m = /-?\d+/.exec(String(v ?? ""));
+  return m ? parseInt(m[0], 10) : null;
+}
+
+const capital = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+/** Sum stat modifier objects ({hp: 2}, {violence: 1}, …) into one. */
+function addMods(...mods) {
+  const out = {};
+  for (const m of mods) {
+    for (const [k, v] of Object.entries(m || {})) {
+      if (typeof v === "number") out[k] = (out[k] || 0) + v;
+    }
+  }
+  return out;
+}
+
+/** Every gear key a model carries, weapons first. */
+const gearOf = (m) => [...(m.weapons || []), ...(m.armour || []), ...(m.equipment || [])];
+
+/** Has the campaign begun? Then the treasury replaces the 300-obol budget. */
+export const campaignStarted = (g) => g.treasury != null || (g.history || []).length > 0;
+
+/** What the gathering's lair upgrades add (spells, mana, deployment, …). */
+export function lairMods(gathering, catalog) {
+  return addMods(...(gathering.lair?.upgrades || []).map(k => catalog.row(k)?.modifiers));
+}
+
+/** "minor" or "greater" for a treasure key, null for anything else. */
+export function treasureKind(catalog, key) {
+  const t = catalog.rules.treasures || {};
+  const cat = categoryOf(key);
+  if ((t.greater || []).includes(cat)) return "greater";
+  if ((t.minor || []).includes(cat)) return "minor";
+  return null;
+}
+
+/**
+ * Evaluate one model.
+ * @returns {{uid, key, isLeader, affinity, keywords, stats, base, sources, mana,
+ *            spellsAllowed, cost, warnings}}  `sources` lists, per stat, every
+ *            change behind its value: {amount, type, key?, id?, ref?, battle?}.
+ */
+export function evaluateModel(model, catalog, gathering = {}) {
+  const warnings = [];
+  const warn = (code, extra = {}) => warnings.push({ code, model: model.uid, ...extra });
+  const rules = catalog.rules;
+  const key = model.profile;
+  const row = catalog.row(key);
+  const isLeader = categoryOf(key) === "leaders";
+  const isSellsword = categoryOf(key) === "sellswords";
+  const pr = catalog.profileRules(key);
+
+  if (!row) {
+    warn("unknown-item", { item: key });
+    return { uid: model.uid, key, isLeader, isSellsword, affinity: null, keywords: [], stats: {},
+             base: {}, sources: {}, mana: 0, spellsAllowed: 0, cost: 0, warnings };
+  }
+
+  // Affinity: leaders choose any of the three; minions what their rules allow.
+  const allowed = isLeader ? AFFINITIES : (pr.affinity || AFFINITIES);
+  let affinity = model.affinity || (allowed.length === 1 ? allowed[0] : null);
+  if (!affinity) warn("affinity-missing");
+  else if (!allowed.includes(affinity)) warn("affinity-not-allowed", { params: { affinity } });
+
+  const affMods = (isLeader ? rules.leader_affinity_mods : pr.affinity_mods)?.[affinity] || {};
+
+  // Traits: unknown keys, duplicates, requirements, stat modifiers.
+  const traitRows = [];
+  const seen = new Set();
+  for (const t of model.traits || []) {
+    const tr = catalog.row(t);
+    if (!tr) { warn("unknown-item", { item: t }); continue; }
+    if (seen.has(t)) warn("duplicate-trait", { item: t });
+    seen.add(t);
+    traitRows.push({ key: t, row: tr });
+  }
+  const traitMods = addMods(...traitRows.map(t => t.row.modifiers));
+
+  // Every change behind each stat, so the Builder can show where a number
+  // comes from: the keyword, traits, lair upgrades (leaders' spells and
+  // mana) and the campaign ledger (ambitions, maladies, manual entries).
+  const sources = {};
+  const add = (stat, amount, src) => {
+    if (typeof amount !== "number" || !amount) return;
+    (sources[stat] ||= []).push({ amount, ...src });
+  };
+  for (const [st, v] of Object.entries(affMods)) add(st, v, { type: "affinity", key: affinity });
+  for (const t of traitRows) for (const [st, v] of Object.entries(t.row.modifiers || {})) add(st, v, { type: "trait", key: t.key });
+  if (isLeader) {
+    for (const k of gathering.lair?.upgrades || []) {
+      const lm = catalog.row(k)?.modifiers || {};
+      add("spells", lm.spells, { type: "lair", key: k });
+      add("mana", lm.mana, { type: "lair", key: k });
+    }
+  }
+  const ledger = ledgerOf(model, rules);
+  for (const e of ledger) {
+    add(e.stat, e.amount, { type: e.source?.type || "manual", key: e.source?.key, note: e.source?.note,
+                            id: e.id, ref: e.source?.ref, battle: e.battle });
+  }
+  const total = (st) => (sources[st] || []).reduce((n, x) => n + x.amount, 0);
+
+  // Keywords: the type's own, its affinity, and any a modifier grants (Fly).
+  const keywords = [...new Set([
+    ...(pr.keywords || (isLeader ? ["Leader"] : [])),
+    ...(affinity ? [capital(affinity)] : []),
+    ...(affMods.keywords || []),
+  ])];
+
+  for (const t of traitRows) {
+    const req = t.row.requires || {};
+    const kwOk = !req.keywords || req.keywords.some(k => keywords.includes(k));
+    const affOk = !req.affinity || req.affinity.includes(capital(affinity));
+    const leaderOk = !req.not_leader || !isLeader;
+    if (!kwOk || !affOk || !leaderOk) warn("trait-requirement", { item: t.key });
+  }
+
+  // Stats: card base + every source above.
+  const s = row.stats || {};
+  const base = { ap: num(s.AP), move: num(s.M), violence: num(s.VIOL), ranged: num(s.RNGD), hp: num(s.HP) };
+  const stats = {
+    ap: base.ap + total("ap"),
+    move: base.move + total("move"),
+    // Violence and Ranged are target numbers: improving by 1 lowers the target.
+    violence: base.violence == null ? null : base.violence - total("violence"),
+    ranged: base.ranged == null ? null : base.ranged - total("ranged"),
+    hp: base.hp + total("hp"),
+  };
+  // Frail Reformation (p.66): -1 max HP, but never below 10.
+  const frail = ledger.filter(e => e.source?.type === "malady" && e.source.key === "frail" && e.stat === "hp")
+                      .reduce((n, e) => n - e.amount, 0);
+  if (frail) stats.hp = Math.max(Math.min(stats.hp + frail, 10), stats.hp);
+
+  // Improvement limits (p.65): what the campaign adds to a stat (ambitions,
+  // Perfect Reconstitution, manual entries) caps at AP +1, Move/Violence/
+  // Ranged +2, HP +5. The warning names the entry that went past it.
+  const caps = rules.improvement_caps || {};
+  for (const k of STATS) {
+    if (caps[k] == null) continue;
+    let sum = 0;
+    for (const e of ledger) {
+      if (e.stat !== k || e.amount <= 0) continue;
+      sum += e.amount;
+      if (sum > caps[k]) {
+        warn("improvement-cap", { item: e.source?.key || null, params: { stat: k, max: caps[k], source: e.source?.type } });
+        break;
+      }
+    }
+  }
+  const imp = { spells: ledger.filter(e => e.stat === "spells").reduce((n, e) => n + e.amount, 0),
+                mana: ledger.filter(e => e.stat === "mana").reduce((n, e) => n + e.amount, 0) };
+
+  // Gear: forbidden items, whitelists, hands, one body armour / shield / misc item.
+  const forbid = [...(pr.forbid || []), ...(affMods.forbid || [])];
+  const except = pr.except || [];
+  let hands = 0, bodies = 0, shields = 0, misc = 0, weapons = 0;
+  for (const g of gearOf(model)) {
+    const gr = catalog.row(g);
+    if (!gr) { warn("unknown-item", { item: g }); continue; }
+    if (forbid.some(sel => matches(catalog, g, sel)) && !except.includes(g)) {
+      warn("forbidden-item", { item: g });
+    }
+    const cat = categoryOf(g);
+    if (WEAPON_CATEGORIES.includes(cat)) {
+      // pp.38-39: colossal weapons "cannot be taken unless noted on the
+      // leader/minion entry", which `weapons_only` does for colossal models.
+      const allowedWeapon = pr.weapons_only ? pr.weapons_only.some(sel => matches(catalog, g, sel))
+                                            : cat !== "colossal-weapons";
+      if (!allowedWeapon) warn("weapon-not-allowed", { item: g });
+      // p.36: a leader may have 2 weapons, a minion 1. The free Improvised
+      // Weapon and thrown weapons (Miscellaneous Equipment, p.41) don't count.
+      if (cat !== "thrown-weapons" && !/improvised-weapon$/.test(g)) weapons++;
+      // Thrown weapons are Miscellaneous Equipment (p.41, which prints no
+      // handedness for them; the Companion App files them under equipment
+      // too), so they don't take a hand.
+      if (cat !== "thrown-weapons") hands += Number(gr.hands) || 0;
+    }
+    if (gr.slot === "body") bodies++;
+    if (gr.slot === "shield") { shields++; hands++; }
+    // p.41: "Each model may only have 1 piece of Miscellaneous Equipment",
+    // and the Wardart and Throwing Axe are printed under that heading.
+    if (cat === "miscellaneous-equipment" || cat === "thrown-weapons") misc++;
+  }
+  if (hands > 2) warn("too-many-hands", { params: { hands } });
+  if (bodies > 1) warn("multiple-armour");
+  if (shields > 1) warn("multiple-shields");
+  const maxMisc = rules.gathering?.max_equipment ?? 1;
+  if (misc > maxMisc) warn("too-much-equipment", { params: { count: misc, max: maxMisc } });
+  const maxWeapons = isLeader ? (rules.gathering?.leader_max_weapons ?? 2) : (rules.gathering?.minion_max_weapons ?? 1);
+  if (weapons > maxWeapons) warn("too-many-weapons", { params: { count: weapons, max: maxWeapons } });
+
+  // Traits per model: leaders up to 3 (one Basic Leader Trait), minions 1.
+  const maxTraits = isLeader ? (rules.gathering?.leader_max_traits ?? 3)
+                             : (rules.gathering?.minion_max_traits ?? 1);
+  // The covenant's own leader trait comes "in addition to any others" (p.19),
+  // so it doesn't count towards the 3.
+  const ownLeaderTrait = isLeader ? catalog.covenant(gathering.covenant)?.leader_trait : null;
+  const counted = traitRows.filter(t => t.key !== ownLeaderTrait).length;
+  if (counted > maxTraits) {
+    warn("too-many-traits", { params: { count: counted, max: maxTraits } });
+  }
+  if (isLeader) {
+    const basic = traitRows.filter(t => categoryOf(t.key) === "basic-leader-traits").length;
+    if (basic !== 1) warn("basic-trait-count", { params: { count: basic } });
+  }
+
+  // Treasures (p.66-68): leaders carry 3 minor and 2 different greater,
+  // minions 2 and 1, Beast minions none.
+  const limits = rules.carry_limits || {};
+  const carry = isLeader ? limits.leader : (keywords.includes("Beast") ? limits.beast : limits.minion);
+  for (const kind of ["minor", "greater"]) {
+    const held = (model.treasures || []).filter(t => treasureKind(catalog, t) === kind);
+    if (carry && held.length > (carry[kind] ?? Infinity)) {
+      warn("too-many-treasures", { params: { kind, count: held.length, max: carry[kind] } });
+    }
+    if (kind === "greater" && new Set(held).size < held.length) warn("duplicate-greater");
+  }
+  for (const t of model.treasures || []) if (!catalog.row(t)) warn("unknown-item", { item: t });
+
+  // Spells and mana (leaders): Summon + the type's picks + Studious; mana
+  // points split between Blood/Bone/Plasm, + Sorcerous Talent. A campaign
+  // adds more through ambitions (improvements) and lair upgrades.
+  let spellsAllowed = 0, mana = 0;
+  const spells = model.spells || [];
+  const lm = lairMods(gathering, catalog);
+  if (isLeader) {
+    spellsAllowed = 1 + (pr.spells || 0) + (traitMods.spells || 0) + (imp.spells || 0) + (lm.spells || 0);
+    if (pr.max_spells) spellsAllowed = Math.min(spellsAllowed, pr.max_spells);
+    if (spells.length !== spellsAllowed) {
+      warn("spell-count", { params: { count: spells.length, allowed: spellsAllowed } });
+    }
+    if (!spells.includes("spells/summon")) warn("summon-missing");
+    let manaAllowed = (pr.mana_points || 0) + (traitMods.mana || 0) + (imp.mana || 0) + (lm.mana || 0);
+    if (pr.max_mana) manaAllowed = Math.min(manaAllowed, pr.max_mana);
+    mana = manaAllowed;
+    const split = AFFINITIES.reduce((n, a) => n + (Number(model.mana?.[a]) || 0), 0);
+    if (split !== manaAllowed) warn("mana-split", { params: { count: split, allowed: manaAllowed } });
+  } else if (spells.length && (model.traits || []).includes(APPRENTICE)) {
+    // Apprentice (p.22): "This model knows 1 spell that is also known by
+    // the gathering's leader."
+    if (spells.length > 1) warn("spell-count", { params: { count: spells.length, allowed: 1 } });
+    const leader = (gathering.models || []).find(m => categoryOf(m.profile) === "leaders");
+    for (const sp of spells) {
+      if (!(leader?.spells || []).includes(sp)) warn("apprentice-spell", { item: sp });
+    }
+  } else if (spells.length) {
+    warn("spells-on-minion");
+  }
+  for (const sp of spells) if (!catalog.row(sp)) warn("unknown-item", { item: sp });
+
+  // Covenant: keyword lock, leader type, initial spell schools, leader trait.
+  const cov = catalog.covenant(gathering.covenant);
+  if (cov) {
+    if (cov.keywords_any && !cov.keywords_any.some(k => keywords.includes(k))) {
+      warn("covenant-keyword", { params: { needs: cov.keywords_any } });
+    }
+    if (isLeader && cov.leader_types && !cov.leader_types.includes(key)) {
+      warn("covenant-leader-type", { params: { types: cov.leader_types } });
+    }
+    if (isLeader && cov.spell_schools && !campaignStarted(gathering)) {
+      for (const sp of spells) {
+        const school = catalog.row(sp)?.school;
+        if (school && !cov.spell_schools.includes(school)) warn("covenant-spell-school", { item: sp });
+      }
+    }
+    if (isLeader && cov.leader_trait && !(model.traits || []).includes(cov.leader_trait)) {
+      warn("covenant-leader-trait-missing", { item: cov.leader_trait });
+    }
+    // p.17-23: a covenant gives its own leader trait and its own model
+    // trait; Wretched Undead gives neither, only its own list (p.17).
+    for (const t of traitRows) {
+      const c = categoryOf(t.key);
+      if ((c === "covenant-leader-traits" && t.key !== cov.leader_trait) ||
+          (c === "covenant-wretched-traits" && t.key !== cov.trait)) {
+        warn("foreign-covenant-trait", { item: t.key });
+      }
+    }
+  }
+
+  const cost = (num(row.obols) || 0) +
+    gearOf(model).reduce((n, g) => n + (num(catalog.row(g)?.obols) || 0), 0);
+
+  return { uid: model.uid, key, isLeader, isSellsword, affinity, keywords, stats, base, sources, mana, spellsAllowed, cost, warnings };
+}
+
+/**
+ * Evaluate a whole gathering.
+ * @returns {{models, total, budget, deploymentLimit, warnings}}  `warnings`
+ *          holds gathering-level and model-level warnings together.
+ */
+export function evaluate(gathering, catalog) {
+  const rules = catalog.rules;
+  const models = (gathering.models || []).map(m => evaluateModel(m, catalog, gathering));
+  const warnings = [];
+  const warn = (code, extra = {}) => warnings.push({ code, ...extra });
+
+  if (!gathering.covenant) warn("no-covenant");
+  else if (!catalog.covenant(gathering.covenant)) warn("unknown-item", { item: gathering.covenant });
+
+  const leaders = models.filter(m => m.isLeader);
+  if (leaders.length === 0) warn("no-leader");
+  if (leaders.length > 1) warn("multiple-leaders", { params: { count: leaders.length } });
+
+  // Unique model types (Familiar, Large Beast, Gigantic Horror) and traits (Apprentice).
+  const count = (keys) => keys.reduce((m, k) => m.set(k, (m.get(k) || 0) + 1), new Map());
+  for (const [k, n] of count((gathering.models || []).map(m => m.profile))) {
+    if (n > 1 && catalog.profileRules(k).unique) warn("unique-model", { item: k, params: { count: n } });
+  }
+  const allTraits = (gathering.models || []).flatMap(m => [...new Set(m.traits || [])]);
+  for (const [k, n] of count(allTraits)) {
+    if (n > 1 && catalog.row(k)?.requires?.unique) warn("unique-trait", { item: k, params: { count: n } });
+  }
+
+  // Covenant / Wretched Undead traits: 1 model (Wretched Undead: 2), plus any
+  // a campaign has granted since (`bonusTraits`).
+  const cov = catalog.covenant(gathering.covenant);
+  if (cov) {
+    const extra = allTraits.filter(k =>
+      ["covenant-wretched-traits", "wretched-undead-traits"].includes(categoryOf(k))).length;
+    const allowedExtra = (cov.traits ?? 1) + (gathering.bonusTraits || 0) + (lairMods(gathering, catalog).bonus_traits || 0);
+    if (extra > allowedExtra) warn("covenant-traits", { params: { count: extra, allowed: allowedExtra } });
+  }
+
+  // Budget: 300 obols to build (+50 for Miserly) until the campaign starts;
+  // after that the treasury is tracked instead. Deployment limit applies to
+  // the models fielded, sellswords excepted (p.74), and grows with lair
+  // upgrades up to 500 (p.65).
+  const total = models.reduce((n, m) => n + m.cost, 0);
+  const started = campaignStarted(gathering);
+  const bonus = models.filter(m => m.isLeader).reduce((n, m) => {
+    const traits = (gathering.models.find(x => x.uid === m.uid)?.traits) || [];
+    return n + traits.reduce((t, k) => t + (catalog.row(k)?.modifiers?.obols || 0), 0);
+  }, 0);
+  const budget = started ? null : (rules.gathering?.starting_obols ?? 300) + bonus;
+  if (budget != null && total > budget) warn("over-budget", { params: { total, budget } });
+
+  const maxLimit = rules.gathering?.max_deployment_limit ?? 500;
+  const rawLimit = (gathering.deploymentLimit ?? rules.gathering?.deployment_limit ?? 350) +
+                   (lairMods(gathering, catalog).deployment || 0);
+  if (rawLimit > maxLimit) warn("deployment-cap", { params: { limit: rawLimit, max: maxLimit } });
+  const deploymentLimit = Math.min(rawLimit, maxLimit);
+  const active = (m, i) => (gathering.models[i].status || "active") === "active";
+  const fielded = models.filter((m, i) => active(m, i) && !m.isSellsword).reduce((n, m) => n + m.cost, 0);
+  if (fielded > deploymentLimit) warn("over-deployment", { params: { total: fielded, limit: deploymentLimit } });
+  const sellswords = models.filter((m, i) => active(m, i) && m.isSellsword).length;
+  if (sellswords > 1) warn("too-many-sellswords", { params: { count: sellswords } });
+
+  // Campaign: treasury, lair upgrades (once each), up to 4 active ambitions.
+  if (started && Number(gathering.treasury) < 0) warn("treasury-negative", { params: { treasury: gathering.treasury } });
+  for (const [k, n] of count(gathering.lair?.upgrades || [])) {
+    if (n > 1) warn("duplicate-upgrade", { item: k });
+  }
+  const activeAmbitions = (gathering.ambitions?.active || []).length;
+  if (activeAmbitions > 4) warn("too-many-ambitions", { params: { count: activeAmbitions } });
+  // Master Abyssal Artillery (p.67): +1 to channel one of the leader's
+  // spells. Warn when the leader no longer knows the spell it went to.
+  const leaderSpells = new Set(leaders.length
+    ? (gathering.models.find(m => m.uid === leaders[0].uid)?.spells || []) : []);
+  for (const e of gathering.ambitions?.log || []) {
+    const sp = e.applied?.channel;
+    if (sp && !leaderSpells.has(sp)) warn("channel-spell-missing", { item: sp, params: { ambition: e.ambition } });
+  }
+
+  return {
+    models, total, budget, deploymentLimit, fielded,
+    warnings: [...warnings, ...models.flatMap(m => m.warnings)],
+  };
+}

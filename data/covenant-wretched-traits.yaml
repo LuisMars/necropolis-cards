@@ -9,6 +9,8 @@
   category_es: RASGO DE PACTO
   name: March of the Hands
   name_es: Marcha de las Manos
+  app_id: tc1
+  requires: { affinity: [Blood] }
   restrictions: Embalmed Hands · Blood
   restrictions_es: Manos Embalsamadas · Sangre
   sigil: ""
@@ -25,6 +27,8 @@
   category_es: RASGO DE PACTO
   name: Adamant Structure
   name_es: Estructura Recia
+  app_id: tc3
+  requires: { affinity: [Bone] }
   restrictions: Cairn-born · Bone
   restrictions_es: Nacidos del Túmulo · Hueso
   sigil: ""
@@ -41,6 +45,8 @@
   category_es: RASGO DE PACTO
   name: Mournful Curse
   name_es: Maldición Lúgubre
+  app_id: tc5
+  requires: { affinity: [Plasm] }
   restrictions: The Crescent of Mourn · Plasm
   restrictions_es: El Lamento de la Luna Creciente · Plasma
   sigil: ""
@@ -57,6 +63,8 @@
   category_es: RASGO DE PACTO
   name: Apprentice
   name_es: Aprendiz
+  app_id: tc7
+  requires: { keywords: [Husk], not_leader: true, unique: true }
   restrictions: Recusant Maleficar · Husk
   restrictions_es: Recusantes Malignos · Cáscara
   sigil: ""
@@ -77,6 +85,8 @@
   category_es: RASGO DE PACTO
   name: Eternal Loyalty
   name_es: Lealtad Eterna
+  app_id: tc9
+  requires: { keywords: [Remnant, Beast] }
   restrictions: Crawling-Dark · Remnant/Beast
   restrictions_es: Oscuridad Reptante · Remanente/Bestia
   sigil: ""

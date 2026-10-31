@@ -1,7 +1,8 @@
 /**
- * Warband tab — roster view of the last imported Companion-App payload.
+ * Roster view (Gatherings → Roster) — the warband roster sheet.
  *
- * The importer keeps the raw JSON in `state.warband`; everything shown here
+ * main.js keeps `state.warband` as the Companion App JSON of the gathering
+ * open in the Builder (its draft, if any); everything shown here
  * is re-derived from it on every render, so a language switch or a rebuilt
  * data bundle is picked up without re-importing.
  *
@@ -13,35 +14,20 @@
  * on screen and in the print dialog, exactly like the Print tab's sheets.
  */
 
-import { state, saveWarband } from "./state.js";
+import { state } from "./state.js";
 import { $, escapeHtml } from "./util.js";
 import { findCard, keyHintFromSource, normName } from "./matching.js";
 import { icon } from "./icons.js";
 import { pickField, t, LABELS } from "./i18n.js";
+import { ownRuleText } from "./builder/appjson.js";
 
 const $summary   = $("wb-summary");
 const $pagesWrap = $("wb-pages");
-const $printBtn  = $("wb-print-btn");
-const $clearBtn  = $("wb-clear-btn");
-
-let onChangeCb = null;
-
-export function initWarband({ onChange } = {}) {
-  onChangeCb = onChange;
-  $printBtn.addEventListener("click", () => {
-    document.body.classList.add("printing-warband");
-    requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
-  });
+/** Printing it is the header's Print roster button (main.js), which sets
+ *  `printing-warband` on <body>; it comes off again after the dialog. */
+export function initWarband() {
   window.addEventListener("afterprint", () => {
     document.body.classList.remove("printing-warband");
-  });
-  $clearBtn.addEventListener("click", () => {
-    if (!state.warband) return;
-    if (!confirm("Remove the imported warband from this browser?")) return;
-    state.warband = null;
-    saveWarband();
-    renderWarband();
-    onChangeCb?.();
   });
 }
 
@@ -215,8 +201,10 @@ function buildMember(entry, lang) {
     },
     mana: profile.mana,
     spellSlots: profile.startingAdditionalSpells ?? profile.maxSpells,
-    special: profileSpecials(profile, lang),
+    special: profileSpecials(profile, lang, row),
     traits, spells, weapons, armour, equipment,
+    // From the Builder: what the campaign changed (ambitions, maladies, …).
+    campaign: entry.builder || null,
     profileCost,
     total: profileCost + gearCost,
   };
@@ -268,13 +256,13 @@ function resolveItem(entry, hint, lang) {
  * plus the unconditional ones. Mirrors the app's own display filter, which
  * also drops an unconditional rule that carries no effect text.
  */
-function profileSpecials(profile, lang) {
+function profileSpecials(profile, lang, row = null) {
   const affinity = chosenAffinity(profile);
   const out = [];
   for (const sp of (profile.special || [])) {
     const cond = conditionAffinity(sp);
     if (cond && affinity && cond !== affinity) continue;
-    const resolved = resolveSpecial(sp, lang);
+    const resolved = resolveSpecial(sp, lang, row);
     if (!cond && !resolved.effect) continue;
     out.push({ ...resolved, applied: !!(cond && affinity) });
   }
@@ -285,14 +273,17 @@ function profileSpecials(profile, lang) {
  * A profile's baked-in special rule, in the selected language. Sources, in
  * order: the rule's own card, the glossary by name, the glossary by effect
  * text (for the rules the app leaves unnamed), and finally the payload as
- * imported.
+ * imported. A profile whose own paragraph gives other values than the
+ * shared card (Plasm Warrior: -2 HP, not the Remnant's -1) keeps its own.
  */
-function resolveSpecial(sp, lang) {
+function resolveSpecial(sp, lang, row = null) {
   const hit = findCard(sp?.name, "special-rule");
   if (hit.kind !== "unmatched") {
+    const own = ownRuleText(row, hit.row.name, hit.row);
     return {
       name: pickField(hit.row, "name", lang) || sp.name || "",
-      effect: pickField(hit.row, "effect", lang) || sp?.effect || "",
+      effect: (own && (lang === "es" ? own.es : own.en)) ||
+              pickField(hit.row, "effect", lang) || sp?.effect || "",
     };
   }
 
@@ -355,6 +346,8 @@ function itemMeta(key, row, entry, lang) {
     if (f("category")) bits.push(escapeHtml(f("category")));
   } else if (tpl === "spell") {
     if (f("school"))  bits.push(escapeHtml(f("school")));
+    // An ambition's reward (Master Abyssal Artillery, p.67), from the export.
+    if (Number(entry?.channelBonus) > 0) bits.push(escapeHtml(`+${Number(entry.channelBonus)} ${t("channelling", lang)}`));
     if (f("ap"))      nums.push(stat("bolt", f("ap")));
     if (f("channel")) nums.push(plain(f("channel")));
   } else {
@@ -390,12 +383,8 @@ function obols(n, lang) {
 
 function renderSummary(roster) {
   const lang = state.lang || "en";
-  $printBtn.disabled = !roster || !roster.members.length;
-  $clearBtn.disabled = !roster;
   if (!roster) {
-    $summary.innerHTML =
-      `<span class="wb-empty">No warband imported yet — paste a Companion App export in the ` +
-      `<strong>Import</strong> tab and it will show up here.</span>`;
+    $summary.innerHTML = `<span class="wb-empty">${t("noGathering", lang)}</span>`;
     return;
   }
   const chips = [
@@ -457,7 +446,7 @@ function renderPages(roster) {
   if (!roster || !roster.members.length) {
     const e = document.createElement("div");
     e.className = "empty-msg";
-    e.textContent = "The roster sheet will appear here once you import a warband.";
+    e.textContent = t("noModelsYet", state.lang || "en");
     $pagesWrap.appendChild(e);
     return;
   }
@@ -522,11 +511,33 @@ function buildHeaderBlock(roster, lang) {
   return el;
 }
 
-function statCell(label, value, glyph = "") {
+function statCell(label, value, glyph = "", delta = 0) {
   const v = value == null || value === "" ? "—" : value;
-  return `<span class="wb-stat"><b>${escapeHtml(String(v))}</b>` +
+  // ▲/▼: the campaign changed this stat (listed under CAMPAIGN below).
+  const mark = delta > 0 ? `<sup class="wb-delta up">▲</sup>` : delta < 0 ? `<sup class="wb-delta down">▼</sup>` : "";
+  return `<span class="wb-stat"><b>${escapeHtml(String(v))}${mark}</b>` +
          `<i>${glyph ? icon(glyph) : ""}${escapeHtml(label)}</i></span>`;
 }
+
+/** Net campaign change to a stat (Builder rosters only). */
+const delta = (m, stat) => (m.campaign?.changes?.[stat] || []).reduce((n, c) => n + c.amount, 0);
+
+/** "Rain Iron Sleet", "Incomplete Form (malady)", the note on a manual change. */
+function changeSource(c, lang) {
+  if (c.type === "malady") {
+    const def = (state.catalog?.rules?.maladies || []).find(x => x.key === c.key);
+    return `${def ? pickField(def, "name", lang) : c.key} (${t("malady", lang)})`;
+  }
+  if (c.type === "manual") return c.note || t("manual", lang);
+  const row = state.catalog?.row(c.key);
+  return row ? (pickField(row, "name", lang) || row.name) : (c.key || "");
+}
+
+const STAT_NAMES = {
+  ap: ["AP", "PA"], move: ["Move", "Mov"], violence: ["Violence", "Violencia"], ranged: ["Ranged", "A Dist."],
+  hp: ["HP", "HP"], mana: ["Mana", "Maná"], spells: ["Spells", "Hechizos"],
+};
+const statName = (stat, lang) => (STAT_NAMES[stat] || [stat])[lang === "es" ? 1 : 0];
 
 /** Violence / Ranged print as a target number; 0 means the model can't. */
 function target(n) {
@@ -542,15 +553,15 @@ function buildMemberBlock(m, lang) {
   // the gear below is priced line by line, and the footer adds it all up.
   const stats = [
     statCell(t("cost", lang), m.profileCost, "obol"),
-    statCell(t("apAbbr", lang), m.stats.ap, "bolt"),
-    statCell(lang === "es" ? "Mov" : "Move", m.stats.m),
-    statCell(lang === "es" ? "Violencia" : "Violence", target(m.stats.viol)),
-    statCell(lang === "es" ? "A Dist." : "Ranged", target(m.stats.rngd)),
-    statCell("HP", m.stats.hp, "heart"),
+    statCell(t("apAbbr", lang), m.stats.ap, "bolt", delta(m, "ap")),
+    statCell(statName("move", lang), m.stats.m, "", delta(m, "move")),
+    statCell(statName("violence", lang), target(m.stats.viol), "", delta(m, "violence")),
+    statCell(statName("ranged", lang), target(m.stats.rngd), "", delta(m, "ranged")),
+    statCell(statName("hp", lang), m.stats.hp, "heart", delta(m, "hp")),
   ];
-  if (m.mana != null) stats.push(statCell(lang === "es" ? "Maná" : "Mana", m.mana, "drop"));
+  if (m.mana != null) stats.push(statCell(statName("mana", lang), m.mana, "drop", delta(m, "mana")));
   if (m.spellSlots != null) {
-    stats.push(statCell(t("spellSlots", lang), `+${m.spellSlots}`, "star"));
+    stats.push(statCell(t("spellSlots", lang), `+${m.spellSlots}`, "star", delta(m, "spells")));
   }
 
   // The banner carries the player's model name and the gothic line below it
@@ -564,6 +575,12 @@ function buildMemberBlock(m, lang) {
   const sections = [
     // A few special rules are pure restrictions with no name of their own —
     // their effect line becomes the heading rather than leaving a blank one.
+    // What the campaign changed, one line per change, with its source.
+    m.campaign ? section(t("campaign", lang), Object.entries(m.campaign.changes || {}).flatMap(([stat, list]) =>
+      list.map(c => ({
+        name: `${statName(stat, lang)} ${c.amount > 0 ? "+" : ""}${c.amount}`,
+        body: changeSource(c, lang),
+      }))), lang) : "",
     section(t("specialRules", lang), m.special.map(s => ({
       name: s.name || s.effect,
       body: s.name ? s.effect : "",

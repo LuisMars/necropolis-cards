@@ -13,7 +13,8 @@
  *     (see `pickField`), falling back to English when a translation is
  *     missing so a partially-translated bundle still renders.
  *
- * Only the printed cards are localised; the surrounding app UI stays English.
+ * The app's own interface text lives in builder/messages.js and follows the
+ * same Language setting.
  */
 
 /** Static template label → Spanish. Keys are matched against the *trimmed*
@@ -23,7 +24,7 @@
 export const LABELS = {
   // Profile banner defaults (overridden by a model name when one is set).
   "Leader":    "Líder",
-  "Minion":    "Secuaz",
+  "Minion":    "Esbirro",
   "Sellsword": "Mercenario",
   "Equipment": "Equipo",
 
@@ -94,18 +95,18 @@ export function pickField(row, key, lang) {
 
 /* ---- roster (Warband tab) ------------------------------------------------
  *
- * The roster sheet is a printed artifact like the cards, so it follows the
- * card-language selector rather than staying English with the app chrome.
+ * The roster sheet is a printed artifact like the cards, and follows the
+ * Language setting like the rest of the app.
  * Keys are looked up with `t()`; anything missing falls back to English. */
 export const ROSTER = {
-  warband:       { en: "Warband",        es: "Banda" },
+  warband:       { en: "Gathering",      es: "Séquito" },
   covenant:      { en: "COVENANT",       es: "PACTO" },
   models:        { en: "MODELS",         es: "MINIATURAS" },
   manaPool:      { en: "MANA POOL",      es: "RESERVA DE MANÁ" },
   budget:        { en: "BUDGET",         es: "PRESUPUESTO" },
   remaining:     { en: "REMAINING",      es: "RESTANTE" },
   over:          { en: "OVER BUDGET",    es: "EXCEDIDO" },
-  total:         { en: "WARBAND TOTAL",  es: "TOTAL DE LA BANDA" },
+  total:         { en: "GATHERING TOTAL", es: "TOTAL DEL SÉQUITO" },
   cost:          { en: "COST",           es: "COSTE" },
   modelCost:     { en: "MODEL COST",     es: "COSTE DE LA MINIATURA" },
   obols:         { en: "obols",          es: "óbolos" },
@@ -115,6 +116,9 @@ export const ROSTER = {
   armour:        { en: "ARMOUR",         es: "ARMADURA" },
   equipment:     { en: "EQUIPMENT",      es: "EQUIPO" },
   specialRules:  { en: "SPECIAL RULES",  es: "REGLAS ESPECIALES" },
+  campaign:      { en: "CAMPAIGN",       es: "CAMPAÑA" },
+  malady:        { en: "malady",         es: "dolencia" },
+  manual:        { en: "manual change",  es: "cambio manual" },
   applied:       { en: "applied",        es: "aplicado" },
   spellSlots:    { en: "SPELLS",         es: "HECHIZOS" },
   free:          { en: "—",              es: "—" },
@@ -126,8 +130,14 @@ export const ROSTER = {
   damageAbbr:    { en: "D",              es: "Dñ" },
   apAbbr:        { en: "AP",             es: "PA" },
   channelAbbr:   { en: "CH",             es: "Can" },
+  channelling:   { en: "channelling",    es: "a canalizar" },
   page:          { en: "Page",           es: "Página" },
   of:            { en: "of",             es: "de" },
+  // Roster screen only (never printed).
+  noGathering:   { en: "No gathering open. Start one, or bring one in with <strong>Import</strong>, and its roster will show up here.",
+                  es: "No hay ningún Séquito abierto. Crea uno o tráelo con <strong>Importar</strong> y su lista aparecerá aquí." },
+  noModelsYet:   { en: "The roster sheet will appear here once the gathering has models.",
+                  es: "La hoja de Séquito aparecerá aquí cuando el Séquito tenga miniaturas." },
 };
 
 /** Look up a roster label in the given language (English fallback). */

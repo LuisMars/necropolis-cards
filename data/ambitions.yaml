@@ -12,6 +12,7 @@
   category_es: AMBICIÓN MENOR
   name: Test the Limits of Undeath
   name_es: Probar los Límites del Más Allá
+  reward_effect: { target: all, improvements: { hp: 1 } }
   restrictions: Curse Path
   restrictions_es: Sendero de la Maldición
   sigil: ""
@@ -25,6 +26,7 @@
   category_es: AMBICIÓN MENOR
   name: Commune with the Truth
   name_es: Comulgar con la Verdad
+  reward_effect: { target: leader, improvements: { mana: 1 } }
   restrictions: Curse Path
   restrictions_es: Sendero de la Maldición
   sigil: ""
@@ -38,6 +40,7 @@
   category_es: AMBICIÓN MENOR
   name: Master Abyssal Artillery
   name_es: Dominar la Artillería Abisal
+  reward_effect: { target: spell }
   restrictions: Curse Path
   restrictions_es: Sendero de la Maldición
   sigil: ""
@@ -51,6 +54,7 @@
   category_es: AMBICIÓN MENOR
   name: Settle Old Grudges
   name_es: Saldar Viejas Deudas
+  reward_effect: { target: choose, improvements: { violence: 1 } }
   restrictions: Shattered Path
   restrictions_es: Sendero de la Destrucción
   sigil: ""
@@ -64,6 +68,7 @@
   category_es: AMBICIÓN MENOR
   name: Rain Iron Sleet
   name_es: Lluvia de Hierro
+  reward_effect: { target: choose, improvements: { ranged: 1 } }
   restrictions: Shattered Path
   restrictions_es: Sendero de la Destrucción
   sigil: ""
@@ -77,6 +82,7 @@
   category_es: AMBICIÓN MENOR
   name: A Favoured Familiar
   name_es: Un Familiar Favorito
+  reward_effect: { target: choose, only: [minions/familiar], improvements: { violence: 1, hp: 1 } }
   restrictions: Shattered Path
   restrictions_es: Sendero de la Destrucción
   sigil: ""
@@ -90,6 +96,7 @@
   category_es: AMBICIÓN MENOR
   name: Strike Down the Horrors
   name_es: Abatir a los Horrores
+  reward_effect: { target: gathering, bonus_traits: 1 }
   restrictions: Shattered Path
   restrictions_es: Sendero de la Destrucción
   sigil: ""
@@ -103,6 +110,7 @@
   category_es: AMBICIÓN MENOR
   name: Build a Sanctuary
   name_es: Construir un Santuario
+  reward_effect: { target: gathering, deployment: 50 }
   restrictions: Gilt Path
   restrictions_es: Sendero del Oro
   sigil: ""
@@ -116,6 +124,7 @@
   category_es: AMBICIÓN MENOR
   name: Inspire Fear
   name_es: Inspirar Miedo
+  reward_effect: { target: gathering, deployment: 50 }
   restrictions: Gilt Path
   restrictions_es: Sendero del Oro
   sigil: ""
@@ -129,6 +138,7 @@
   category_es: AMBICIÓN MENOR
   name: Scour the Lands
   name_es: Hurgar en las Tierras
+  reward_effect: { target: treasure, treasure: minor }
   restrictions: Path of Eyes
   restrictions_es: Sendero de los Ojos
   sigil: ""
@@ -142,6 +152,7 @@
   category_es: AMBICIÓN MENOR
   name: Read the Omens
   name_es: Leer los Augurios
+  reward_effect: { target: note }
   restrictions: Path of Eyes
   restrictions_es: Sendero de los Ojos
   sigil: ""
@@ -155,6 +166,7 @@
   category_es: AMBICIÓN MENOR
   name: Search for Ancient Lore
   name_es: Buscar Conocimiento Ancestral
+  reward_effect: { target: leader, improvements: { spells: 1 } }
   restrictions: Path of Eyes
   restrictions_es: Sendero de los Ojos
   sigil: ""

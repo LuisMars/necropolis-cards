@@ -16,8 +16,8 @@
   category_es: REGLA ESPECIAL
   name: Ancient Skill
   name_es: Habilidad Ancestral
-  restrictions: Lich
-  restrictions_es: Liche
+  restrictions: Revenant
+  restrictions_es: Renacido
   sigil: ''
   effect: 'During this model''s attack action, if any dice rolled is an unmodified 10, that dice is considered a critical hit. Critical hits deal +1 damage.
 
@@ -47,8 +47,8 @@
   category_es: REGLA ESPECIAL
   name: Threatening Aura
   name_es: Aura Amenazante
-  restrictions: Colossal Leader
-  restrictions_es: Líder Colosal
+  restrictions: Colossal
+  restrictions_es: Colosal
   sigil: ''
   effect: 'This model may take the Lurk action for 0 AP cost once per turn.
 
@@ -78,8 +78,8 @@
   category_es: REGLA ESPECIAL
   name: Bone Leader
   name_es: Líder de Hueso
-  restrictions: Revenant · Bone
-  restrictions_es: Renacido · Hueso
+  restrictions: Leader · Bone
+  restrictions_es: Líder · Hueso
   sigil: ''
   effect: 'If this model chose the Bone keyword, improve its Violence by 1.
 
@@ -91,8 +91,8 @@
   category_es: REGLA ESPECIAL
   name: Blood Leader
   name_es: Líder de Sangre
-  restrictions: Revenant · Blood
-  restrictions_es: Renacido · Sangre
+  restrictions: Leader · Blood
+  restrictions_es: Líder · Sangre
   sigil: ''
   effect: 'If this model chose the Blood keyword, improve its HP by 2.
 
@@ -104,8 +104,8 @@
   category_es: REGLA ESPECIAL
   name: Plasm Leader
   name_es: Líder de Plasma
-  restrictions: Revenant · Plasm
-  restrictions_es: Renacido · Plasma
+  restrictions: Leader · Plasm
+  restrictions_es: Líder · Plasma
   sigil: ''
   effect: 'If this model chose the Plasm keyword it gains the Fly keyword, -2 HP, and may not wear heavy armour.
 
@@ -117,8 +117,8 @@
   category_es: REGLA ESPECIAL
   name: Bone Warrior
   name_es: Guerrero de Hueso
-  restrictions: Necromantic Remnant · Bone
-  restrictions_es: Remanente Nigromántico · Hueso
+  restrictions: Husk · Bone
+  restrictions_es: Cáscara · Hueso
   sigil: ''
   effect: 'If this model chose the Bone keyword, improve its Violence by 1.
 
@@ -130,8 +130,8 @@
   category_es: REGLA ESPECIAL
   name: Blood Warrior
   name_es: Guerrero de Sangre
-  restrictions: Necromantic Remnant · Blood
-  restrictions_es: Remanente Nigromántico · Sangre
+  restrictions: Husk · Blood
+  restrictions_es: Cáscara · Sangre
   sigil: ''
   effect: 'If this model chose the Blood keyword, improve its HP by 2.
 
