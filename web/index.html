@@ -34,9 +34,23 @@
     </span>
   </nav>
   <span class="spacer"></span>
-  <details class="nav-settings" id="nav-settings">
-    <summary><span class="nav-ico" data-icon="settings"></span><span id="nav-settings-label">Settings</span><span class="nav-chev" data-icon="chevron-down"></span></summary>
-    <div class="nav-settings-panel">
+  <button type="button" class="nav-settings-btn" id="nav-settings" aria-haspopup="dialog" aria-controls="settings-sheet" aria-label="Settings"><span class="nav-ico" data-icon="settings"></span><span id="nav-settings-label">Settings</span></button>
+  <div class="nc-update" id="nc-update" role="status" hidden>
+    <span id="nc-update-text">A new version is available.</span>
+    <button type="button" class="secondary" id="nc-update-btn">Update</button>
+  </div>
+  <button class="print-btn" id="global-print-btn" aria-describedby="print-reason"><span class="pb-verb">Print</span><span class="pb-rest"></span></button>
+  <span id="print-reason" hidden></span>
+</header>
+
+<dialog class="settings-sheet" id="settings-sheet" aria-labelledby="settings-title">
+  <div class="settings-head">
+    <h2 id="settings-title">Settings</h2>
+    <button type="button" class="settings-close" id="settings-close" aria-label="Close"><span data-icon="x"></span></button>
+  </div>
+  <div class="settings-body">
+    <section class="settings-group" aria-labelledby="prefs-title">
+      <h2 class="settings-h" id="prefs-title" data-i18n="prefsTitle">Preferences</h2>
       <label class="lang-picker" title="Language of the app and of the printed cards and roster">
         <span id="lang-label">Language</span>
         <select id="lang-select">
@@ -51,6 +65,7 @@
           <option value="soft-ash" data-i18n="themeSoftAsh">Soft Ash</option><option value="slate" data-i18n="themeSlate">Slate</option><option value="vellum" data-i18n="themeVellum">Vellum</option>
         </select>
       </label>
+    </section>
       <section class="nc-sync" id="sync-section" aria-labelledby="sync-title">
         <h2 id="sync-title" data-i18n="syncTitle">Sync</h2>
         <p class="nc-sync-note" id="sync-note"></p>
@@ -80,22 +95,21 @@
         <p id="sync-status" class="nc-sync-status" role="status" aria-live="polite"></p>
       </section>
       <section class="nc-sync nc-pwa" id="pwa-section" aria-labelledby="pwa-title">
-        <h2 id="pwa-title">App updates</h2>
-        <p id="pwa-version"></p>
-        <div class="nc-sync-actions">
-          <button type="button" class="secondary" id="pwa-check">Check for updates</button>
+        <h2 id="pwa-title">App</h2>
+        <div id="pwa-install" class="nc-pwa-install" hidden>
+          <button type="button" class="secondary" id="pwa-install-btn">Install app</button>
+          <p id="pwa-ios-hint" hidden>Share, then Add to Home Screen</p>
         </div>
-        <p id="pwa-status" class="nc-sync-status" role="status" aria-live="polite"></p>
+        <div id="pwa-updates" class="nc-pwa-updates">
+          <p id="pwa-version"></p>
+          <div class="nc-sync-actions">
+            <button type="button" class="secondary" id="pwa-check">Check for updates</button>
+          </div>
+          <p id="pwa-status" class="nc-sync-status" role="status" aria-live="polite"></p>
+        </div>
       </section>
-    </div>
-  </details>
-  <div class="nc-update" id="nc-update" role="status" hidden>
-    <span id="nc-update-text">A new version is available.</span>
-    <button type="button" class="secondary" id="nc-update-btn">Update</button>
   </div>
-  <button class="print-btn" id="global-print-btn" aria-describedby="print-reason"><span class="pb-verb">Print</span><span class="pb-rest"></span></button>
-  <span id="print-reason" hidden></span>
-</header>
+</dialog>
 
 <main>
 
