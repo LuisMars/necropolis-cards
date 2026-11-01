@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { catalog, EXAMPLE_LINK } from "./helpers.js";
 import { decodeLink } from "../web/js/builder/codec.js";
-import { evaluate } from "../web/js/builder/rules.js";
+import { evaluate, covenantAllows } from "../web/js/builder/rules.js";
 import { newGathering, newModel } from "../web/js/builder/gathering.js";
 
 const codes = (ev) => ev.warnings.map(w => w.code).sort();
@@ -112,4 +112,25 @@ test("revenant caps and the budget bonus from Miserly", () => {
   assert.deepEqual(ev.warnings, []);
   assert.equal(ev.budget, 350);
   assert.equal(ev.models[0].stats.hp, 19);  // Blood +2
+});
+
+test("covenantAllows: which types each covenant can field (p.17-23)", () => {
+  const legal = (cov) => Object.keys(Object.fromEntries(
+    ["leaders", "minions"].flatMap(c => catalog.bundle.categories[c].rows.map(r => [`${c}/${r.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, 1]))))
+    .filter(k => !covenantAllows({ covenant: cov }, k, catalog)).map(k => k.split("/")[1]);
+  const L = ["lich", "revenant", "ascended-undead"];
+  const all = ["corpse-husk", "skeletal-husk", "ghast-husk", "familiar", "aberrant-husk", "necromantic-remnant",
+    "small-beast", "flying-beast", "large-beast", "gigantic-horror"];
+  assert.deepEqual(legal("covenants/embalmed-hands").filter(k => !L.includes(k)),
+    ["corpse-husk", "familiar", "aberrant-husk", "necromantic-remnant", "small-beast", "flying-beast", "large-beast", "gigantic-horror"]);
+  assert.deepEqual(legal("covenants/cairn-born").filter(k => !L.includes(k)),
+    all.filter(k => !["corpse-husk", "ghast-husk"].includes(k)));
+  assert.deepEqual(legal("covenants/the-crescent-of-mourn").filter(k => !L.includes(k)),
+    ["ghast-husk", "familiar", "aberrant-husk", "necromantic-remnant", "small-beast", "gigantic-horror"]);
+  assert.deepEqual(legal("covenants/recusant-maleficar"), ["lich", ...all]);
+  assert.deepEqual(legal("covenants/crawling-dark"), [...L, "familiar", "necromantic-remnant", "small-beast", "flying-beast", "large-beast"]);
+  assert.deepEqual(legal("wretched-undead"), [...L, ...all]);
+  assert.equal(covenantAllows({ covenant: "covenants/recusant-maleficar" }, "leaders/revenant", catalog), "covenant-leader-type");
+  assert.equal(covenantAllows({ covenant: "covenants/cairn-born" }, "minions/corpse-husk", catalog), "covenant-keyword");
+  assert.equal(covenantAllows({}, "minions/corpse-husk", catalog), null);
 });

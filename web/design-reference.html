@@ -201,6 +201,7 @@
           <button class="secondary" type="button" disabled>Disabled</button>
           <button class="link" type="button">Discard changes</button>
         </div>
+        <p class="ds-note">Card text in Library tiles (<code>.lib-tile .preview</code>) and the Add picker (<code>.bd-pk-sum</code>) is shown in full: never line-clamped or ellipsised.</p>
         <p class="ds-note">One primary action per task area: while a gathering has unsaved changes, Print drops to the secondary skin (<code>.print-btn.quiet</code>) so Save changes is the only primary. Rare or destructive actions (Import, Duplicate, Delete) live in a native <code>&lt;details class="lib-more"&gt;</code> menu opened by a <code>⋯</code> summary; Delete is tinted with <code>--nc-error</code>. Icon + text buttons centre on one line. A stepper (<code>− N +</code>) uses one skin for both buttons.</p>
         <output id="ds-apply-output" class="ds-live" aria-live="polite"></output>
       </div>
@@ -212,7 +213,7 @@
             <option value="">Choose a covenant…</option>
             <option>Cairn-born</option>
             <option>The Crescent of Mourn</option>
-            <option data-reason="This covenant only allows models with Plasm.">Crawling-Dark</option>
+            <option data-reason="Crawling-Dark only allows Leader, Beast or Remnant models">Crawling-Dark</option>
             <option>Wretched Undead</option>
           </select>
         </div>
@@ -392,6 +393,14 @@
   <section class="ds-section" id="feedback">
     <h2>08 · Warnings and statuses</h2>
     <p class="ds-description">Warnings are one panel per group: warning background, a 3px amber rule on the left, the items as plain lines in bone text, separated by a hairline, each with the warning icon. A model warning sits inside the list or control it refers to (a trait warning in Traits, the spell count in Spells, the mana split in Mana, a keyword warning under the keyword); only a warning with no field stays in the block under the stats. The summary toggle (&ldquo;N warnings: show them all&rdquo;) appears only when some warnings are not beside their field, as in the Campaign and Roster views. The full warning summary uses the same panel. The draft bar is not a warning: a neutral raised surface with a top rule, sticky at the foot of the page while a draft exists (Save and Discard always reachable), reading &ldquo;Unsaved draft&rdquo;, and a dot on the Gatherings link marks the draft on every page. Never colour alone.</p>
+    <p class="ds-description">The summary bar sticks to the top of the viewport in the Gathering, Campaign and Roster views (under the header where the header sticks, <code>top: var(--nc-header-h)</code>): one row, 48px, a raised surface. It shows the header's own figures, never a second format: spend of the first build's budget with the meter (the treasury once the campaign has started), the model count, and the warning count, the only control, a 44px button that jumps to the first warning. Over budget uses the error colour and the word &ldquo;Over&rdquo;, not colour alone. It has no live region: the page is redrawn on every edit, so one would announce on each keystroke. Hidden in print; z-index 8, below the header, menus, dialogs and the select sheet.</p>
+    <div class="ds-specimen">
+      <section class="bd-bar" style="position:static;margin:0 0 8px" aria-label="Summary (specimen)">
+        <span class="bd-bar-cost over"><b>345</b> of 300 obols<span class="bd-meter" aria-hidden="true"><span style="width:100%"></span></span> <strong class="bd-bar-over">Over</strong></span>
+        <span class="bd-bar-models"><b>6</b> <span class="bd-bar-lbl">Models</span></span>
+        <button type="button" class="bd-bar-warn" aria-label="3 warnings: go to the first one"><span data-icon="triangle-alert"></span><b>3</b></button>
+      </section>
+    </div>
     <div class="ds-grid">
       <div class="ds-specimen">
         <ul class="bd-warn" aria-label="Rule warnings (specimen)">
