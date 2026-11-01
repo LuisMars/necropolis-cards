@@ -77,7 +77,6 @@
     .ds-header-specimen{padding:0;overflow:visible}
     .ds-header-specimen > .ds-row,.ds-header-specimen > .ds-note{padding:0 20px}
     .ds-header-specimen > .ds-note{padding-bottom:16px}
-    .ds-header-specimen .nav-settings{display:flex;flex-direction:column;align-items:flex-end}
     .ds-picker-static{display:block;position:static;max-width:640px;width:auto;max-height:none;margin:0;box-shadow:none}
     .ds-picker-static .bd-picker-box{max-height:none}
     .ds-icons{gap:10px 20px;font-size:15px;color:var(--nc-secondary)}
@@ -172,17 +171,7 @@
           <span class="nav-item"><a class="nav-dest" href="#shell">Cards</a><a class="nav-count" href="#shell">12</a></span>
         </nav>
         <span class="spacer"></span>
-        <details class="nav-settings" open>
-          <summary><span class="nav-ico" data-icon="settings"></span><span>Settings</span><span class="nav-chev" data-icon="chevron-down"></span></summary>
-          <div class="nav-settings-panel" style="position:static;margin-top:6px">
-            <label class="lang-picker"><span>Language</span><select><option>English</option><option>Español</option></select></label>
-            <label class="nc-theme-picker"><span>Theme</span>
-              <select data-nc-palette-control aria-label="Theme (specimen)">
-                <option value="auto">Match device</option><option value="obsidian">Obsidian</option><option value="vellum">Vellum (light)</option>
-                <option value="ink-bone">Ink &amp; Bone</option><option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
-              </select></label>
-          </div>
-        </details>
+        <button type="button" class="nav-settings-btn" aria-label="Settings"><span class="nav-ico" data-icon="settings"></span><span>Settings</span></button>
         <button class="print-btn" type="button"><span class="pb-verb">Print</span><span class="pb-rest"> roster</span></button>
       </header>
       <div class="ds-row" style="margin-top:16px">
@@ -393,15 +382,15 @@
 
   <section class="ds-section" id="feedback">
     <h2>08 · Warnings and statuses</h2>
-    <p class="ds-description">Warnings are one panel per group: warning background, a 3px amber rule on the left, the items as plain lines in bone text, separated by a hairline, each with the warning icon. A model warning sits inside the list or control it refers to (a trait warning in Traits, the spell count in Spells, the mana split in Mana, a keyword warning under the keyword); only a warning with no field stays in the block under the stats. The summary toggle (&ldquo;N warnings: show them all&rdquo;) appears only when some warnings are not beside their field, as in the Campaign and Roster views. The draft bar and the full warning summary use the same panel. Never colour alone.</p>
+    <p class="ds-description">Warnings are one panel per group: warning background, a 3px amber rule on the left, the items as plain lines in bone text, separated by a hairline, each with the warning icon. A model warning sits inside the list or control it refers to (a trait warning in Traits, the spell count in Spells, the mana split in Mana, a keyword warning under the keyword); only a warning with no field stays in the block under the stats. The summary toggle (&ldquo;N warnings: show them all&rdquo;) appears only when some warnings are not beside their field, as in the Campaign and Roster views. The full warning summary uses the same panel. The draft bar is not a warning: a neutral raised surface with a top rule, sticky at the foot of the page while a draft exists (Save and Discard always reachable), reading &ldquo;Unsaved draft&rdquo;, and a dot on the Gatherings link marks the draft on every page. Never colour alone.</p>
     <div class="ds-grid">
       <div class="ds-specimen">
         <ul class="bd-warn" aria-label="Rule warnings (specimen)">
           <li><span data-icon="triangle-alert"></span><span>4 spells; it should have 5.</span></li>
           <li><span data-icon="triangle-alert"></span><span>Mana points split: 0 of 4.</span></li>
         </ul>
-        <div class="bd-draft" role="status"><p><span data-icon="triangle-alert"></span><span>These changes aren't saved yet.</span></p>
-          <button type="button" class="primary">Save changes</button><button type="button" class="link">Discard changes</button></div>
+        <div class="bd-draft" role="status" style="position:static"><p>Unsaved draft</p>
+          <button type="button" class="primary">Save changes</button><button type="button" class="secondary">Discard changes</button></div>
       </div>
       <div class="ds-specimen">
         <div class="ds-row">

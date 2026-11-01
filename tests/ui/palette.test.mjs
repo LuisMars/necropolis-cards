@@ -40,7 +40,7 @@ async function open(colorScheme, stored) {
 }
 /** Choose in a Settings menu field (opens the menu if it is closed). */
 async function choose(page, sel, value) {
-  await page.evaluate(() => { document.getElementById("nav-settings").open = true; });
+  await page.evaluate(() => { const d = document.getElementById("settings-sheet"); if (!d.open) d.showModal(); });
   await page.selectOption(sel, value);
 }
 /** Wait for the resolved palette (media-query change events are async). */

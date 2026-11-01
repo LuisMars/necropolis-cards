@@ -598,10 +598,10 @@ function draw() {
   const ev = evaluate(g, catalog());
   const head = `${viewTabsHtml()}${gatheringHeadHtml(g, ev)}${summaryOpen && hiddenWarnings(ev) ? warningSummaryHtml(g, ev) : ""}`;
   if (view === "roster") {
-    $body.innerHTML = `<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>`;
+    $body.innerHTML = `<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>${draftHtml(g)}`;
   } else if (view === "campaign") {
     // The Campaign view has its own lists: no models sidebar.
-    $body.innerHTML = `${head}<div class="bd-main bd-campaign">${g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev)}</div>`;
+    $body.innerHTML = `${head}<div class="bd-main bd-campaign">${g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev)}</div>${draftHtml(g)}`;
   } else {
     $body.innerHTML = `${head}
       <div class="bd-layout">
@@ -610,7 +610,7 @@ function draw() {
           ${g.models.length ? g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") : `<p class="bd-hint">${esc(L("noModels"))}</p>`}
         </div>
         <aside class="bd-side">${modelsNavHtml(g, ev)}</aside>
-      </div>`;
+      </div>${draftHtml(g)}`;
   }
   watchModels();
   syncRequired($body);
@@ -648,9 +648,9 @@ function rosterBarHtml(g) {
 function draftHtml(g) {
   return dirty(g) ? `
       <div class="bd-draft" role="status">
-        <p>${icon("triangle-alert")}<span>${esc(L("unsaved"))}</span></p>
-        <button type="button" class="primary" data-act="save">${esc(L("saveChanges"))}</button>
-        <button type="button" class="link" data-act="discard">${esc(L("discardChanges"))}</button>
+        <p>${esc(L("unsaved"))}</p>
+        <button type="button" class="primary" data-act="save" aria-label="${esc(L("saveChanges"))}"><span class="long">${esc(L("saveChanges"))}</span><span class="short" aria-hidden="true">${esc(L("saveShort"))}</span></button>
+        <button type="button" class="secondary" data-act="discard" aria-label="${esc(L("discardChanges"))}"><span class="long">${esc(L("discardChanges"))}</span><span class="short" aria-hidden="true">${esc(L("discardShort"))}</span></button>
       </div>` : "";
 }
 
@@ -722,7 +722,6 @@ function gatheringHeadHtml(g, ev) {
 
   return `
     <section class="bd-ghead${full ? "" : " compact"}" aria-label="${esc(L("gathering"))}">
-      ${draftHtml(g)}
       <input type="text" class="bd-gname" data-act="name" data-fid="g-name" value="${esc(g.name)}"
              placeholder="${esc(L("untitled"))}" aria-label="${esc(L("name"))}">
       ${full ? `<div class="bd-fields">

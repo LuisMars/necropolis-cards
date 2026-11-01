@@ -49,7 +49,7 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
-const open = () => page.evaluate(() => { document.getElementById("nav-settings").open = true; });
+const open = () => page.evaluate(() => { const d = document.getElementById("settings-sheet"); if (!d.open) d.showModal(); });
 const status = () => page.textContent("#sync-status");
 
 test("signed out: the section is there, labelled, and nothing was sent", async () => {
@@ -143,7 +143,7 @@ test("sign out returns to the form and keeps the data", async () => {
   await page.waitForSelector("#sync-form:not([hidden])");
   assert.match(await status(), /Sync is off/);
   const n = hits;
-  await page.evaluate(() => document.getElementById("nav-settings").open = false);
+  await page.evaluate(() => document.getElementById("settings-sheet").close());
   await page.waitForTimeout(300);
   assert.equal(hits, n);
   assert.equal(await page.evaluate((k) => Object.keys(JSON.parse(localStorage.getItem(k)).gatherings).length, GKEY), 2);

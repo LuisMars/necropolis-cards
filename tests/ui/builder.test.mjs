@@ -275,44 +275,55 @@ test("the Print button names what it prints, and is absent when it can't", async
   // Only one primary action in the header.
   assert.equal(await page.locator("header.app :is(.primary, .print-btn)").count(), 1);
   // Spanish.
-  await page.click("#nav-settings > summary");
+  await page.click("#nav-settings");
   await page.selectOption("#lang-select", "es");
+  await page.keyboard.press("Escape");
   assert.equal(await text(page, btn), `Imprimir ${n} cartas`);
   await go(page, "gatherings");
   assert.equal(await text(page, btn), "Imprimir lista");
 });
 
-test("the Settings menu works from the keyboard", async () => {
+test("the Settings sheet works from the keyboard", async () => {
   const { page } = await open();
-  const isOpen = () => page.evaluate(() => document.getElementById("nav-settings").open);
-  await page.focus("#nav-settings > summary");
+  const isOpen = () => page.evaluate(() => document.getElementById("settings-sheet").open);
+  await page.focus("#nav-settings");
   await page.keyboard.press("Enter");
   assert.equal(await isOpen(), true);
   // Language and Theme are themed dropdowns: focus lands on their triggers.
   const focusedSelect = () => page.evaluate(() => document.activeElement.closest(".nc-select")?.querySelector("select")?.id);
-  await page.keyboard.press("Tab");
+  await page.focus("#settings-sheet .nc-select button, #settings-sheet .nc-select [role=combobox]");
   assert.equal(await focusedSelect(), "lang-select");
   await page.keyboard.press("Tab");
   assert.equal(await focusedSelect(), "nc-theme-select");
-  // Choosing from the list (a portal in <body>) keeps Settings open.
+  // Choosing from the list (portalled into the sheet) keeps Settings open.
   await page.keyboard.press("ArrowDown");
   await page.click('.nc-select-pop .nc-select-option:has-text("Slate")');
   assert.equal(await isOpen(), true);
   assert.equal(await page.evaluate(() => document.documentElement.dataset.ncPalette), "slate");
   await page.keyboard.press("Escape");
   assert.equal(await isOpen(), false);
-  assert.ok(await page.evaluate(() => document.activeElement.matches("#nav-settings > summary")));
+  assert.ok(await page.evaluate(() => document.activeElement.matches("#nav-settings")));
   await page.keyboard.press("Space");
   assert.equal(await isOpen(), true);
-  // Language sets the card language, and the header follows it.
+  // Language sets the card language, the header follows it, and the sheet stays open with focus kept.
   await page.selectOption("#lang-select", "es");
+  assert.equal(await isOpen(), true);
   assert.equal(await text(page, 'nav.tabs a[data-dest="gatherings"]'), "Séquitos");
   assert.equal(await page.evaluate(() => localStorage.getItem("necropolis-card-printer-lang-v1")), "es");
+  assert.equal(await page.getAttribute("#nav-settings", "aria-label"), "Ajustes");
+  assert.equal(await page.getAttribute("#settings-close", "aria-label"), "Cerrar");
+  assert.equal(await text(page, "#settings-title"), "Ajustes");
   // Theme keeps its palette control.
   await page.selectOption("#nc-theme-select", "slate");
   assert.equal(await page.evaluate(() => document.documentElement.dataset.ncPalette), "slate");
-  // A click outside closes it.
-  await page.mouse.click(600, 600);
+  assert.equal(await isOpen(), true);
+  // The close button closes it and focus returns to the trigger.
+  await page.click("#settings-close");
+  assert.equal(await isOpen(), false);
+  assert.ok(await page.evaluate(() => document.activeElement.matches("#nav-settings")));
+  // A tap on the backdrop closes it on wide layouts.
+  await page.click("#nav-settings");
+  await page.mouse.click(100, 600);
   assert.equal(await isOpen(), false);
 });
 
@@ -857,10 +868,10 @@ test("a dropdown's filter text follows the language", async () => {
   await page.fill(".nc-select-filter-input", "zzzz");
   assert.equal(await text(page, ".nc-select-empty"), "No matches");
   await page.keyboard.press("Escape");
-  await page.click("#nav-settings > summary");
+  await page.click("#nav-settings");
   await page.selectOption("#lang-select", "es");
   await page.waitForTimeout(150);
-  await page.click("#nav-settings > summary");
+  await page.keyboard.press("Escape");
   await page.click(trigger);
   assert.equal(await page.getAttribute(".nc-select-filter-input", "placeholder"), "Escribe para filtrar…");
   await page.fill(".nc-select-filter-input", "zzzz");
@@ -911,8 +922,8 @@ test("one primary action per area", async () => {
   await page.fill(".bd-gname", "Changed");
   await page.press(".bd-gname", "Tab");
   await page.waitForTimeout(100);
-  assert.equal(await page.locator(".bd-ghead .primary").count(), 1);
-  assert.equal(await page.locator('.bd-ghead [data-act="save"].primary').count(), 1);
+  assert.equal(await page.locator("#bd-body .primary").count(), 1);
+  assert.equal(await page.locator('.bd-draft [data-act="save"].primary').count(), 1);
   // The wizard: Next on the way, Finish on the last step, never both.
   await page.click('[data-act="start-built"]');
   await page.click('[data-act="view"][data-view="campaign"]');
@@ -1260,4 +1271,47 @@ test("cards queue once, unqueue, and leave other queue rows alone", async () => 
   assert.equal(await count(), 2);
   assert.match(await text(page, ".bd-ghead .bd-status"), /cards removed/);
   assert.deepEqual(errors, []);
+});
+
+test("draft bar: sticky at 390px after scrolling, nav marker on and off, focus not hidden, no draft without an edit", async () => {
+  const { page } = await open();
+  await page.setViewportSize({ width: 390, height: 800 });
+  await importLink(page);
+  // Loading a saved gathering and looking at it makes no draft and no marker.
+  assert.equal(await page.isVisible(".bd-draft"), false);
+  assert.equal(await page.locator("nav.tabs .nav-dot").count(), 0);
+
+  await pick(page, "m3", "armour", "armour|armours/heavy-armour");
+  assert.ok(await page.isVisible(".bd-draft"));
+  assert.match(await text(page, ".bd-draft"), /Unsaved draft/);
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2));
+  await page.waitForTimeout(100);
+  const box = await page.locator(".bd-draft").boundingBox();
+  assert.ok(box.y >= 0 && box.y + box.height <= 801, "bar is in view");
+  assert.ok(box.y + box.height >= 790, "bar is at the bottom edge");
+  const btns = await page.locator(".bd-draft button:visible").evaluateAll(b => b.map(x => x.getBoundingClientRect().height));
+  assert.equal(btns.length, 2);
+  for (const h of btns) assert.ok(h >= 43.5);
+  assert.ok(box.height < 80, "one compact row");
+
+  // A focused field is never behind the bar.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const hidden = await page.evaluate(() => {
+    const fields = [...document.querySelectorAll("#bd-body input:not([type=hidden]), #bd-body select")].filter(e => e.offsetParent && !e.closest(".bd-draft"));
+    const last = fields[fields.length - 1];
+    last.focus();
+    const bar = document.querySelector(".bd-draft").getBoundingClientRect();
+    return last.getBoundingClientRect().bottom > bar.top + 0.5;
+  });
+  assert.equal(hidden, false, "focused field is above the bar");
+
+  // The marker shows on Cards too, with an accessible name; Discard clears it.
+  assert.equal(await page.locator("nav.tabs .nav-dot").count(), 1);
+  await go(page, "cards");
+  assert.equal(await page.locator("nav.tabs .nav-dot").getAttribute("aria-label"), "Unsaved draft");
+  await go(page, "gatherings");
+  await page.click('[data-act="discard"]');
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator("nav.tabs .nav-dot").count(), 0);
+  assert.equal(await page.isVisible(".bd-draft"), false);
 });

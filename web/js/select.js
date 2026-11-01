@@ -374,7 +374,8 @@ function open(inst, seed = "") {
   inst.width = 0;
   if (inst.filter) inst.filter.value = "";
   render(inst);
-  document.body.append(inst.pop);
+  // Inside a modal <dialog> everything outside it is inert: portal into it.
+  (inst.trigger.closest("dialog[open]") || document.body).append(inst.pop);
   current = inst;
   // aria-controls only while the listbox is in the DOM.
   inst.trigger.setAttribute("aria-controls", inst.list.id);

@@ -31,20 +31,7 @@
     font-family:'Alegreya',Georgia,serif;font-size:14px;line-height:1;
   }
   nav.tabs a.nav-count:hover{border-color:var(--nc-line)}
-  header.app :is(a,summary):focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
-  /* Settings disclosure */
-  .nav-settings > summary{
-    min-height:44px;box-sizing:border-box;padding:0 12px;color:var(--nc-secondary);
-    font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;
-  }
-  .nav-settings[open] > summary{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}
-  @media (hover:hover){.nav-settings > summary:hover{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}}
-  .nav-settings .nav-chev{font-size:13px;line-height:1}
-  .nav-settings-panel{
-    border-width:1px;border-style:solid;border-radius:3px;
-    min-width:230px;box-sizing:border-box;
-  }
-  .nav-settings-panel :is(select,.nc-select){width:100%;max-width:none}
+  header.app :is(a,summary,button):focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
   header.app .lang-picker {color:var(--nc-secondary);font-family:'Alegreya SC',Georgia,serif;font-size:14px;font-weight:700}
   button.primary,header.app button.print-btn{
     border:1px solid;
@@ -171,7 +158,7 @@
   /* Warnings: one panel per group, the items plain lines inside it. Text in
      bone, the sign in amber: never colour alone (README). The same panel
      marks the draft bar and the full warning summary. */
-  .bd-warn,.bd-sum,.bd-draft{
+  .bd-warn,.bd-sum{
     background:var(--nc-warning-bg);border:0;border-left:3px solid var(--nc-warning);border-radius:3px;
     --nc-warn-line:color-mix(in srgb,var(--nc-warning) 28%,var(--nc-line-soft));
   }
@@ -181,8 +168,7 @@
     color:var(--nc-bone);background:none;border:0;font-size:15px;line-height:1.4;
   }
   .bd-warn li + li{border-top:1px solid var(--nc-warn-line)}
-  .bd-warn li > .nc-icon,.bd-draft p > .nc-icon{color:var(--nc-warning);margin-top:.12em}
-  .bd-draft p{color:var(--nc-bone)}
+  .bd-warn li > .nc-icon{color:var(--nc-warning);margin-top:.12em}
   .bd-good,.bd-src.up,.bd-tx b.up{color:var(--nc-success)}
   .bd-warn-line{color:var(--nc-warning)}
   /* A warning beside the field it is about: same panel, tighter. */
@@ -361,9 +347,6 @@
   }
 }
 @media screen {
-  .bd-draft button.link{padding:4px 2px}
-}
-@media screen {
   /* Import actions wrap whole; Close stands apart. */
   @media (max-width:540px){
     .bd-import-actions > button{flex:1 1 auto;white-space:nowrap}
@@ -409,7 +392,6 @@
   .print-toolbar.nav-local-row{margin-bottom:14px}
   .bd-roster-head .bd-views{margin-bottom:12px}
   .bd-roster-bar{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
-  .bd-roster-bar .bd-draft{max-width:60ch}
   .bd-roster-actions{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
   .bd-roster-actions .bd-status{margin:0}
   .bd-status button.link{padding:2px 0}
@@ -425,7 +407,6 @@
     }
     header.app h1{grid-area:brand}
     header.app .spacer{display:none}
-    .nav-settings{grid-area:settings}
     nav.tabs{grid-area:nav;min-width:0;gap:4px}
     nav.tabs a.nav-dest{padding:0 10px}
     header.app button.print-btn{grid-area:print}
@@ -546,15 +527,10 @@
   #bd-body .bd-add-btn .nc-icon{margin:0;width:1em;height:1em}
   .bd-item button .nc-icon{width:14px;height:14px;vertical-align:-2px}
   .bd-model-foot button .nc-icon{width:18px;height:18px;vertical-align:-3px}
-  .nav-settings > summary .nav-ico{margin:0}
-  .nav-settings > summary .nav-ico .nc-icon{width:18px;height:18px}
-  .nav-settings > summary .nav-chev{margin:0;transition:transform .12s ease}
-  .nav-settings > summary .nav-chev .nc-icon{width:15px;height:15px}
   .bd-picker-searchbox{position:relative}
   .bd-picker-searchbox > .nc-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--nc-muted);pointer-events:none}
   .bd-picker-searchbox .bd-picker-search{padding-left:38px}
   .bd-pk-why > .nc-icon{color:var(--nc-warning);margin-right:4px;width:14px;height:14px;vertical-align:-2px}
-  .bd-draft p{display:flex;align-items:flex-start;gap:8px}
 }
 @media screen {
   /* Gathering header (v5.8): above every view — name, covenant and lair,
@@ -564,7 +540,6 @@
     background:var(--nc-surface);border:1px solid var(--nc-line-soft);border-radius:3px;
     padding:14px 18px 12px;margin:0 0 18px;display:flex;flex-direction:column;gap:10px;
   }
-  .bd-ghead .bd-draft{margin:0}
   #bd-body .bd-ghead input.bd-gname{
     width:100%;box-sizing:border-box;margin:0;padding:4px 10px;min-height:0;
     font:400 30px/1.15 var(--gothic);color:var(--nc-bone);
@@ -661,7 +636,6 @@
 @media screen {
   /* Campaign and Roster: the header is one compact block. */
   .bd-ghead.compact{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 22px;padding:10px 16px}
-  .bd-ghead.compact .bd-draft{flex:1 1 100%}
   #bd-body .bd-ghead.compact input.bd-gname{width:auto;flex:1 1 260px;font-size:24px}
   .bd-ghead.compact .bd-figs{margin:0}
   .bd-ghead.compact .bd-actions{border-top:0;padding-top:0;margin:0}
@@ -739,8 +713,6 @@
   .nc-sync-conflict legend{font-weight:700;padding:0 4px}
   .nc-sync-conflict dt{font-weight:700;margin-top:4px}
   .nc-sync-conflict dd{overflow-wrap:anywhere}
-  /* The Settings panel (Language, Theme, Sync, App updates) can be taller than a short screen: scroll inside it. */
-  .nav-settings-panel{max-height:calc(100vh - 90px);max-height:calc(100dvh - 90px);overflow-y:auto}
   /* App updates (service worker). The notice is persistent and never blocks the page. */
   .nc-update[hidden]{display:none}
   .nc-update{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);padding:10px 14px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:14px}
@@ -942,3 +914,84 @@
   .bd-ghead .bd-lair-tools > button.link{padding:0 8px}
   .lib-tile .add,.lib-tile .printed-toggle{min-height:44px;min-width:44px}
 }
+
+@media screen {
+  /* Draft bar: sticky at the foot of #bd-body, a neutral raised surface with a
+     top rule (not a rule warning). Below the header menus and dialogs. */
+  .bd-draft{
+    position:sticky;bottom:0;z-index:5;margin:16px 0 0;
+    display:flex;align-items:center;gap:8px 10px;
+    padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+    background:var(--nc-raised);border-top:1px solid var(--nc-line);
+  }
+  .bd-draft p{margin:0;flex:1 1 auto;font-size:15px;color:var(--nc-bone)}
+  .bd-draft button{min-height:44px;min-width:44px}
+  .bd-draft .short{display:none}
+  html:has(.bd-draft){scroll-padding-bottom:84px}
+  .nav-dot{display:inline-block;width:9px;height:9px;margin-left:6px;border-radius:50%;
+    background:var(--nc-bone);border:2px solid var(--nc-surface);box-shadow:0 0 0 1px var(--nc-bone);vertical-align:middle}
+}
+@media screen and (max-width:540px) {
+  .bd-draft{gap:6px;padding-left:10px;padding-right:10px}
+  .bd-draft p{font-size:14px}
+  .bd-draft .long{display:none}
+  .bd-draft .short{display:inline}
+}
+@media print { .bd-draft,.nav-dot{display:none} }
+/* ==== Settings sheet (own block) =================================================
+ * A modal <dialog>: full screen on phones, a 420px right-hand panel wider. The
+ * header trigger is a plain button: gear + "Settings", gear only on phones. */
+@media screen {
+  .nav-settings-btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;
+    min-height:44px;box-sizing:border-box;padding:0 12px;
+    background:transparent;color:var(--nc-secondary);border:1px solid transparent;border-radius:3px;
+    font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;
+  }
+  .nav-settings-btn .nav-ico .nc-icon{width:18px;height:18px;margin:0}
+  @media (hover:hover){.nav-settings-btn:hover{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}}
+  @media (max-width:720px){.nav-settings-btn{grid-area:settings}}
+  @media (max-width:540px){
+    .nav-settings-btn{width:44px;padding:0}
+    .nav-settings-btn #nav-settings-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  }
+
+  dialog.settings-sheet{
+    box-sizing:border-box;margin:0;padding:0;border:0;color:var(--nc-bone);background:var(--nc-surface);
+    overflow:hidden;overscroll-behavior:contain;
+    inset:0;width:100%;max-width:none;height:100%;max-height:none;
+  }
+  dialog.settings-sheet[open]{display:flex;flex-direction:column}
+  dialog.settings-sheet::backdrop{background:var(--nc-scrim)}
+  .settings-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;
+    padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left));
+    border-bottom:1px solid var(--nc-line-soft);
+  }
+  .settings-head h2{margin:0;font-family:'JSL Blackletter','Alegreya SC',Georgia,serif;font-size:26px;font-weight:400;line-height:1.1}
+  .settings-close{
+    display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;cursor:pointer;
+    background:transparent;color:var(--nc-secondary);border:1px solid transparent;border-radius:3px;
+  }
+  .settings-close .nc-icon{width:20px;height:20px;margin:0}
+  @media (hover:hover){.settings-close:hover{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}}
+  .settings-close:focus-visible,.nav-settings-btn:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+  .settings-body{
+    flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+    display:flex;flex-direction:column;gap:20px;
+    padding:16px max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  }
+  .settings-group{display:flex;flex-direction:column;gap:12px}
+  .settings-h,.settings-body .nc-sync h2{margin:0;font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;color:var(--nc-secondary)}
+  .settings-body .nc-sync{max-width:none;border-top:1px solid var(--nc-line-soft);padding-top:16px;gap:12px}
+  .settings-body label{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+  .settings-body :is(input,select,.nc-select){width:100%;max-width:none;box-sizing:border-box}
+  .settings-body .nc-sync-actions button,.settings-body .nc-pwa-install button{min-height:44px}
+  @media (max-width:540px){.settings-body .nc-sync-actions button,.settings-body .nc-pwa-install button{flex:1 1 100%}}
+  .nc-pwa-install,.nc-pwa-updates{display:flex;flex-direction:column;gap:10px}
+  .nc-pwa-install[hidden],.nc-pwa-updates[hidden],.nc-pwa-install [hidden]{display:none}
+  @media (min-width:541px){
+    dialog.settings-sheet{inset:0 0 0 auto;width:420px;max-width:100vw;border-left:1px solid var(--nc-line)}
+  }
+}
+@media print{dialog.settings-sheet{display:none !important}}

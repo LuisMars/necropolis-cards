@@ -108,20 +108,6 @@ nav.tabs a.nav-count {
   text-align: center; font-weight: 700; font-variant-numeric: lining-nums tabular-nums;
 }
 header.app .spacer { flex: 1; }
-/* Settings: a disclosure holding Language and Theme. */
-.nav-settings { position: relative; }
-.nav-settings > summary {
-  list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-  border: 1px solid transparent; border-radius: 3px;
-}
-.nav-settings > summary::-webkit-details-marker { display: none; }
-.nav-settings[open] .nav-chev { transform: rotate(180deg); }
-.nav-settings-panel {
-  position: absolute; right: 0; top: calc(100% + 6px); z-index: 20;
-  display: flex; flex-direction: column; gap: 12px;
-  width: max-content; max-width: calc(100vw - 26px); padding: 14px 16px;
-}
-.nav-settings-panel label { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
 header.app .lang-picker { display: flex; gap: 6px; }
 header.app .lang-picker select { cursor: pointer; }
 header.app button.print-btn { cursor: pointer; white-space: nowrap; }
@@ -372,12 +358,6 @@ textarea.json-in { resize: vertical; }
 /* The gathering's header above every view, then the model cards with the
  * models list beside them (design-v5.css lays both out). */
 .bd-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; align-items: start; }
-/* Unsaved changes: the warning status pattern — sign, words and colour. */
-.bd-draft {
-  padding: 10px 12px; margin-bottom: 16px;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px;
-}
-.bd-draft p { margin: 0; width: 100%; font-size: 15px; }
 .bd-fig dt { font-family: var(--caps); font-size: 14px; color: var(--muted); }
 .bd-fig dd { margin: 0; font-size: 15px; color: var(--muted); }
 .bd-fig dd b { font-size: 24px; color: var(--text); font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }

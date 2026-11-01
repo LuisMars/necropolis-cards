@@ -46,9 +46,9 @@ before(async () => {
   page.on("dialog", d => d.accept());
   await page.goto(URL_ + "#cards");
   await page.waitForFunction(() => document.querySelectorAll(".lib-tile").length > 0);
-  await page.click("#nav-settings > summary");
+  await page.click("#nav-settings");
   await page.selectOption("#lang-select", "es");
-  await page.click("#nav-settings > summary");
+  await page.keyboard.press("Escape");
 });
 after(async () => { await browser?.close(); server?.kill(); });
 

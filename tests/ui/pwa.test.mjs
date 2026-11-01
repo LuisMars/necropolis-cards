@@ -58,7 +58,7 @@ after(async () => { await browser?.close(); for (const d of temps) rmSync(d, { r
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const ready = (page) => page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
-const openSettings = (page) => page.evaluate(() => { document.getElementById("nav-settings").open = true; });
+const openSettings = (page) => page.evaluate(() => { const d = document.getElementById("settings-sheet"); if (!d.open) d.showModal(); });
 const cacheKeys = (page) => page.evaluate(() => caches.keys());
 
 /* ---- manifest ------------------------------------------------------------ */
@@ -184,6 +184,7 @@ test("an update waits behind a notice, keeps typed data, and Update reloads once
     await other.close();
 
     const before = navs;
+    await page.keyboard.press("Escape");                   // the notice sits behind the open sheet
     await page.click("#nc-update-btn");
     await page.waitForFunction(() => !window.__marker);    // reloaded
     await page.waitForFunction(() => document.querySelector("#bd-body > *"));
@@ -403,4 +404,63 @@ test("the kill switch template removes the worker and its caches", async () => {
     assert.match(await page.evaluate(() => fetch("styles.css").then((r) => r.text())), /from the network/);
     await page.waitForFunction(() => document.querySelector("#bd-body > *"));   // still works from the network
   } finally { await ctx.close(); await srv.stop(); }
+});
+
+/* ---- install action in Settings ------------------------------------------- */
+
+test("Settings offers Install app after a beforeinstallprompt and hides it once installed", async () => {
+  const srv = await serve(WEB, 8789);
+  const ctx = await browser.newContext();
+  try {
+    const page = await ctx.newPage();
+    await page.goto(srv.url);
+    await page.waitForFunction(() => document.querySelector("#bd-body > *"));
+    await openSettings(page);
+    // No prompt available (and not iOS): nothing to install.
+    assert.ok(await page.locator("#pwa-install").isHidden());
+    // A synthetic prompt event, as Chrome fires it.
+    await page.evaluate(() => {
+      window.__prompted = 0;
+      const e = new Event("beforeinstallprompt", { cancelable: true });
+      e.prompt = () => { window.__prompted++; return Promise.resolve(); };
+      e.userChoice = Promise.resolve({ outcome: "accepted" });
+      window.__defaultPrevented = !window.dispatchEvent(e);
+    });
+    assert.equal(await page.evaluate(() => window.__defaultPrevented), true, "the browser's own banner is suppressed");
+    await page.waitForSelector("#pwa-install-btn:visible");
+    assert.equal(await page.textContent("#pwa-install-btn"), "Install app");
+    assert.ok(await page.locator("#pwa-ios-hint").isHidden());
+    await page.click("#pwa-install-btn");
+    assert.equal(await page.evaluate(() => window.__prompted), 1);
+    await page.waitForSelector("#pwa-install", { state: "hidden" });   // accepted: gone
+    // A second prompt, then the appinstalled event also hides it.
+    await page.evaluate(() => {
+      const e = new Event("beforeinstallprompt", { cancelable: true });
+      e.prompt = () => Promise.resolve(); e.userChoice = Promise.resolve({ outcome: "dismissed" });
+      window.dispatchEvent(e);
+    });
+    await page.waitForSelector("#pwa-install-btn:visible");
+    await page.evaluate(() => window.dispatchEvent(new Event("appinstalled")));
+    await page.waitForSelector("#pwa-install", { state: "hidden" });
+  } finally { await ctx.close(); await srv.stop(); }
+});
+
+test("iOS Safari gets a hint and no button; an installed app shows nothing", async () => {
+  const srv = await serve(WEB, 8790);
+  const ios = await browser.newContext({ userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" });
+  try {
+    const page = await ios.newPage();
+    await page.goto(srv.url);
+    await page.waitForFunction(() => document.querySelector("#bd-body > *"));
+    await openSettings(page);
+    await page.waitForSelector("#pwa-ios-hint:visible");
+    assert.equal(await page.textContent("#pwa-ios-hint"), "Share, then Add to Home Screen");
+    assert.ok(await page.locator("#pwa-install-btn").isHidden());
+    // Standalone: nothing.
+    await page.addInitScript(() => Object.defineProperty(navigator, "standalone", { get: () => true }));
+    await page.reload();
+    await page.waitForFunction(() => document.querySelector("#bd-body > *"));
+    await openSettings(page);
+    assert.ok(await page.locator("#pwa-install").isHidden());
+  } finally { await ios.close(); await srv.stop(); }
 });
