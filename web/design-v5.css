@@ -213,23 +213,18 @@
   .lib-tile .printed-lbl,.lib-tile .need {font-size:13px}
   /* Stat block uses actual semantic dl/dt/dd markup from builder-tab.js. */
   .bd-stats {
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(79px,1fr));gap:8px;
-    margin:14px 0;padding:0;
+    display:flex;flex-wrap:wrap;gap:8px 20px;margin:12px 0;padding:0;
   }
-  .bd-stats .bd-stat {
-    margin:0;padding:9px 10px;background:var(--nc-raised);
-    border:1px solid var(--nc-line-soft);border-radius:3px;
-    min-width:0;
-  }
+  .bd-stats .bd-stat {margin:0;padding:0;background:none;border:0;min-width:0}
   .bd-stats dt {
     color:var(--nc-secondary);
-    font:700 14px/1.1 'Alegreya SC',Georgia,serif;
+    font:700 13px/1.1 'Alegreya SC',Georgia,serif;
     letter-spacing:.035em;
   }
   .bd-stats dd {
-    margin:4px 0 0;color:var(--nc-bone);
-    font:700 24px/1.1 'Alegreya',Georgia,serif;
-    font-variant-numeric:tabular-nums;
+    margin:2px 0 0;color:var(--nc-bone);
+    font:700 22px/1.1 'Alegreya',Georgia,serif;
+    font-variant-numeric:tabular-nums lining-nums;
   }
   #bd-body .bd-callout{border-left-color:var(--nc-primary)}
   #bd-body .bd-prog{color:var(--nc-bone)}
