@@ -127,6 +127,7 @@ export function initPwa({ lang = () => "en" } = {}) {
     try {
       reg = await navigator.serviceWorker.register("sw.js", { scope: "./", updateViaCache: "none" });
     } catch { reg = null; return; }                    // no sw.js, blocked, insecure: run without it
+    if (!reg) return;                                  // some browsers resolve with nothing when blocked
     if (reg.waiting) render();
     if (reg.installing) watch(reg.installing);
     reg.addEventListener("updatefound", () => { if (reg.installing) watch(reg.installing); });

@@ -464,3 +464,25 @@ test("iOS Safari gets a hint and no button; an installed app shows nothing", asy
     assert.ok(await page.locator("#pwa-install").isHidden());
   } finally { await ios.close(); await srv.stop(); }
 });
+
+test("with service workers blocked the app runs without errors and Settings still works", async () => {
+  const srv = await serve(WEB, 8787);
+  const ctx = await browser.newContext({ serviceWorkers: "block" });
+  try {
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    // Some browsers hand back nothing from register() when workers are blocked.
+    await page.addInitScript(() => {
+      if (navigator.serviceWorker) navigator.serviceWorker.register = () => Promise.resolve(undefined);
+    });
+    await page.goto(srv.url);
+    await page.waitForFunction(() => document.querySelector("#bd-body > *"));
+    await sleep(500);
+    await openSettings(page);
+    if (await page.isVisible("#pwa-check")) await page.click("#pwa-check");
+    await sleep(300);
+    assert.deepEqual(errors, []);
+    assert.equal(await page.isHidden("#nc-update"), true);
+  } finally { await ctx.close(); await srv.stop(); }
+});
