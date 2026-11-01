@@ -21,7 +21,7 @@ import { label, itemName } from "./builder/messages.js";
 import {
   ensureCampaign, startCampaign, buyUpgrade, refundUpgrade, tickAmbition, completeAmbition,
   greaterOwed, rewardTargets, rollTreasure, treasureTable, giveTreasure, moveTreasure,
-  freeSellsword, hireSellsword, addBattle, removeBattle, undoAmbition, addManualEntry, removeLedgerEntry,
+  freeSellsword, hireSellsword, addBattle, removeBattle, undoAmbition, addManualEntry, removeLedgerEntry, completedCount,
   takeGear, sellStashedGear, discardStashedGear, sellValue, spellTargets,
   setDeploymentBase, today, deployCosts,
 } from "./builder/campaign.js";
@@ -303,6 +303,40 @@ export function pendingHtml(g) {
     </div>`;
 }
 
+/** "Completed ×N" beside an ambition that has been completed before: icon and word, not colour alone. */
+const doneMark = (g, key) => {
+  const n = completedCount(g, key);
+  return n ? `<span class="bd-amb-done">${icon("check")} ${esc(L("completedMark"))}${n > 1 ? ` ×${n}` : ""}</span>` : "";
+};
+
+/** The completed ambitions, one block per ambition with ×N, each completion with who got it and Undo. */
+function completedAmbitionsHtml(g) {
+  const by = new Map();
+  for (const e of g.ambitions.log) {
+    if (!by.has(e.ambition)) by.set(e.ambition, []);
+    by.get(e.ambition).push(e);
+  }
+  if (!by.size) return "";
+  const blocks = [...by].map(([key, list]) => {
+    const r = catalog().row(key) || {};
+    const lines = [...list].reverse().map(e => {
+      const to = e.to ? g.models.find(m => m.uid === e.to) : null;
+      const target = to ? modelTitle(to)
+        : e.applied?.models?.length > 1 ? L("allModels")
+        : e.applied?.deployment ? `+${e.applied.deployment} ${L("deployment")}`
+        : e.applied?.bonus_traits ? L("bonusTrait") : "";
+      const when = [e.date, e.battle ? `${L("battle")} ${e.battle}` : ""].filter(Boolean).join(" · ");
+      return `<li><span>${esc([target, when].filter(Boolean).join(" · "))}</span>
+        ${e.id ? `<button type="button" class="secondary" data-act="amb-undo" data-id="${esc(e.id)}">${esc(L("undo"))}</button>` : ""}</li>`;
+    }).join("");
+    return `<div class="bd-amb bd-amb-completed">
+      <div class="bd-amb-head"><b>${esc(name(key))}</b>${doneMark(g, key)}</div>
+      <div class="bd-amb-text">${esc(pickField(r, "reward", lang()) || "")}</div>
+      <ul class="bd-plain bd-amb-log">${lines}</ul></div>`;
+  }).join("");
+  return `<h4>${esc(L("completedAmbitions"))}</h4>${blocks}`;
+}
+
 function ambitionsPanel(g) {
   const a = g.ambitions;
   const active = a.active.map(key => {
@@ -335,7 +369,7 @@ function ambitionsPanel(g) {
           <b>${esc(name(key))}</b> <small>${esc(pickField(r, "restrictions", lang()) || "")}</small>
           <span class="spacer"></span>
           <button type="button" class="secondary" data-act="amb-tick" data-key="${esc(key)}" data-step="-1">−</button>
-          <span class="bd-prog">${prog} / ${goal}</span>
+          <span class="bd-prog">${prog} / ${goal}</span>${doneMark(g, key)}
           <button type="button" class="secondary" data-act="amb-tick" data-key="${esc(key)}" data-step="1">+</button>
           <button type="button" class="secondary" data-act="amb-drop" data-key="${esc(key)}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button>
         </div>
@@ -348,13 +382,15 @@ function ambitionsPanel(g) {
     if (a.active.includes(k)) continue;
     const path = pickField(r, "restrictions", lang()) || "";
     if (!groups.has(path)) groups.set(path, []);
-    groups.get(path).push(`<option value="${esc(k)}">${esc(pickField(r, "name", lang()))} (${r.goal})</option>`);
+    const n = completedCount(g, k);
+    groups.get(path).push(`<option value="${esc(k)}">${esc(pickField(r, "name", lang()))} (${r.goal})${n ? ` ✓ ×${n}` : ""}</option>`);
   }
   const add = [...groups].map(([p, os]) => `<optgroup label="${esc(p)}">${os.join("")}</optgroup>`).join("");
   return { title: `${esc(L("ambitions"))}`, body: `
       <p class="bd-hint">${a.active.length} ${esc(L("ofFourActive"))}, ${a.completed} ${esc(L("completed"))}.</p>
       ${active}
-      <select data-act="amb-add" data-fid="c-amb-add" aria-label="${esc(L("addAmbition"))}"><option value="">${esc(L("addAmbition"))}</option>${add}</select>` };
+      <select data-act="amb-add" data-fid="c-amb-add" aria-label="${esc(L("addAmbition"))}"><option value="">${esc(L("addAmbition"))}</option>${add}</select>
+      ${completedAmbitionsHtml(g)}` };
 }
 
 function treasuresPanel(g) {
@@ -489,20 +525,10 @@ function improvementsPanel(g, ev) {
 }
 
 /**
- * Completed ambitions (with Undo), maladies carried, and the progress kept
+ * Maladies carried, and the progress kept
  * on ambitions that aren't active (W5-5).
  */
 function historyPanel(g) {
-  const log = [...g.ambitions.log].reverse().map(e => {
-    const to = e.to ? g.models.find(m => m.uid === e.to) : null;
-    const target = to ? modelTitle(to)
-      : e.applied?.models?.length > 1 ? L("allModels")
-      : e.applied?.deployment ? `+${e.applied.deployment} ${L("deployment")}`
-      : e.applied?.bonus_traits ? L("bonusTrait") : "";
-    return `<tr><td>${esc(e.date || "")}</td><td>${e.battle ? `${esc(L("battle"))} ${e.battle}` : ""}</td>
-      <td>${esc(name(e.ambition))}</td><td>${esc(target)}</td>
-      <td>${e.id ? `<button type="button" class="link" data-act="amb-undo" data-id="${esc(e.id)}">${esc(L("undo"))}</button>` : ""}</td></tr>`;
-  }).join("");
   const maladies = g.models.flatMap(m => maladiesOf(m, catalog().rules).map(x => {
     const def = (catalog().rules.maladies || []).find(d => d.key === x.key) || {};
     return `<li>${esc(modelTitle(m))}: <b>${esc(pickField(def, "name", lang()) || x.key)}</b>${x.stat ? ` (${esc(L(x.stat))})` : ""}` +
@@ -513,8 +539,6 @@ function historyPanel(g) {
     .map(([k, n]) => `<li>${esc(name(k))} · ${n} / ${Number(catalog().row(k)?.goal) || 1}
       <button type="button" class="secondary" data-act="amb-activate" data-key="${esc(k)}">${esc(L("makeActive"))}</button></li>`).join("");
   return { title: `${esc(L("history"))}`, body: `
-      <h4>${esc(L("completedAmbitions"))}</h4>
-      ${log ? `<div class="bd-table-wrap"><table class="bd-table">${log}</table></div>` : `<small>—</small>`}
       <h4>${esc(L("maladies"))}</h4>
       ${maladies ? `<ul class="bd-plain">${maladies}</ul>` : `<small>${esc(L("noMaladies"))}</small>`}
       <h4>${esc(L("inactiveProgress"))}</h4>

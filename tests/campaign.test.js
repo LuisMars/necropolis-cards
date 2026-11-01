@@ -6,7 +6,7 @@ import { evaluate } from "../web/js/builder/rules.js";
 import {
   startCampaign, buyUpgrade, refundUpgrade, tickAmbition, completeAmbition, greaterOwed,
   rollTreasure, treasureTable, giveTreasure, moveTreasure, hireSellsword, freeSellsword,
-  addBattle, removeBattle, rewardTargets,
+  addBattle, removeBattle, rewardTargets, undoAmbition, completedCount,
 } from "../web/js/builder/campaign.js";
 
 const codes = (g) => evaluate(g, catalog).warnings.map(w => w.code).sort();
@@ -179,4 +179,55 @@ test("recruiting and hiring under a lock take the covenant keyword; a Ghast keep
   assert.equal(recruit(g, catalog, "minions/ghast-husk").affinity, "plasm");
   const free = newGathering({ covenant: "covenants/recusant-maleficar" });
   assert.equal(recruit(free, catalog, "minions/familiar").affinity, null);
+});
+
+test("a completed ambition leaves the active list, repeats stack, undo restores it", () => {
+  const g = example();
+  startCampaign(g, catalog);
+  const k = "ambitions/build-a-sanctuary";
+  const goal = Number(catalog.row(k).goal);
+  g.ambitions.active.push(k);
+  tickAmbition(g, k, catalog, goal);
+  completeAmbition(g, k, catalog);
+  assert.ok(!g.ambitions.active.includes(k));
+  assert.equal(g.ambitions.completed, 1);
+  assert.equal(completedCount(g, k), 1);
+  // A repeat is a deliberate re-add; it stacks.
+  g.ambitions.active.push(k);
+  tickAmbition(g, k, catalog, goal);
+  completeAmbition(g, k, catalog);
+  assert.equal(completedCount(g, k), 2);
+  assert.equal(g.ambitions.completed, 2);
+  assert.equal(evaluate(g, catalog).deploymentLimit, 450);
+  const last = g.ambitions.log.at(-1).id;
+  assert.ok(undoAmbition(g, last, catalog));
+  assert.deepEqual(g.ambitions.active, [k]);
+  assert.equal(g.ambitions.progress[k], goal);
+  assert.equal(g.ambitions.completed, 1);
+  assert.equal(completedCount(g, k), 1);
+});
+
+test("undo with four active ambitions never exceeds four", () => {
+  const g = example();
+  startCampaign(g, catalog);
+  const k = "ambitions/build-a-sanctuary";
+  g.ambitions.active.push(k);
+  tickAmbition(g, k, catalog, Number(catalog.row(k).goal));
+  completeAmbition(g, k, catalog);
+  g.ambitions.active.push("ambitions/rain-iron-sleet", "ambitions/scour-the-lands",
+    "ambitions/commune-with-the-truth", "ambitions/test-the-limits-of-undeath");
+  undoAmbition(g, g.ambitions.log[0].id, catalog);
+  assert.equal(g.ambitions.active.length, 4);
+  assert.ok(!g.ambitions.active.includes(k));
+  assert.equal(g.ambitions.progress[k], Number(catalog.row(k).goal));  // kept, "Make active" later
+  assert.equal(g.ambitions.completed, 0);
+});
+
+test("a saved campaign's active ambition with a log entry is left as it is", () => {
+  const g = example();
+  const k = "ambitions/build-a-sanctuary";
+  g.ambitions = { active: [k], progress: { [k]: 0 }, completed: 1, greaterClaimed: 0,
+                  log: [{ id: "a1", ambition: k, to: null, applied: {} }] };
+  assert.deepEqual(g.ambitions.active, [k]);
+  assert.equal(completedCount(g, k), 1);
 });

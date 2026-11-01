@@ -214,6 +214,9 @@ export function completeAmbition(g, key, catalog, uid = null, opts = {}) {
       }
       break;
   }
+  // A completed ambition is no longer pursued: it leaves the active list and
+  // frees its slot. Adding it again is a deliberate repeat, from 0.
+  g.ambitions.active = g.ambitions.active.filter(k => k !== key);
   g.ambitions.progress[key] = 0;
   g.ambitions.completed += 1;
   g.ambitions.log.push({ id, ambition: key, to, ...when(g), applied });
@@ -244,8 +247,19 @@ export function undoAmbition(g, logId, catalog) {
   }
   g.ambitions.completed = Math.max(0, g.ambitions.completed - 1);
   g.ambitions.progress[e.ambition] = Number(catalog.row(e.ambition)?.goal) || 1;
+  // Back to active when a slot is free. With four already active it stays
+  // out (progress kept at the goal, "Make active" in History), so Undo never
+  // pushes the list past four.
+  if (!g.ambitions.active.includes(e.ambition) && g.ambitions.active.length < MAX_ACTIVE_AMBITIONS) {
+    g.ambitions.active.push(e.ambition);
+  }
   return true;
 }
+
+export const MAX_ACTIVE_AMBITIONS = 4;
+
+/** How many times an ambition has been completed: the log is the source of truth. */
+export const completedCount = (g, key) => (g.ambitions?.log || []).filter(e => e.ambition === key).length;
 
 /** Greater treasures earned (1 per 5 completed ambitions) and not yet taken. */
 export const greaterOwed = (g) =>

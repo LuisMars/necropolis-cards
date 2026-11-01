@@ -482,6 +482,7 @@ const UI = {
   complete:       ["Complete", "Cumplir"],
   chooseModel_:   ["Choose a model…", "Elige una miniatura…"],
   completed:      ["completed", "cumplidas"],
+  completedMark:  ["Completed", "Cumplida"],
   greaterOwed:    ["greater treasure earned (1 per 5 ambitions)", "tesoro mayor ganado (1 por cada 5 ambiciones)"],
   treasureToTake: ["Treasure to take", "Tesoro por recibir"],
   rollMinor:      ["Roll a minor treasure", "Tirar un tesoro menor"],

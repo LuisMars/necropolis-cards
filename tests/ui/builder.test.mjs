@@ -127,7 +127,6 @@ test("campaign: an undone ambition takes its treasure back", async () => {
   const chips = () => page.locator('details[data-fold="treasures"] .bd-item').allTextContents();
   assert.match((await chips()).join(" "), /Mana Bottle/);
 
-  await page.click('details[data-fold="history"] > summary');
   await page.click('[data-act="amb-undo"]');
   await page.waitForTimeout(100);
   assert.deepEqual(await chips(), []);
@@ -1439,4 +1438,25 @@ test("a folded card and list still show their warnings; a list jump unfolds the 
   await page.evaluate(() => document.getElementById("bd-sec-m3-armour").hidden = false);   // the picker button lives in the body
   await pick(page, "m3", "armour", "armour|armours/heavy-armour");
   assert.equal(await page.locator('#bd-model-m3 [data-sec="armour"]').getAttribute("aria-expanded"), "true");
+});
+
+test("campaign: a completed ambition moves to Completed with a mark, and can be added again", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  const key = "ambitions/build-a-sanctuary";
+  const goal = Number(await page.locator(`[data-act="amb-add"] option[value="${key}"]`).textContent().then(t => /\((\d+)\)/.exec(t)[1]));
+  await page.selectOption('[data-act="amb-add"]', key);
+  for (let i = 0; i < goal; i++) await page.click(`[data-act="amb-tick"][data-key="${key}"][data-step="1"]`);
+  await page.click('[data-act="amb-complete"]');
+  await page.waitForTimeout(150);
+  const panel = page.locator('details[data-fold="ambitions"]');
+  assert.equal(await panel.locator('[data-act="amb-tick"]').count(), 0);
+  assert.match(await panel.locator(".bd-amb-completed").textContent(), /Completed/);
+  assert.match(await panel.locator(".bd-hint").first().textContent(), /0 of 4 active, 1 completed/);
+  assert.match(await page.locator(`[data-act="amb-add"] option[value="${key}"]`).textContent(), /✓ ×1/);
+  await page.selectOption('[data-act="amb-add"]', key);
+  assert.match(await panel.locator(".bd-amb:not(.bd-amb-completed)").textContent(), /Completed.*0 \/|0 \/.*Completed/s);
+  assert.deepEqual(errors, []);
 });

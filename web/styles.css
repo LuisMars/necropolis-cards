@@ -461,6 +461,11 @@ button.link.danger:hover, button.secondary.danger:hover { color: var(--bad); }
 .bd-amb-head .spacer { flex: 1; }
 .bd-amb-head button { padding: 2px 10px; }
 .bd-amb-text { font-size: 15px; color: var(--muted); margin: 3px 0; max-width: 70ch; }
+.bd-amb-done { display: inline-flex; align-items: center; gap: 4px; color: var(--good); font-size: 15px; white-space: nowrap; }
+.bd-amb-done svg { width: 1em; height: 1em; }
+.bd-amb-log { list-style: none; padding-left: 0; }
+.bd-amb-log li { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.bd-amb-log button { min-height: 44px; min-width: 44px; }
 .bd-prog { min-width: 3.2em; text-align: center; font-variant-numeric: lining-nums tabular-nums; }
 .bd-upgrades { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px 22px; }
 .bd-upgrade { font-size: 15px; }
