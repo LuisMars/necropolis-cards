@@ -99,6 +99,11 @@ export function renderCardSvg(q) {
     tpl = tpl.replace(
       /(<text\s+class="(?:type-line|category|restrict)"[^>]*?)y="([\d.]+)"/,
       (m, pre, yy) => `${pre}y="${(parseFloat(yy) + 1.5).toFixed(3)}"`);
+    // Sellsword cards: the COST / BASE row sits just under the subtitle, so it
+    // moves down with it.
+    tpl = tpl.replace(
+      /(<text\s+text-anchor="(?:start|end)"[^>]*?)y="([\d.]+)"([^>]*>\s*<tspan class="label")/g,
+      (m, pre, yy, post) => `${pre}y="${(parseFloat(yy) + 1.5).toFixed(3)}"${post}`);
   }
 
   // Strip editor metadata that the bundler may have left in.

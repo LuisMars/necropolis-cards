@@ -35,7 +35,7 @@ import { categoryOf, slug } from "./builder/catalog.js";
 import { describe, covenantReason, label, itemName, plural, fill } from "./builder/messages.js";
 import {
   ensureCampaign, buyGear, sellGear, discardGear, recruitPrice, recruit, record, stashGear, takeGear, channelBonuses, startingWeapon,
-  weaponLocked, buyPrice, deployCosts, payDeployment,
+  weaponLocked, buyPrice, deployCosts, payDeployment, startAfterBattle,
 } from "./builder/campaign.js";
 import { isFolded, setFolded, forgetFolds } from "./builder-fold.js";
 import { initPicker, openPicker, openRemove, openChoice, refreshPicker, stashable } from "./builder-picker.js";
@@ -44,6 +44,7 @@ import { afterBattleHtml, afterBattleChange, afterBattleClick, syncRequired } fr
 
 const $pick   = $("bd-pick");
 const $body   = $("bd-body");
+const $draft  = $("bd-draft-slot");   // after every tab, so its bar sticks on the Roster too
 const $newBtn = $("bd-new");
 const $dupBtn = $("bd-dup");
 const $delBtn = $("bd-del");
@@ -52,6 +53,14 @@ const $importBtn = $("bd-import");
 let hooks = {};
 let status = "";          // one line of feedback from the last action (HTML)
 let summaryOpen = false;  // every warning listed, opened from the ledger
+/* Opening "After the battle" only shows the wizard. The sequence is written to
+ * the gathering (and so makes a draft) with the player's first action in it. */
+let abPreview = null;   // id of the gathering whose wizard is open but not yet written
+const abOpenIn = (g) => abPreview === g?.id && !g.campaign?.afterBattle;
+const abBegin = (g) => { if (abOpenIn(g)) startAfterBattle(g, {}); };
+/** A copy of the gathering with the sequence started, to draw the wizard from. */
+const abPreviewOf = (g) => { const c = structuredClone(g); startAfterBattle(c, {}); return c; };
+
 let view = "gathering";   // "gathering" (build), "campaign" or "roster"
 let observer = null;      // marks the model card in view in the models list
 
@@ -158,6 +167,7 @@ export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRoste
     }),
   });
   $body.addEventListener("click", onClick);
+  $draft.addEventListener("click", onClick);
   // A die typed or a choice made (no redraw) can enable an Apply button.
   for (const t of ["input", "change"]) $body.addEventListener(t, () => syncRequired($body));
   // Folding sections remember whether they're open ("toggle" doesn't bubble).
@@ -286,6 +296,7 @@ function onChange_(e) {
   const v = el.value;
   if (act === "roster-skip") { hooks.setRosterSkip?.(el.checked); return; }
   edit(g => {
+    if (act.startsWith("ab-")) { abBegin(g); abPreview = null; }
     if (afterBattleChange(act, el, g) || campaignChange(act, el, g)) return;
     const m = uid ? findModel(g, uid) : null;
     switch (act) {
@@ -317,6 +328,7 @@ function campaignAct(act, el, g, before = null) {
   const clone = g ? structuredClone(g) : null;
   let handled = false;
   try {
+    if (act.startsWith("ab-") && act !== "ab-open") abBegin(clone);
     before?.(clone);
     handled = !!clone && (afterBattleClick(act, el, clone) || campaignClick(act, el, clone));
   } catch (err) {
@@ -326,6 +338,7 @@ function campaignAct(act, el, g, before = null) {
   }
   if (handled) {
     setNotice(null);
+    abPreview = null;
     keep(clone);
     redraw();
   }
@@ -366,6 +379,8 @@ function onClick(e) {
     askDeployment(g, act, el);
     return;
   }
+  if (act === "ab-open" && g) { abPreview = g.id; setNotice(null); redraw(); return; }
+  if (act === "ab-discard" && abOpenIn(g)) { abPreview = null; redraw(); return; }
   if (campaignAct(act, el, g)) return;
   switch (act) {
     case "m-pick":     openPicker(uid, list, el.dataset.fid); break;
@@ -421,7 +436,6 @@ function onClick(e) {
                          if (j >= 0 && j < g.models.length) [g.models[k], g.models[j]] = [g.models[j], g.models[k]];
                        }); break;
     case "lair-roll":  edit(g => { g.lair = { ...g.lair, name: lairName(rollLair()) }; }); break;
-    case "roster":     goView("roster"); break;
     case "cards":      queueCards(g); break;
     case "link":       copyLink(g); break;
     case "export":     download(`${fileStem(g)}.json`, toAppJson(g, catalog())); break;
@@ -433,13 +447,20 @@ function onClick(e) {
 }
 
 /** The summary bar's warning count: open the warnings summary (away from the
- *  Gathering view) and put focus on the first warning. */
+ *  Gathering view) and put focus on a warning. Each press moves on to the
+ *  next one, and after the last comes the first. */
+let warnAt = -1;   // the warning the summary bar's button last went to
 function jumpToWarning(g) {
   if (hiddenWarnings(evaluate(g, catalog())) && !summaryOpen) { summaryOpen = true; renderBuilder(); }
-  const t = $body.querySelector(".bd-ledger-warn .bd-warn, .bd-sum, .bd-model .bd-warn");
-  if (!t) return;
+  const all = [...$body.querySelectorAll(".bd-warn li, .bd-sum-group ul li")];
+  if (!all.length) return;
+  // Pressing the button moves focus to it first, so remember where we were.
+  const here = all.findIndex(x => x === document.activeElement);
+  const t = all[((here >= 0 ? here : warnAt) + 1) % all.length];
+  warnAt = all.indexOf(t);
   t.tabIndex = -1;
   t.focus();
+  t.scrollIntoView({ block: "center" });
 }
 
 /* ---- lair names (p.42) ----------------------------------------------------- */
@@ -615,6 +636,7 @@ function draw() {
     `${dirty(x) ? ` (${esc(L("unsavedShort"))})` : ""}</option>`).join("");
 
   if (!g) {
+    $draft.innerHTML = "";
     $body.innerHTML = `<div class="bd-empty"><p>${esc(L("empty"))}</p>
       <button type="button" class="primary" data-act="new">${esc(L("newGathering"))}</button>
       <button type="button" class="secondary" data-act="import">${esc(L("import"))}</button></div>`;
@@ -625,10 +647,10 @@ function draw() {
   const bar = summaryBarHtml(g, ev);
   const head = `${viewTabsHtml()}${gatheringHeadHtml(g, ev)}${summaryOpen && hiddenWarnings(ev) ? warningSummaryHtml(g, ev) : ""}`;
   if (view === "roster") {
-    $body.innerHTML = `${bar}<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>${draftHtml(g)}`;
+    $body.innerHTML = `${bar}<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>`;
   } else if (view === "campaign") {
     // The Campaign view has its own lists: no models sidebar.
-    $body.innerHTML = `${bar}${head}<div class="bd-main bd-campaign">${g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev)}</div>${draftHtml(g)}`;
+    $body.innerHTML = `${bar}${head}<div class="bd-main bd-campaign">${g.campaign?.afterBattle ? afterBattleHtml(g, ev) : abOpenIn(g) ? afterBattleHtml(abPreviewOf(g), evaluate(abPreviewOf(g), catalog())) : campaignHtml(g, ev)}</div>`;
   } else {
     $body.innerHTML = `${bar}${head}
       <div class="bd-layout">
@@ -637,8 +659,9 @@ function draw() {
           ${g.models.length ? g.models.map((m, i) => modelHtml(g, m, ev.models[i], i)).join("") : `<p class="bd-hint">${esc(L("noModels"))}</p>`}
         </div>
         <aside class="bd-side">${modelsNavHtml(g, ev)}</aside>
-      </div>${draftHtml(g)}`;
+      </div>`;
   }
+  $draft.innerHTML = draftHtml(g);
   watchModels();
   syncRequired($body);
 
@@ -791,7 +814,7 @@ function gatheringHeadHtml(g, ev) {
       ${first && full ? `<p class="bd-hint">${over ? "" : `${esc(L("firstBuildNote"))} `}<button type="button" class="link" data-act="start-built">${esc(L("alreadyBuilt"))}</button></p>` : ""}
       ${warnings}
       <div class="bd-actions">
-        ${view === "roster" ? "" : `<button type="button" class="secondary" data-act="roster">${esc(L("viewRoster"))}</button>
+        ${view === "roster" ? "" : `
         ${queueButtonHtml(g)}`}
         <details class="bd-share">
           <summary>${esc(L("shareExport"))} ${icon("chevron-down")}</summary>

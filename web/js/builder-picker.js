@@ -133,12 +133,15 @@ export function initPicker(h) {
   dlg.addEventListener("pointerdown", (e) => { if (e.target === dlg) dlg.close(); });
 }
 
+const onPhone = () => matchMedia("(pointer: coarse), (max-width: 540px)").matches;
+
 /** Open the picker for one list of one model. `fid`: the opener's data-fid. */
 export function openPicker(uid, list, fid) {
   ctx = { uid, list, fid, chip: "", query: "", active: null, status: "", mode: "add" };
   drawShell();
   dlg.showModal();
-  dlg.querySelector(".bd-picker-search")?.focus();
+  // On a phone the keyboard would cover the list: focus stays on the dialog.
+  if (!onPhone()) dlg.querySelector(".bd-picker-search")?.focus();
 }
 
 /** After every Builder redraw: the open picker follows the working copy. */
@@ -216,7 +219,7 @@ function drawShell() {
   dlg.innerHTML = `
     <div class="bd-picker-box">
       <header class="bd-picker-head">
-        <h2 id="bd-picker-title">${esc(fill(L(`pick_${ctx.list}`), { model: who }))}</h2>
+        <h2 id="bd-picker-title"${ctx.mode === "add" && onPhone() ? " tabindex=\"-1\" autofocus" : ""}>${esc(fill(L(`pick_${ctx.list}`), { model: who }))}</h2>
         <button type="button" class="secondary bd-picker-x" data-pk="close" aria-label="${esc(L("close"))}" title="${esc(L("close"))}">${icon("x")}</button>
       </header>
       <div class="bd-picker-searchbox">${icon("search")}<input type="search" class="bd-picker-search" role="combobox" aria-expanded="true" aria-autocomplete="list"
@@ -273,7 +276,11 @@ function drawList() {
         ${reason ? `<span class="bd-pk-why" id="${id}-why" data-reason="${esc(reason)}">${icon("triangle-alert")}<span>${esc(reason)}</span></span>` : ""}
       </div>`;
   };
+  // Only gear is bought at the Markets; spells and traits are rewards, so a
+  // campaign list of them has no Markets heading and no price.
+  const buys = ["weapons", "armour", "equipment"].includes(ctx.list);
   const price = (key) => {
+    if (campaign && !buys) return "";
     const n = campaign ? buyPrice(g, catalog(), key) : Number(catalog().row(key)?.obols) || 0;
     return n ? `${n} ${L("obols")}` : L("free");
   };
@@ -287,7 +294,7 @@ function drawList() {
   let html = shown.map(groupHtml).join("");
   if (campaign) {
     html = (stash.length ? section(L("fromStash"), stash.map(([e, i]) => row(`stash|${i}`, e.key, L("free"))).join("")) : "") +
-      (shown.length ? section(L("buyAtMarkets"), html) : "");
+      (shown.length ? (buys ? section(L("buyAtMarkets"), html) : html) : "");
   }
   if (shared) html = `<p class="bd-picker-limit" id="bd-pk-limit" role="status">${icon("triangle-alert")}<span>${esc(shared)}</span></p>` + html;
   const list = dlg.querySelector(".bd-picker-list");

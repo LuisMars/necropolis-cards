@@ -737,7 +737,7 @@ footer.app-foot {
 }
 footer.app-foot a { color: var(--text); }
 footer.app-foot p { margin: 0 0 8px; }
-footer.app-foot .muted { font-size: 13px; opacity: 0.7; }
+footer.app-foot .muted { font-size: 13px; }
 
 /* === Print media ===
  *

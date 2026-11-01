@@ -155,6 +155,10 @@
   .wb-chip.good{color:var(--nc-success);background:var(--nc-success-bg);border-color:var(--nc-success)}
   .wb-chip.over{color:var(--nc-error);background:var(--nc-error-bg);border-color:var(--nc-error)}
   .wb-chip.accent{background:var(--nc-raised);color:var(--nc-bone);border-color:var(--nc-line)}
+  /* The Roster's figures are plain text like the Gathering's, not buttons. */
+  .wb-summary .wb-chip{border:0;background:none;padding:0 6px 0 0}
+  .wb-summary .wb-chip.good{color:var(--nc-success)}
+  .wb-summary .wb-chip.over{color:var(--nc-error)}
   /* Warnings: one panel per group, the items plain lines inside it. Text in
      bone, the sign in amber: never colour alone (README). The same panel
      marks the draft bar and the full warning summary. */
@@ -167,6 +171,7 @@
     display:flex;align-items:flex-start;gap:8px;margin:0;padding:7px 12px;
     color:var(--nc-bone);background:none;border:0;font-size:15px;line-height:1.4;
   }
+  .bd-warn li:focus,.bd-sum li:focus{outline:2px solid var(--nc-bone);outline-offset:-2px}
   .bd-warn li + li{border-top:1px solid var(--nc-warn-line)}
   .bd-warn li > .nc-icon{color:var(--nc-warning);margin-top:.12em}
   .bd-good,.bd-src.up,.bd-tx b.up{color:var(--nc-success)}
@@ -189,7 +194,7 @@
   .lib-tile .need{border-radius:3px}
   .queue-item .name:focus{outline-color:var(--nc-bone);background:var(--nc-raised)}
   .queue-item button{min-width:var(--nc-target-xs);min-height:var(--nc-target-xs)}
-  footer.app-foot{border-color:var(--nc-line-soft)}
+  footer.app-foot{border-color:var(--nc-line-soft);color:var(--nc-muted)}
 
   /* Legibility pass: action controls in the builder keep readable sizes. */
   .bd-items .nc-select-trigger{font-size:15px}
@@ -229,7 +234,7 @@
     header.app{flex-wrap:wrap;gap:8px 12px}
     main{padding:16px}
     .queue-panel{flex-direction:column}
-    .queue-list{width:100%;max-height:340px}
+    .queue-list{width:100%;max-height:none;overflow:visible}
     .print-area{width:100%;overflow-x:auto}
   }
   @media(max-width:540px){
@@ -478,6 +483,7 @@
   dialog.bd-picker[open] .bd-picker-box{max-height:min(86vh,820px)}
   .bd-picker-head{display:flex;align-items:flex-start;gap:12px}
   .bd-picker-head h2{flex:1;margin:0;font:700 20px/1.25 'Alegreya SC',Georgia,serif;letter-spacing:.02em}
+  .bd-picker-head h2:focus{outline:none}
   .bd-picker-x{min-width:var(--nc-target);padding:6px 10px}
   .bd-picker-search{
     box-sizing:border-box;width:100%;min-height:44px;padding:9px 12px;
@@ -922,6 +928,11 @@
   .bd-draft button.link,.bd-lair-tools > button.link,.bd-share summary{min-height:44px}
   .bd-draft button.link{padding:4px 8px}
   .bd-ghead .bd-lair-tools > button.link{padding:0 8px}
+  /* Ambition steppers and removers, next-battle rows, model chips, the header buttons, picker chips, the name field, the warnings toggle and Discard sequence. */
+  #bd-body [data-act="amb-tick"],#bd-body [data-act="amb-drop"],#bd-body [data-act="ab-discard"],#bd-body .bd-ghead .bd-actions button.primary,#bd-body .bd-ghead .bd-actions button.secondary,#bd-body .bd-ghead .bd-share summary,#bd-body .bd-ghead button.link,.bd-nav-model,.bd-picker-chips button.secondary,.bd-warn-toggle{min-height:var(--nc-target);min-width:var(--nc-target);box-sizing:border-box}
+  #bd-body .bd-field-row{min-height:var(--nc-target);box-sizing:border-box;align-items:center}
+  #bd-body .bd-ghead input.bd-gname{min-height:var(--nc-target);box-sizing:border-box}
+  .bd-warn-toggle{padding:0 8px}
   .lib-tile .add,.lib-tile .printed-toggle{min-height:44px;min-width:44px}
   /* Model cards: Add buttons, the chips' remove x and the share menu are touch targets too. */
   #bd-body .bd-add-btn,.bd-share-menu button.link{min-height:44px}
@@ -937,6 +948,10 @@
     padding:8px 12px calc(8px + env(safe-area-inset-bottom));
     background:var(--nc-raised);border-top:1px solid var(--nc-line);
   }
+  /* The bar lives after every tab (Roster is a sibling of the Builder), so its
+     sticky range covers the roster pages too; it shows only with the Builder. */
+  #bd-draft-slot{display:contents}
+  main:not(:has(> section.tab.active[data-tab="builder"])) #bd-draft-slot{display:none}
   .bd-draft p{margin:0;flex:1 1 auto;font-size:15px;color:var(--nc-bone)}
   .bd-draft button{min-height:44px;min-width:44px}
   .bd-draft .short{display:none}
@@ -963,7 +978,7 @@
   }
   .nav-settings-btn .nav-ico .nc-icon{width:18px;height:18px;margin:0}
   @media (hover:hover){.nav-settings-btn:hover{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}}
-  @media (max-width:720px){.nav-settings-btn{grid-area:settings}}
+  @media (max-width:720px){.nav-settings-btn{grid-area:settings;justify-self:end}}
   @media (max-width:540px){
     .nav-settings-btn{width:44px;padding:0}
     .nav-settings-btn #nav-settings-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -1105,7 +1120,10 @@
     #bd-body .bd-items .bd-item.bd-tr{grid-template-columns:minmax(0,1fr)}
     .bd-tr-act{grid-template-columns:minmax(0,1fr) 44px;width:100%}
     .bd-tr-act:not(.bd-tr-gear) > button{grid-column:2}
-    .bd-tr-act.bd-tr-gear{grid-template-columns:minmax(0,1fr) minmax(88px,auto) 44px;width:100%}
+    .bd-tr-act.bd-tr-gear{grid-template-columns:minmax(0,1fr) 44px;width:100%}
+    /* Sell on its own line, so Give to is as wide as Move to in the Treasures above. */
+    .bd-tr-gear > .bd-sell{grid-column:1 / -1;grid-row:2}
+    .bd-tr-gear > span:empty{display:none}
     .bd-tr-add > :is(select:not(.nc-select-src),.nc-select){width:100%}
     .bd-tr-toggle{min-height:var(--nc-target)}
     .bd-tr-rules{margin-left:12px}

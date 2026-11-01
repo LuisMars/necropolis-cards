@@ -102,10 +102,11 @@
     transform:rotate(45deg);
   }
   .nc-select-option[aria-selected="true"] .nc-select-label { font-weight:600 }
-  .nc-select-option[aria-disabled="true"] { color:var(--nc-muted); opacity:.62; cursor:not-allowed }
+  .nc-select-option[aria-disabled="true"] { color:var(--nc-muted); cursor:not-allowed }
+  .nc-select-option[aria-disabled="true"] .nc-select-label { opacity:.7 }
   .nc-select-reason {
     display:block; margin-top:1px;
-    font-size:14px; line-height:1.3; font-style:italic; color:var(--nc-muted);
+    font-size:14px; line-height:1.3; font-style:italic; color:var(--nc-secondary);
   }
   .nc-select-empty { padding:10px 16px 12px 34px; color:var(--nc-muted); font-style:italic }
 

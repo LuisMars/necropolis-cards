@@ -173,7 +173,7 @@ test("after-battle sequence: rewards and the log entry", async () => {
 test("the roster shows the gathering", async () => {
   const { page } = await open();
   await importLink(page);
-  await page.click('[data-act="roster"]');
+  await page.click('[data-act="view"][data-view="roster"]');
   await page.waitForTimeout(400);
   assert.equal(await page.locator(".wb-member").count(), 6);
 });
@@ -939,8 +939,6 @@ test("one primary action per area", async () => {
   const { page } = await open();
   await importLink(page);
   // Print leads in the header; the gathering's own buttons are secondary.
-  assert.equal(await page.locator('[data-act="roster"].primary').count(), 0);
-  assert.equal(await page.locator('[data-act="roster"].secondary').count(), 1);
   // Add cards to queue is always secondary: Print is the one primary on screen.
   assert.equal(await page.locator(".bd-actions .primary").count(), 0);
   assert.equal(await page.locator('.bd-actions [data-act="cards"].secondary').count(), 1);
@@ -949,7 +947,7 @@ test("one primary action per area", async () => {
   await page.fill(".bd-gname", "Changed");
   await page.press(".bd-gname", "Tab");
   await page.waitForTimeout(100);
-  assert.equal(await page.locator("#bd-body .primary").count(), 1);
+  assert.equal(await page.locator("#bd-body .primary, #bd-draft-slot .primary").count(), 1);
   assert.equal(await page.locator('.bd-draft [data-act="save"].primary').count(), 1);
   // The wizard: Next on the way, Finish on the last step, never both.
   await page.click('[data-act="start-built"]');
@@ -965,7 +963,7 @@ test("the roster sheet is scaled to the column on a phone and printed at full si
   const { page } = await open();
   await page.setViewportSize({ width: 390, height: 844 });
   await importLink(page);
-  await page.click('[data-act="roster"]');
+  await page.click('[data-act="view"][data-view="roster"]');
   await page.waitForTimeout(500);
   const m = await page.evaluate(() => {
     const wrap = document.getElementById("wb-pages"), p = wrap.querySelector(".wb-page");
@@ -1368,7 +1366,7 @@ test("summary bar: sticks at 390px after scrolling, follows edits, warning count
   await page.waitForTimeout(200);
   const at = await page.evaluate(() => {
     const a = document.activeElement, r = a.getBoundingClientRect();
-    return { warn: a.matches(".bd-warn, .bd-sum"), top: r.top, bar: document.querySelector(".bd-bar").getBoundingClientRect().bottom };
+    return { warn: !!a.closest(".bd-warn, .bd-sum"), top: r.top, bar: document.querySelector(".bd-bar").getBoundingClientRect().bottom };
   });
   assert.ok(at.warn, "focus is on the warnings");
   assert.ok(at.top >= at.bar - 1, "the warning is not under the bar");
@@ -1643,5 +1641,90 @@ test("campaign: no sideways overflow at 390, and sections keep their panel surfa
   await page.evaluate(() => document.querySelectorAll("details.bd-fold").forEach(d => { d.open = true; }));
   const w = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
   assert.equal(w.s, w.c, "page does not scroll sideways");
+  assert.deepEqual(errors, []);
+});
+
+test("Move to and Give to have the same width at 390, even when a stash row also has Sell", async () => {
+  const { page, errors } = await open();
+  await page.setViewportSize({ width: 390, height: 900 });
+  await treasuresOpen(page);
+  await page.click('.bd-draft [data-act="save"]');
+  await page.evaluate(() => {
+    const k = "necropolis-builder-gatherings-v1";
+    const d = JSON.parse(localStorage.getItem(k));
+    d.gatherings[d.current].gearStash = [{ list: "weapons", key: "melee-weapons/axe" }];
+    localStorage.setItem(k, JSON.stringify(d));
+  });
+  await page.reload();
+  await ready(page);
+  await page.click('[data-act="view"][data-view="campaign"]');
+  const sel = ':is(select:not(.nc-select-src),.nc-select)';
+  const move = await page.$$eval(`details[data-fold="treasures"] .bd-tr-act:not(.bd-tr-gear) > ${sel}`, els => els.map(e => Math.round(e.getBoundingClientRect().width)));
+  const give = await page.$$eval(`.bd-tr-gear > ${sel}`, els => els.map(e => Math.round(e.getBoundingClientRect().width)));
+  assert.ok(move.length >= 3 && give.length >= 1, `${move} / ${give}`);
+  assert.equal(new Set([...move, ...give]).size, 1, `widths ${move} / ${give}`);
+  assert.deepEqual(errors, []);
+});
+
+test("After the battle: opening it makes no draft, the first action in it does, Discard sequence leaves nothing", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('.bd-draft [data-act="save"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.click('[data-act="ab-open"]');
+  assert.ok(await page.isVisible(".bd-wizard"));
+  assert.equal(await page.isVisible(".bd-draft"), false);
+  assert.equal(await page.locator("nav.tabs .nav-dot").count(), 0);
+  await page.click('[data-act="ab-discard"]');
+  assert.equal(await page.isVisible(".bd-wizard"), false);
+  assert.equal(await page.isVisible(".bd-draft"), false);
+  await page.click('[data-act="ab-open"]');
+  await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+  assert.ok(await page.isVisible(".bd-draft"));
+  assert.ok(await page.isVisible(".bd-wizard"));
+  assert.deepEqual(errors, []);
+});
+
+test("picker: spells and traits have no Markets heading or price; gear does", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="m-pick"][data-uid="m1"][data-list="spells"]');
+  assert.equal(await page.locator("dialog.bd-picker[open] .bd-picker-sec-title").count(), 0);
+  assert.equal(await page.locator("dialog.bd-picker[open] .bd-pk-cost").filter({ hasText: /free/i }).count(), 0);
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
+  await page.click('[data-act="m-pick"][data-uid="m3"][data-list="weapons"]');
+  assert.equal(await text(page, ".bd-picker-sec-title"), "Buy at the Markets");
+  assert.deepEqual(errors, []);
+});
+
+test("picker: on a touch phone the search is not focused on open; on desktop it is", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="m-pick"][data-uid="m3"][data-list="weapons"]');
+  assert.equal(await page.evaluate(() => document.activeElement.className), "bd-picker-search");
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.click('[data-act="m-pick"][data-uid="m3"][data-list="weapons"]');
+  assert.notEqual(await page.evaluate(() => document.activeElement.className), "bd-picker-search");
+  assert.deepEqual(errors, []);
+});
+
+test("the summary bar's warning button moves on through the warnings and wraps", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await pick(page, "m3", "armour", "armour|armours/heavy-armour");
+  await pick(page, "m3", "armour", "armour|armours/light-armour");
+  const n = await page.locator(".bd-bar-warn b").textContent();
+  assert.ok(Number(n) >= 2, `warnings ${n}`);
+  const at = async () => page.evaluate(() => {
+    const all = [...document.querySelectorAll(".bd-warn li, .bd-sum-group ul li")];
+    return all.indexOf(document.activeElement);
+  });
+  const seen = [];
+  for (let i = 0; i < Number(n) + 1; i++) { await page.click(".bd-bar-warn"); seen.push(await at()); }
+  assert.ok(seen[0] >= 0 && seen[1] === seen[0] + 1, `${seen}`);
+  assert.equal(seen[Number(n)], seen[0], `wraps: ${seen}`);
   assert.deepEqual(errors, []);
 });

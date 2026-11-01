@@ -256,6 +256,12 @@ def fill_template(template: str, data: dict) -> str:
             r'(<text class="(?:type-line|category|restrict)"[^>]*?)y="([\d.]+)"',
             lambda m: f'{m.group(1)}y="{float(m.group(2)) + 1.5:.3f}"',
             result, count=1)
+        # Sellsword cards: the COST / BASE row sits just under the subtitle, so
+        # it moves down with it.
+        result = re.sub(
+            r'(<text\s+text-anchor="(?:start|end)"[^>]*?)y="([\d.]+)"([^>]*>\s*<tspan class="label")',
+            lambda m: f'{m.group(1)}y="{float(m.group(2)) + 1.5:.3f}"{m.group(3)}',
+            result)
 
     return result
 

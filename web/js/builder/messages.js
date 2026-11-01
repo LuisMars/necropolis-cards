@@ -148,7 +148,6 @@ const UI = {
   warning:        ["warning", "aviso"],
   warnings:       ["warnings", "avisos"],
   noWarnings:     ["No rule warnings", "Sin avisos"],
-  viewRoster:     ["View roster", "Ver lista"],
   addCards:       ["Add cards to queue", "Añadir cartas a la cola"],
   copyLink:       ["Copy Companion App link", "Copiar enlace de la Companion App"],
   exportJson:     ["Export JSON", "Exportar JSON"],
