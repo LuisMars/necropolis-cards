@@ -96,7 +96,7 @@ test("the print queue has no English interface text in Spanish", async () => {
 });
 
 test("the page title and footer follow the language", async () => {
-  assert.equal(await page.title(), "Necropolis: impresión de cartas");
+  assert.equal(await page.title(), "Necropolis: Cartas y Séquitos");
   const foot = await page.textContent("footer.app-foot");
   assert.match(foot, /hecha por fans/);
   assert.doesNotMatch(foot, /Not affiliated/);

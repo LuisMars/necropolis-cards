@@ -1,4 +1,4 @@
-# Necropolis Card Printer
+# Necropolis Cards & Gatherings
 
 Static page that imports a warband JSON from the
 [Necropolis Companion App](https://necropolis28.vercel.app/) and lays out

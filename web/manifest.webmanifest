@@ -1,7 +1,7 @@
 {
-  "name": "Necropolis Card Printer",
+  "name": "Necropolis Cards & Gatherings",
   "short_name": "Necropolis",
-  "description": "Card printer and warband builder for Necropolis: A Diorama Skirmish Game.",
+  "description": "Printable cards, gathering builder and campaign tracker for Necropolis: A Diorama Skirmish Game.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

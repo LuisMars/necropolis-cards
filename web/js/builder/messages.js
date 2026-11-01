@@ -242,7 +242,7 @@ const UI = {
   import:         ["Import", "Importar"],
   close:          ["Close", "Cerrar"],
   // App chrome: page title, settings, Library, Import, print queue, footer.
-  appTitle:       ["Necropolis Card Printer", "Necropolis: impresión de cartas"],
+  appTitle:       ["Necropolis Cards & Gatherings", "Necropolis: Cartas y Séquitos"],
   themeObsidian:  ["Obsidian", "Obsidiana"],
   themeInkBone:   ["Ink & Bone", "Tinta y hueso"],
   themeSoftAsh:   ["Soft Ash", "Ceniza suave"],
