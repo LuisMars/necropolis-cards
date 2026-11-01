@@ -144,3 +144,20 @@ test("search and category stick to the top while scrolling; tiles still take cli
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".lib-tile")).contentVisibility), "auto");
   await page.evaluate(() => window.scrollTo(0, 0));
 });
+
+test("tile preview shows the whole text: not clamped, not clipped", async () => {
+  const r = await page.evaluate(() => {
+    const ps = [...document.querySelectorAll(".lib-tile .preview")];
+    const p = ps.sort((a, b) => b.textContent.length - a.textContent.length)[0];
+    p.scrollIntoView();
+    const cs = getComputedStyle(p);
+    const t = p.closest(".lib-tile");
+    return { len: p.textContent.length, sh: p.scrollHeight, ch: p.clientHeight,
+      clamp: cs.webkitLineClamp, ov: cs.overflow, fits: t.scrollWidth <= t.clientWidth };
+  });
+  assert.ok(r.len > 150, "long card");
+  assert.ok(r.sh <= r.ch, `${r.sh} > ${r.ch}`);
+  assert.equal(r.clamp, "none");
+  assert.equal(r.ov, "visible");
+  assert.ok(r.fits);
+});
