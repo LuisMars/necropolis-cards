@@ -8,7 +8,7 @@
  */
 
 import { categoryOf, slug } from "./catalog.js";
-import { evaluate, treasureKind } from "./rules.js";
+import { evaluate, treasureKind, forcedAffinity } from "./rules.js";
 import { newModel } from "./gathering.js";
 import { defaultWeapon } from "./codec.js";
 import { addEntries, removeRef, removeEntry, migrateModel, maladyEntries, maladiesOf } from "./ledger.js";
@@ -303,8 +303,7 @@ export function freeSellsword(g) {
 export function hireSellsword(g, key, catalog, { free = false } = {}) {
   ensureCampaign(g, catalog);
   const rules = catalog.profileRules(key);
-  const m = newModel(g, { profile: key, status: "reserve",
-    affinity: (rules.affinity || []).length === 1 ? rules.affinity[0] : null });
+  const m = newModel(g, { profile: key, status: "reserve", affinity: forcedAffinity(g, key, catalog) });
   g.models.push(m);
   const cost = free ? 0 : Number(catalog.row(key)?.obols) || 0;
   if (free) g.campaign.freeRabbleUsed = true;
@@ -568,8 +567,7 @@ export const recruitPrice = (g, catalog, key, weapon = startingWeapon(catalog, k
 /** Recruit a new minion in the Markets, paying for the weapon it starts with. */
 export function recruit(g, catalog, key, weapon = startingWeapon(catalog, key)) {
   const rules = catalog.profileRules(key);
-  const m = newModel(g, { profile: key, weapons: [weapon],
-    affinity: (rules.affinity || []).length === 1 ? rules.affinity[0] : null });
+  const m = newModel(g, { profile: key, weapons: [weapon], affinity: forcedAffinity(g, key, catalog) });
   g.models.push(m);
   const cost = price(catalog.row(key));
   pay(g, -cost);

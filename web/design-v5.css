@@ -136,6 +136,14 @@
     color:var(--nc-muted);font:700 13px 'Alegreya SC',Georgia,serif;
   }
   .bd-affinity-control .bd-affinity-option{position:relative;display:inline-flex}
+  /* A keyword the covenant forces: a label like the legend, the value as plain text. */
+  .bd-affinity-control.bd-affinity-forced{gap:0 9px}
+  .bd-affinity-forced .bd-affinity-label{color:var(--nc-muted);font:700 13px 'Alegreya SC',Georgia,serif}
+  .bd-affinity-forced .bd-affinity-option{display:inline}
+  .bd-affinity-control.bd-affinity-forced .bd-affinity-option span{
+    display:inline;min-height:0;min-width:0;padding:0;margin:0;background:none;border:0;border-radius:0;cursor:default;
+    color:var(--nc-bone);font:700 15px 'Alegreya SC',Georgia,serif;
+  }
   .bd-affinity-option input{
     position:absolute;opacity:0;width:1px;height:1px;overflow:hidden;
   }
@@ -177,6 +185,9 @@
   .bd-draft p{color:var(--nc-bone)}
   .bd-good,.bd-src.up,.bd-tx b.up{color:var(--nc-success)}
   .bd-warn-line{color:var(--nc-warning)}
+  /* A warning beside the field it is about: same panel, tighter. */
+  .bd-warn.bd-warn-inline{margin:6px 0 0}
+  .bd-warn-inline li{padding:5px 10px;font-size:14px}
   .bd-src.down,.bd-tx b.down{color:var(--nc-error)}
   .bd-sum .bd-sum-group + .bd-sum-group{border-top:1px solid var(--nc-warn-line);padding-top:10px}
   .bd-sum button{color:var(--nc-bone)}
@@ -210,23 +221,18 @@
   .lib-tile .printed-lbl,.lib-tile .need {font-size:13px}
   /* Stat block uses actual semantic dl/dt/dd markup from builder-tab.js. */
   .bd-stats {
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(79px,1fr));gap:8px;
-    margin:14px 0;padding:0;
+    display:flex;flex-wrap:wrap;gap:8px 14px;margin:12px 0;padding:0;
   }
-  .bd-stats .bd-stat {
-    margin:0;padding:9px 10px;background:var(--nc-raised);
-    border:1px solid var(--nc-line-soft);border-radius:3px;
-    min-width:0;
-  }
+  .bd-stats .bd-stat {margin:0;padding:0;background:none;border:0;min-width:0}
   .bd-stats dt {
     color:var(--nc-secondary);
-    font:700 14px/1.1 'Alegreya SC',Georgia,serif;
+    font:700 13px/1.1 'Alegreya SC',Georgia,serif;
     letter-spacing:.035em;
   }
   .bd-stats dd {
-    margin:4px 0 0;color:var(--nc-bone);
-    font:700 24px/1.1 'Alegreya',Georgia,serif;
-    font-variant-numeric:tabular-nums;
+    margin:2px 0 0;color:var(--nc-bone);
+    font:700 22px/1.1 'Alegreya',Georgia,serif;
+    font-variant-numeric:tabular-nums lining-nums;
   }
   #bd-body .bd-callout{border-left-color:var(--nc-primary)}
   #bd-body .bd-prog{color:var(--nc-bone)}
@@ -450,11 +456,22 @@
   }
   #bd-body .bd-add-btn:hover{background:var(--nc-hover);border-style:solid;color:var(--nc-bone)}
   .bd-model-foot{margin-top:10px}
-  .bd-list .bd-mana{gap:6px 12px}
+  .bd-list .bd-mana{display:flex;flex-direction:column;align-items:stretch;gap:2px}
+  .bd-mana-row{display:flex;align-items:center;gap:6px}
+  .bd-mana-name{flex:1 1 auto;font:700 15px 'Alegreya SC',Georgia,serif;color:var(--nc-secondary)}
+  .bd-mana-n{min-width:1.6em;text-align:center;font:700 20px 'Alegreya',Georgia,serif;color:var(--nc-bone);font-variant-numeric:tabular-nums lining-nums}
+  #bd-body .bd-step{
+    min-width:var(--nc-target);min-height:var(--nc-target);padding:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--nc-raised);color:var(--nc-bone);border:1px solid var(--nc-line);border-radius:3px;
+  }
+  #bd-body .bd-step[aria-disabled="true"]{opacity:.4;cursor:default}
+  .bd-mana-left{margin-top:4px;font-size:15px;color:var(--nc-secondary);font-variant-numeric:tabular-nums}
+  .bd-mana-left.off{color:var(--nc-warning)}
   .bd-gear-stash{margin-top:14px}
   .bd-gear-stash .bd-hint{margin:0 0 6px}
   @media (max-width:540px){
-    .bd-lists{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px}
+    .bd-lists{grid-template-columns:1fr;gap:8px}
     #bd-body .bd-model .bd-list{padding:7px 8px 8px}
   }
 

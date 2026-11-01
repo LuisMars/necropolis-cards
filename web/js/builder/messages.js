@@ -156,6 +156,10 @@ const UI = {
   armour:         ["Armour", "Armadura"],
   equipment:      ["Equipment", "Equipo"],
   mana:           ["Mana", "Maná"],
+  manaLess:       ["Less {k} mana", "Menos maná de {k}"],
+  manaMore:       ["More {k} mana", "Más maná de {k}"],
+  manaLeft:       ["{n} of {total} left", "Quedan {n} de {total}"],
+  manaOver:       ["{n} over the {total} allowed", "{n} de más sobre los {total} permitidos"],
   add:            ["Add…", "Añadir…"],
   free:           ["free", "gratis"],
   empty:          ["No gatherings yet. Start a new one, or bring one in from the Companion App with Import.",
@@ -302,6 +306,9 @@ const UI = {
   loadSample:     ["Load sample", "Cargar ejemplo"],
   cardsAddedN:    ["{n} card added to the print queue.|{n} cards added to the print queue.",
                    "{n} carta añadida a la cola de impresión.|{n} cartas añadidas a la cola de impresión."],
+  removeCards:    ["Remove cards from queue", "Quitar cartas de la cola"],
+  cardsRemovedN:  ["{n} card removed from the print queue.|{n} cards removed from the print queue.",
+                   "{n} carta quitada de la cola de impresión.|{n} cartas quitadas de la cola de impresión."],
   linkNoModels:   ["That link has no models. Copy the full share link from the Companion App and try again.",
                    "Ese enlace no tiene miniaturas. Copia el enlace completo de la Companion App y vuelve a intentarlo."],
   badJson:        ["That isn't valid JSON or a share link ({error}). Paste the whole export, from the first { to the last }.",
@@ -664,7 +671,8 @@ export function describe(w, catalog, lang = "en") {
     case "too-much-equipment":  return es ? `Solo ${p.max} ${p.max === 1 ? "pieza" : "piezas"} de equipo misceláneo.` : `Only ${p.max} ${p.max === 1 ? "piece" : "pieces"} of miscellaneous equipment.`;
     case "too-many-traits":     return es ? `${p.count} rasgos; el máximo es ${p.max}.` : `${p.count} traits; the most is ${p.max}.`;
     case "basic-trait-count":   return es ? "El líder elige exactamente 1 rasgo básico de líder." : "The leader takes exactly 1 basic leader trait.";
-    case "spell-count":         return es ? `${p.count} hechizos; le corresponden ${p.allowed}.` : `${p.count} spells; it should have ${p.allowed}.`;
+    case "spell-count":         return es ? `${p.count} ${p.count === 1 ? "hechizo" : "hechizos"}; le ${p.allowed === 1 ? "corresponde" : "corresponden"} ${p.allowed}.`
+                                          : `${p.count} ${p.count === 1 ? "spell" : "spells"}; it should have ${p.allowed}.`;
     case "summon-missing":      return es ? "Todo líder conoce Invocación." : "Every leader knows Summon.";
     case "mana-split":          return es ? `Puntos de maná repartidos: ${p.count} de ${p.allowed}.` : `Mana points split: ${p.count} of ${p.allowed}.`;
     case "spells-on-minion":    return es ? "Solo los líderes conocen hechizos." : "Only leaders know spells.";

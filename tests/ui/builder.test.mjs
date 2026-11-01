@@ -76,7 +76,7 @@ test("an imported link shows its models, cost and warnings", async () => {
   const side = await text(page, ".bd-ghead");
   assert.match(side, /345 of 300/);
   assert.match(side, /345 obols spent of the 300 for the first build/);
-  assert.match(await text(page, "#bd-model-m1 .bd-warn"), /Mana points split: 0 of 4/);
+  assert.ok(!(await text(page, "#bd-model-m1")).includes("Mana points split"));   // locked mana is prefilled
   assert.deepEqual(errors, []);
 });
 
@@ -902,7 +902,9 @@ test("one primary action per area", async () => {
   // Print leads in the header; the gathering's own buttons are secondary.
   assert.equal(await page.locator('[data-act="roster"].primary').count(), 0);
   assert.equal(await page.locator('[data-act="roster"].secondary').count(), 1);
-  assert.equal(await page.locator(".bd-actions .primary").count(), 0);
+  // Add cards to queue is the one primary there; Save takes over with a draft.
+  assert.equal(await page.locator(".bd-actions .primary").count(), 1);
+  assert.equal(await page.locator('.bd-actions [data-act="cards"].primary').count(), 1);
   // An unsaved draft has Save as the header card's one primary.
   await page.fill(".bd-gname", "Changed");
   await page.press(".bd-gname", "Tab");
@@ -1177,5 +1179,65 @@ test("finishing the after-battle sequence asks the same, in Spanish too", async 
   assert.equal(g.history.length, 1);
   assert.equal(g.treasury, 150);
   assert.deepEqual(g.history[0].transactions.map(t => t.type), ["hire", "deploy"]);
+  assert.deepEqual(errors, []);
+});
+
+test("a keyword the covenant forces is plain text, and changing type keeps it", async () => {
+  const { page, errors } = await open();
+  await importLink(page);           // Cairn-born: everything is Bone, a Ghast Plasm
+  assert.equal(await page.locator(".bd-affinity-control input[type=radio]").count(), 0);
+  assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Bone/);
+  assert.equal(await page.locator("#bd-model-m2 .bd-affinity-forced .aff-bone").count(), 1);
+  // The leader's mana starts in the locked keyword, and stays editable.
+  const mana = (a) => page.textContent(`#bd-model-m1 .bd-mana-n[data-aff="${a}"]`);
+  const step = (a, by) => page.click(`#bd-model-m1 [data-act="m-mana"][data-aff="${a}"][data-by="${by}"]`);
+  assert.equal(await mana("bone"), "4");
+  assert.match(await text(page, "#bd-model-m1 .bd-mana-left"), /0 of 4 left/);
+  await step("bone", -1); await step("bone", -1);
+  assert.equal(await mana("bone"), "2");
+  assert.match(await text(page, "#bd-model-m1 .bd-mana-left"), /2 of 4 left/);
+  await step("plasm", 1); await step("plasm", 1);
+  assert.equal(await mana("bone"), "2");
+  assert.equal(await mana("plasm"), "2");
+  // Focus survives the redraw, and the label names the keyword.
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.fid), "m1-mana-plasm-inc");
+  assert.equal(await page.getAttribute('#bd-model-m1 [data-fid="m1-mana-plasm-inc"]', "aria-label"), "More Plasm mana");
+  // Changing a minion's type keeps the forced keyword; a Ghast Husk is Plasm.
+  await choose(page, '#bd-model-m2 [data-act="m-profile"]', "minions/skeletal-husk");
+  assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Bone/);
+  await choose(page, '#bd-model-m2 [data-act="m-profile"]', "minions/ghast-husk");
+  assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Plasm/);
+  assert.match(await text(page, "#bd-model-m2"), /only allows models with Bone/);
+  assert.deepEqual(errors, []);
+});
+
+test("cards queue once, unqueue, and leave other queue rows alone", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  const count = () => page.evaluate(() => JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => /queue/.test(k)))).length);
+  const btn = '.bd-ghead [data-act="cards"]';
+  assert.equal(await text(page, btn), "Add cards to queue");
+  await page.click(btn);
+  await page.waitForTimeout(200);
+  const n = await count();
+  assert.ok(n > 0);
+  // All queued: the button removes, and is secondary.
+  assert.equal(await text(page, btn), "Remove cards from queue");
+  assert.equal(await page.locator(`${btn}.primary`).count(), 0);
+  // Tapping twice never duplicates: a second add (state changed by hand) adds only the gap.
+  await page.evaluate(() => { const k = Object.keys(localStorage).find(x => /queue/.test(x)); const q = JSON.parse(localStorage.getItem(k)); q.pop(); localStorage.setItem(k, JSON.stringify(q)); });
+  await page.reload(); await ready(page);
+  await page.click(btn);
+  await page.waitForTimeout(200);
+  assert.equal(await count(), n);
+  // A card also queued by hand keeps its other copy; unrelated rows stay.
+  await page.evaluate(() => { const k = Object.keys(localStorage).find(x => /queue/.test(x)); const q = JSON.parse(localStorage.getItem(k));
+    q.push({ ...q[0] }, { key: "x/unrelated", row: { name: "Unrelated" } }); localStorage.setItem(k, JSON.stringify(q)); });
+  await page.reload(); await ready(page);
+  assert.equal(await text(page, btn), "Remove cards from queue");
+  await page.click(btn);
+  await page.waitForTimeout(200);
+  assert.equal(await count(), 2);
+  assert.match(await text(page, ".bd-ghead .bd-status"), /cards removed/);
   assert.deepEqual(errors, []);
 });

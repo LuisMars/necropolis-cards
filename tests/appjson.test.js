@@ -61,3 +61,11 @@ test("our export carries the campaign's changes for the roster, and the app's fi
   assert.equal(json.gathering[2].profile.ranged, 6);
   assert.equal(encodeLink(fromAppJson(json, catalog).gathering, catalog), EXAMPLE_LINK);
 });
+
+test("importing app JSON under a locked covenant sets the keyword and the leader's mana", () => {
+  const json = structuredClone(EXAMPLE_EXPORT);
+  for (const e of json.gathering) if (e.profile) e.profile.affinity = "";
+  const { gathering: g } = fromAppJson(json, catalog);
+  assert.ok(g.models.every(m => m.profile === "minions/ghast-husk" ? m.affinity === "plasm" : m.affinity === "bone"));
+  assert.ok(Object.keys(g.models[0].mana).every(k => k === "bone"));
+});

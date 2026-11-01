@@ -22,12 +22,12 @@
  */
 
 import { icon } from "./lucide.js";
-import { state } from "./state.js";
+import { state, saveQueue } from "./state.js";
 import { $, escapeHtml, whenPointerFree } from "./util.js";
 import { pickField } from "./i18n.js";
 import { store, drafts } from "./gatherings.js";
-import { applyPayload } from "./import.js";
-import { evaluate, campaignStarted, AFFINITIES } from "./builder/rules.js";
+import { applyPayload, payloadCards } from "./import.js";
+import { evaluate, campaignStarted, AFFINITIES, allowedAffinities as allowedFor, forcedAffinity, applyForcedAffinities, lockMana } from "./builder/rules.js";
 import { newGathering, newModel } from "./builder/gathering.js";
 import { toAppJson } from "./builder/appjson.js";
 import { linkUrl, defaultWeapon } from "./builder/codec.js";
@@ -64,7 +64,16 @@ const catalog = () => state.catalog;
 /** The gathering as the player sees it: its draft if there is one. */
 function working() {
   const cur = store.current();
-  return cur ? drafts.get(cur.id) || cur : null;
+  const g = cur ? drafts.get(cur.id) || cur : null;
+  // A stored model whose keyword is forced but unset or wrong is shown
+  // corrected (on a copy: nothing stored changes until the player edits).
+  if (g && catalog()) {
+    const fixed = structuredClone(g);
+    const a = applyForcedAffinities(fixed, catalog());
+    const b = lockMana(fixed, catalog());
+    if (a || b) return fixed;
+  }
+  return g;
 }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 /** Does this gathering have changes that aren't saved? */
@@ -148,7 +157,10 @@ function edit(fn, act = "") {
   if (!cur) return;
   const g = structuredClone(cur);
   try {
+    const before = manaAllowances(g);
     fn(g);
+    // Covenant-locked mana follows the allowance, except while the player sets it.
+    if (act !== "m-mana") lockMana(g, catalog(), { topUp: manaAllowances(g) !== before });
   } catch (err) {
     setNotice(cur, failText(act, err));
     redraw();
@@ -158,29 +170,21 @@ function edit(fn, act = "") {
   keep(g);
   redraw();
 }
+/** Each leader's mana allowance, as a string to compare before and after an edit. */
+const manaAllowances = (g) => evaluate(g, catalog()).models.map(e => e.isLeader ? e.mana : "").join();
 const redraw = () => whenPointerFree(renderBuilder);
 
 const findModel = (g, uid) => g.models.find(m => m.uid === uid);
 const isLeaderKey = (key) => categoryOf(key) === "leaders";
 
-/** The one affinity a covenant locks its gathering to, or null. */
-function covenantLock(g) {
-  const cov = catalog().covenant(g.covenant);
-  const locks = (cov?.keywords_any || []).map(k => k.toLowerCase()).filter(k => AFFINITIES.includes(k));
-  return locks.length === 1 ? locks[0] : null;
-}
-
-function allowedAffinities(key) {
-  return isLeaderKey(key) ? AFFINITIES : (catalog().profileRules(key).affinity || AFFINITIES);
-}
+const allowedAffinities = (key) => allowedFor(catalog(), key);
+const forced = (g, key) => forcedAffinity(g, key, catalog());
 
 /** A new model of type `key`, set up the way the rulebook starts it. */
 function addModel(g, key) {
-  const allowed = allowedAffinities(key);
-  const lock = covenantLock(g);
   const m = newModel(g, {
     profile: key,
-    affinity: allowed.length === 1 ? allowed[0] : (lock && allowed.includes(lock) ? lock : null),
+    affinity: forced(g, key),
     weapons: [startingWeapon(catalog(), key)],
   });
   if (isLeaderKey(key)) {
@@ -204,8 +208,7 @@ function setCovenant(g, key) {
     if (cov?.leader_trait && !leader.traits.includes(cov.leader_trait)) leader.traits.unshift(cov.leader_trait);
   }
   // A covenant that locks the affinity sets it wherever the model allows it.
-  const lock = covenantLock(g);
-  if (lock) for (const m of g.models) if (allowedAffinities(m.profile).includes(lock)) m.affinity = lock;
+  applyForcedAffinities(g, catalog());
 }
 
 function changeProfile(g, m, key) {
@@ -213,7 +216,9 @@ function changeProfile(g, m, key) {
   const started = m.weapons.length === 1 ? startingWeapon(catalog(), m.profile) : null;
   m.profile = key;
   const allowed = allowedAffinities(key);
-  if (!allowed.includes(m.affinity)) m.affinity = allowed.length === 1 ? allowed[0] : null;
+  const force = forced(g, key);
+  if (force) m.affinity = force;
+  else if (!allowed.includes(m.affinity)) m.affinity = null;
   if (isLeaderKey(key) && !wasLeader) {
     if (!m.spells.includes("spells/summon")) m.spells.unshift("spells/summon");
     const cov = catalog().covenant(g.covenant);
@@ -308,7 +313,7 @@ function askDeployment(g, act, el) {
     choices: [{ how: "pay", text: fill(L("deployPay"), { n: total }) }, { how: "skip", text: L("deployNoPay") }],
     fid: el.dataset.fid,
     onPick: (how) => campaignAct(act, el, working(), how === "pay" ? (c) => payDeployment(c, catalog()) : null),
-  });
+  }, act);
 }
 
 function onClick(e) {
@@ -333,6 +338,15 @@ function onClick(e) {
   if (campaignAct(act, el, g)) return;
   switch (act) {
     case "m-pick":     openPicker(uid, list, el.dataset.fid); break;
+    case "m-mana": {   // the − / + steppers: 0 to 9, a click at the end changes nothing
+      const { aff, by } = el.dataset;
+      edit(g => {
+        const m = findModel(g, uid);
+        const n = Math.min(9, Math.max(0, (Number(m.mana?.[aff]) || 0) + Number(by)));
+        m.mana = { ...m.mana, [aff]: n };
+      }, act);
+      break;
+    }
     case "m-del-item": {
       const m = findModel(g, uid);
       // A beast's last weapon stays (its ✕ isn't drawn).
@@ -402,11 +416,47 @@ function lairName(roll) {
 
 /* ---- hand-off --------------------------------------------------------------- */
 
+/** A queue entry as a multiset key: the card and the row it prints. */
+const queueKey = (e) => `${e.key}|${e.row?.name ?? ""}`;
+
+/** The gathering's generated cards against the queue: which copies are
+ *  missing from it (add only these), and whether all of them are queued. */
+function queueStatus(g) {
+  const cards = payloadCards(toAppJson(g, catalog()));
+  const have = new Map();
+  for (const e of state.queue) have.set(queueKey(e), (have.get(queueKey(e)) || 0) + 1);
+  const missing = [];
+  for (const c of cards) {
+    const k = queueKey(c), n = have.get(k) || 0;
+    if (n) have.set(k, n - 1); else missing.push(c);
+  }
+  return { cards, missing, all: cards.length > 0 && !missing.length };
+}
+
+/** The "Add / Remove cards to queue" button; `primary` only while some are missing. */
+function queueButtonHtml(g, primary) {
+  const all = queueStatus(g).all;
+  return `<button type="button" class="${primary && !all ? "primary" : "secondary"}" data-act="cards">${esc(L(all ? "removeCards" : "addCards"))}</button>`;
+}
+
 function queueCards(g) {
-  const matches = applyPayload(toAppJson(g, catalog()), { queue: true });
-  const n = matches.filter(m => m.target.kind !== "unmatched").length;
-  hooks.onChange?.();
-  status = queuedHtml(n);
+  const q = queueStatus(g);
+  applyPayload(toAppJson(g, catalog()), { queue: false });   // the roster follows this gathering
+  if (q.all) {
+    // One matching copy per generated card; other queue entries stay.
+    for (const c of q.cards) {
+      const i = state.queue.findIndex(e => queueKey(e) === queueKey(c));
+      if (i >= 0) state.queue.splice(i, 1);
+    }
+    saveQueue();
+    hooks.onChange?.();
+    status = `${esc(plural("cardsRemovedN", q.cards.length, lang()))} <button type="button" class="link" data-act="open-queue">${esc(L("openQueue"))}</button>`;
+  } else {
+    state.queue.push(...q.missing);
+    saveQueue();
+    hooks.onChange?.();
+    status = queuedHtml(q.missing.length);
+  }
   renderBuilder();
 }
 
@@ -529,7 +579,7 @@ function draw() {
     return;
   }
   const ev = evaluate(g, catalog());
-  const head = `${viewTabsHtml()}${gatheringHeadHtml(g, ev)}${summaryOpen && ev.warnings.length ? warningSummaryHtml(g, ev) : ""}`;
+  const head = `${viewTabsHtml()}${gatheringHeadHtml(g, ev)}${summaryOpen && hiddenWarnings(ev) ? warningSummaryHtml(g, ev) : ""}`;
   if (view === "roster") {
     $body.innerHTML = `<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>`;
   } else if (view === "campaign") {
@@ -572,7 +622,7 @@ function rosterBarHtml(g) {
       <div class="bd-roster-actions">
         <div class="bd-views nav-local" role="group" aria-label="${esc(L("rosterPart"))}">${b("sheet", "gatherings/roster", "rosterSheet")}${b("cards", "gatherings/roster/cards", "rosterCards")}</div>
         ${cards}
-        <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>
+        ${queueButtonHtml(g, false)}
         ${status ? `<div class="bd-status" role="status">${status}</div>` : ""}
       </div>
     </div>`;
@@ -588,9 +638,31 @@ function draftHtml(g) {
 }
 
 /** Rule warnings: amber, with a sign and the text, never colour alone. */
-const warnList = (ws) => ws.length
-  ? `<ul class="bd-warn" aria-label="${esc(L("ruleWarnings"))}">${ws.map(w => `<li>${icon("triangle-alert")}<span>${esc(describe(w, catalog(), lang()))}</span></li>`).join("")}</ul>`
+const warnList = (ws, cls = "") => ws.length
+  ? `<ul class="bd-warn${cls}" aria-label="${esc(L("ruleWarnings"))}">${ws.map(w => `<li>${icon("triangle-alert")}<span>${esc(describe(w, catalog(), lang()))}</span></li>`).join("")}</ul>`
   : "";
+
+/** A model named like its type ("Lich" the Lich) has no name of its own:
+ *  the type is shown as the placeholder, and the stored name is untouched. */
+const sameAsType = (name, type) => !!name && name.trim().toLowerCase() === String(type).trim().toLowerCase();
+
+/** The field a model warning is about: shown inside that list or control. */
+const WARN_FIELD = {
+  "affinity-missing": "affinity", "affinity-not-allowed": "affinity", "covenant-keyword": "affinity",
+  "duplicate-trait": "traits", "trait-requirement": "traits", "too-many-traits": "traits", "basic-trait-count": "traits",
+  "covenant-leader-trait-missing": "traits", "foreign-covenant-trait": "traits", "unique-trait": "traits", "covenant-traits": "traits",
+  "spell-count": "spells", "summon-missing": "spells", "spells-on-minion": "spells", "apprentice-spell": "spells", "covenant-spell-school": "spells",
+  "mana-split": "mana",
+  "weapon-not-allowed": "weapons", "too-many-hands": "weapons", "too-many-weapons": "weapons",
+  "multiple-armour": "armour", "multiple-shields": "armour", "too-much-equipment": "equipment",
+};
+const ITEM_LISTS = ["traits", "spells", "weapons", "armour", "equipment"];
+const warnField = (m, w) => WARN_FIELD[w.code] || (w.item && ITEM_LISTS.find(l => (m[l] || []).includes(w.item))) || null;
+
+/** How many warnings are not already beside what they are about: all of
+ *  them away from the Gathering view's cards. Zero means the summary has
+ *  nothing to add. */
+const hiddenWarnings = (ev) => (view === "gathering" ? 0 : ev.warnings.length);
 
 /**
  * The gathering's header, above every view: its name in blackletter, the
@@ -627,8 +699,8 @@ function gatheringHeadHtml(g, ev) {
   const warnings = n ? `
       <div class="bd-ledger-warn">
         ${full ? warnList(own) : ""}
-        <button type="button" class="link bd-warn-toggle" data-act="summary" aria-expanded="${summaryOpen}">
-          ${icon("triangle-alert")}<span>${esc(summaryOpen ? L("hideWarnings") : `${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("showAll")}`)}</span></button>
+        ${hiddenWarnings(ev) ? `<button type="button" class="link bd-warn-toggle" data-act="summary" aria-expanded="${summaryOpen}">
+          ${icon("triangle-alert")}<span>${esc(summaryOpen ? L("hideWarnings") : `${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("showAll")}`)}</span></button>` : ""}
       </div>` : `<p class="bd-good">${icon("check")} ${esc(L("noWarnings"))}</p>`;
 
   return `
@@ -651,7 +723,7 @@ function gatheringHeadHtml(g, ev) {
       ${warnings}
       <div class="bd-actions">
         ${view === "roster" ? "" : `<button type="button" class="secondary" data-act="roster">${esc(L("viewRoster"))}</button>
-        <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>`}
+        ${queueButtonHtml(g, !dirty(g))}`}
         <details class="bd-share">
           <summary>${esc(L("shareExport"))} ${icon("chevron-down")}</summary>
           <div class="bd-share-menu">
@@ -677,7 +749,7 @@ function modelsNavHtml(g, ev) {
     const w = e.warnings.length;
     return `<li><button type="button" class="bd-nav-model${e.isLeader ? " leader" : ""}" data-act="goto" data-uid="${esc(m.uid)}">
         <span class="bd-nav-name">${esc(m.name || type)}</span>
-        ${m.name ? `<span class="bd-nav-type">${esc(type)}</span>` : ""}
+        ${m.name && !sameAsType(m.name, type) ? `<span class="bd-nav-type">${esc(type)}</span>` : ""}
         <span class="bd-nav-cost">${e.cost}</span>
         ${w ? `<span class="bd-nav-warn" title="${esc(`${w} ${L(w === 1 ? "warning" : "warnings")}`)}">${icon("triangle-alert")}<span class="bd-nav-n">${w}</span>` +
               `<span class="visually-hidden"> ${esc(L(w === 1 ? "warning" : "warnings"))}</span></span>` : ""}
@@ -784,8 +856,14 @@ function modelHtml(g, m, e, idx) {
   // Short choices are visible radios, not a dropdown (PR #6). The options
   // still come from the model's rules, and the inputs keep the existing
   // data-act=m-aff change handler; arrow keys move between them natively.
+  const force = forced(g, m.profile);
   const affChoices = [null, ...allowedAffinities(m.profile)];
-  const affinityHtml = `<fieldset class="bd-affinity-control"><legend>${esc(L("affinity"))}</legend>` +
+  const shown = new Set();
+  const inline = (field) => { shown.add(field); return warnList(e.warnings.filter(w => warnField(m, w) === field), " bd-warn-inline"); };
+  const affinityHtml = force
+    ? `<div class="bd-affinity-control bd-affinity-forced"><span class="bd-affinity-label">${esc(L("affinity"))}</span> ` +
+      `<span class="bd-affinity-option aff-${force}"><span>${esc(L(force))}</span></span></div>`
+    : `<fieldset class="bd-affinity-control"><legend>${esc(L("affinity"))}</legend>` +
     affChoices.map(a => {
       const val = a || "";
       const title = a ? L(a) : L("noAffinity");
@@ -795,6 +873,7 @@ function modelHtml(g, m, e, idx) {
         `${a ? "" : ` aria-label="${esc(title)}"`}>` +
         `<span>${a ? esc(title) : "—"}</span></label>`;
     }).join("") + `</fieldset>`;
+  const affinityWarn = inline("affinity");
   const stats = [
     ["ap", e.stats.ap], ["move", e.stats.move], ["violence", target(e.stats.violence)],
     ["ranged", target(e.stats.ranged)], ["hp", e.stats.hp],
@@ -811,8 +890,8 @@ function modelHtml(g, m, e, idx) {
     lists = [list(L("armaments"), `<span class="bd-prose">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</span>`)];
   } else {
     lists = ADD_LISTS.filter(l => leader || !l.leader).map(l => l.list === "mana"
-      ? list(L("mana"), manaHtml(m))
-      : list(L(l.list), chipsHtml(m, l.list, g), addButtonHtml(m, l)));
+      ? list(L("mana"), manaHtml(m, e.mana), inline("mana"))
+      : list(L(l.list), chipsHtml(m, l.list, g), inline(l.list) + addButtonHtml(m, l)));
   }
 
   return `
@@ -820,7 +899,7 @@ function modelHtml(g, m, e, idx) {
       <header class="bd-model-head">
         <div class="bd-model-title">
           <input type="text" class="bd-model-name" data-act="m-name" data-uid="${uid}" data-fid="${uid}-name"
-                 value="${esc(m.name || "")}" placeholder="${esc(typeName)}" aria-label="${esc(L("modelName"))}">
+                 value="${esc(sameAsType(m.name, typeName) ? "" : m.name || "")}" placeholder="${esc(typeName)}" aria-label="${esc(L("modelName"))}">
           <div class="bd-model-type">
             ${sw ? `<span class="bd-type">${esc(typeName)}, ${esc(L("sellsword").toLowerCase())}</span>`
                  : `<select data-act="m-profile" data-uid="${uid}" data-fid="${uid}-profile" aria-label="${esc(L("modelType"))}">
@@ -829,12 +908,13 @@ function modelHtml(g, m, e, idx) {
                     </select>`}
             ${affinityHtml}
           </div>
+          ${affinityWarn}
         </div>
         <div class="bd-model-cost"><b>${e.cost}</b> ${esc(L("obols"))}${sw
           ? `<small>${esc(L("deployCost"))} ${Number(swRow.deploy_obols) || 0}</small>` : ""}</div>
       </header>
       <dl class="bd-stats">${stats}</dl>
-      ${warnList(e.warnings)}
+      ${warnList(e.warnings.filter(w => !shown.has(warnField(m, w))))}
       <div class="bd-lists">${lists.join("")}</div>
       <footer class="bd-model-foot">
         <span class="spacer"></span>
@@ -916,12 +996,22 @@ function pickerAdd(g, uid, value) {
   else if (list && key) addItem(g, findModel(g, uid), list, key);
 }
 
-function manaHtml(m) {
+function manaHtml(m, allowed) {
   const uid = esc(m.uid);
-  return `<span class="bd-mana">` + AFFINITIES.map(a => `
-    <label class="aff-${a}">${esc(L(a))}
-      <input type="number" min="0" max="9" data-act="m-mana" data-uid="${uid}" data-aff="${a}" data-fid="${uid}-mana-${a}" value="${Number(m.mana?.[a]) || 0}">
-    </label>`).join("") + `</span>`;
+  const split = AFFINITIES.reduce((n, a) => n + (Number(m.mana?.[a]) || 0), 0);
+  const left = allowed - split;
+  const step = (a, by, v) => {
+    const off = by < 0 ? v <= 0 : v >= 9;
+    return `<button type="button" class="bd-step" data-act="m-mana" data-uid="${uid}" data-aff="${a}" data-by="${by}" ` +
+      `data-fid="${uid}-mana-${a}${by < 0 ? "-dec" : "-inc"}" aria-label="${esc(L(by < 0 ? "manaLess" : "manaMore").replace("{k}", L(a)))}"` +
+      `${off ? ' aria-disabled="true"' : ""}>${icon(by < 0 ? "minus" : "plus")}</button>`;
+  };
+  return `<span class="bd-mana">` + AFFINITIES.map(a => {
+    const v = Number(m.mana?.[a]) || 0;
+    return `<span class="bd-mana-row aff-${a}"><span class="bd-mana-name">${esc(L(a))}</span>` +
+      `${step(a, -1, v)}<output class="bd-mana-n" data-aff="${a}">${v}</output>${step(a, 1, v)}</span>`;
+  }).join("") +
+    `<span class="bd-mana-left${left ? " off" : ""}" role="status">${esc(L(left >= 0 ? "manaLeft" : "manaOver").replace("{n}", Math.abs(left)).replace("{total}", allowed))}</span></span>`;
 }
 
 function addModelHtml(g) {
