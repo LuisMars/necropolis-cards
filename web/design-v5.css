@@ -921,7 +921,7 @@
   .bd-fold:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
   .bd-model-fold{align-self:flex-start;flex:none;padding:0;justify-content:center}
   .bd-model-fold .bd-fold-text:empty{display:none}
-  .bd-model-fold.folded{flex:1 1 auto;min-width:0;flex-wrap:wrap;gap:4px 12px;padding:0 8px 0 0;color:var(--nc-bone)}
+  .bd-model-fold.folded{flex:1 1 auto;justify-content:flex-start;min-width:0;flex-wrap:wrap;gap:4px 12px;padding:0 8px 0 0;color:var(--nc-bone)}
   .bd-model-fold.folded .bd-fold-text{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;min-width:0}
   .bd-fold-name{font-family:var(--gothic);font-size:24px;font-weight:400;line-height:1.15;overflow-wrap:anywhere}
   .bd-fold-type{font-family:'Alegreya SC',Georgia,serif;font-size:15px;color:var(--nc-secondary)}
