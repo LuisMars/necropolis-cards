@@ -176,6 +176,9 @@
   .bd-draft p{color:var(--nc-bone)}
   .bd-good,.bd-src.up,.bd-tx b.up{color:var(--nc-success)}
   .bd-warn-line{color:var(--nc-warning)}
+  /* A warning beside the field it is about: same panel, tighter. */
+  .bd-warn.bd-warn-inline{margin:6px 0 0}
+  .bd-warn-inline li{padding:5px 10px;font-size:14px}
   .bd-src.down,.bd-tx b.down{color:var(--nc-error)}
   .bd-sum .bd-sum-group + .bd-sum-group{border-top:1px solid var(--nc-warn-line);padding-top:10px}
   .bd-sum button{color:var(--nc-bone)}

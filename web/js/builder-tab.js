@@ -534,7 +534,7 @@ function draw() {
     return;
   }
   const ev = evaluate(g, catalog());
-  const head = `${viewTabsHtml()}${gatheringHeadHtml(g, ev)}${summaryOpen && ev.warnings.length ? warningSummaryHtml(g, ev) : ""}`;
+  const head = `${viewTabsHtml()}${gatheringHeadHtml(g, ev)}${summaryOpen && hiddenWarnings(ev) ? warningSummaryHtml(g, ev) : ""}`;
   if (view === "roster") {
     $body.innerHTML = `<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>`;
   } else if (view === "campaign") {
@@ -593,9 +593,27 @@ function draftHtml(g) {
 }
 
 /** Rule warnings: amber, with a sign and the text, never colour alone. */
-const warnList = (ws) => ws.length
-  ? `<ul class="bd-warn" aria-label="${esc(L("ruleWarnings"))}">${ws.map(w => `<li>${icon("triangle-alert")}<span>${esc(describe(w, catalog(), lang()))}</span></li>`).join("")}</ul>`
+const warnList = (ws, cls = "") => ws.length
+  ? `<ul class="bd-warn${cls}" aria-label="${esc(L("ruleWarnings"))}">${ws.map(w => `<li>${icon("triangle-alert")}<span>${esc(describe(w, catalog(), lang()))}</span></li>`).join("")}</ul>`
   : "";
+
+/** The field a model warning is about: shown inside that list or control. */
+const WARN_FIELD = {
+  "affinity-missing": "affinity", "affinity-not-allowed": "affinity", "covenant-keyword": "affinity",
+  "duplicate-trait": "traits", "trait-requirement": "traits", "too-many-traits": "traits", "basic-trait-count": "traits",
+  "covenant-leader-trait-missing": "traits", "foreign-covenant-trait": "traits", "unique-trait": "traits", "covenant-traits": "traits",
+  "spell-count": "spells", "summon-missing": "spells", "spells-on-minion": "spells", "apprentice-spell": "spells", "covenant-spell-school": "spells",
+  "mana-split": "mana",
+  "weapon-not-allowed": "weapons", "too-many-hands": "weapons", "too-many-weapons": "weapons",
+  "multiple-armour": "armour", "multiple-shields": "armour", "too-much-equipment": "equipment",
+};
+const ITEM_LISTS = ["traits", "spells", "weapons", "armour", "equipment"];
+const warnField = (m, w) => WARN_FIELD[w.code] || (w.item && ITEM_LISTS.find(l => (m[l] || []).includes(w.item))) || null;
+
+/** How many warnings are not already beside what they are about: all of
+ *  them away from the Gathering view's cards. Zero means the summary has
+ *  nothing to add. */
+const hiddenWarnings = (ev) => (view === "gathering" ? 0 : ev.warnings.length);
 
 /**
  * The gathering's header, above every view: its name in blackletter, the
@@ -632,8 +650,8 @@ function gatheringHeadHtml(g, ev) {
   const warnings = n ? `
       <div class="bd-ledger-warn">
         ${full ? warnList(own) : ""}
-        <button type="button" class="link bd-warn-toggle" data-act="summary" aria-expanded="${summaryOpen}">
-          ${icon("triangle-alert")}<span>${esc(summaryOpen ? L("hideWarnings") : `${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("showAll")}`)}</span></button>
+        ${hiddenWarnings(ev) ? `<button type="button" class="link bd-warn-toggle" data-act="summary" aria-expanded="${summaryOpen}">
+          ${icon("triangle-alert")}<span>${esc(summaryOpen ? L("hideWarnings") : `${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("showAll")}`)}</span></button>` : ""}
       </div>` : `<p class="bd-good">${icon("check")} ${esc(L("noWarnings"))}</p>`;
 
   return `
@@ -791,6 +809,8 @@ function modelHtml(g, m, e, idx) {
   // data-act=m-aff change handler; arrow keys move between them natively.
   const force = forced(g, m.profile);
   const affChoices = [null, ...allowedAffinities(m.profile)];
+  const shown = new Set();
+  const inline = (field) => { shown.add(field); return warnList(e.warnings.filter(w => warnField(m, w) === field), " bd-warn-inline"); };
   const affinityHtml = force
     ? `<div class="bd-affinity-control bd-affinity-forced"><span class="bd-affinity-label">${esc(L("affinity"))}</span> ` +
       `<span class="bd-affinity-option aff-${force}"><span>${esc(L(force))}</span></span></div>`
@@ -804,6 +824,7 @@ function modelHtml(g, m, e, idx) {
         `${a ? "" : ` aria-label="${esc(title)}"`}>` +
         `<span>${a ? esc(title) : "—"}</span></label>`;
     }).join("") + `</fieldset>`;
+  const affinityWarn = inline("affinity");
   const stats = [
     ["ap", e.stats.ap], ["move", e.stats.move], ["violence", target(e.stats.violence)],
     ["ranged", target(e.stats.ranged)], ["hp", e.stats.hp],
@@ -820,8 +841,8 @@ function modelHtml(g, m, e, idx) {
     lists = [list(L("armaments"), `<span class="bd-prose">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</span>`)];
   } else {
     lists = ADD_LISTS.filter(l => leader || !l.leader).map(l => l.list === "mana"
-      ? list(L("mana"), manaHtml(m))
-      : list(L(l.list), chipsHtml(m, l.list, g), addButtonHtml(m, l)));
+      ? list(L("mana"), manaHtml(m), inline("mana"))
+      : list(L(l.list), chipsHtml(m, l.list, g), inline(l.list) + addButtonHtml(m, l)));
   }
 
   return `
@@ -838,12 +859,13 @@ function modelHtml(g, m, e, idx) {
                     </select>`}
             ${affinityHtml}
           </div>
+          ${affinityWarn}
         </div>
         <div class="bd-model-cost"><b>${e.cost}</b> ${esc(L("obols"))}${sw
           ? `<small>${esc(L("deployCost"))} ${Number(swRow.deploy_obols) || 0}</small>` : ""}</div>
       </header>
       <dl class="bd-stats">${stats}</dl>
-      ${warnList(e.warnings)}
+      ${warnList(e.warnings.filter(w => !shown.has(warnField(m, w))))}
       <div class="bd-lists">${lists.join("")}</div>
       <footer class="bd-model-foot">
         <span class="spacer"></span>
