@@ -372,12 +372,6 @@ textarea.json-in { resize: vertical; }
 /* The gathering's header above every view, then the model cards with the
  * models list beside them (design-v5.css lays both out). */
 .bd-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; align-items: start; }
-/* Unsaved changes: the warning status pattern — sign, words and colour. */
-.bd-draft {
-  padding: 10px 12px; margin-bottom: 16px;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px;
-}
-.bd-draft p { margin: 0; width: 100%; font-size: 15px; }
 .bd-fig dt { font-family: var(--caps); font-size: 14px; color: var(--muted); }
 .bd-fig dd { margin: 0; font-size: 15px; color: var(--muted); }
 .bd-fig dd b { font-size: 24px; color: var(--text); font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }

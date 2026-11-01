@@ -150,6 +150,15 @@ function refreshHeader() {
     if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
 
+  // A dot on Gatherings while its gathering has an unsaved draft, on every route.
+  const gl = $nav.querySelector('a.nav-dest[data-dest="gatherings"]');
+  gl.querySelector(".nav-dot")?.remove();
+  if (hasDraft()) {
+    const d = document.createElement("span");
+    d.className = "nav-dot"; d.setAttribute("role", "img"); d.setAttribute("aria-label", L("unsaved")); d.title = L("unsaved");
+    gl.append(d);
+  }
+
   // The Cards switch (Library / Print queue), one copy above each part.
   document.querySelectorAll('[data-local="cards"]').forEach(g => {
     g.setAttribute("aria-label", L("cardsView"));

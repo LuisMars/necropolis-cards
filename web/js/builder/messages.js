@@ -45,7 +45,9 @@ const UI = {
   ruleWarnings:   ["Rule warnings", "Avisos de reglas"],
   noAffinity:     ["No keyword chosen", "Sin palabra clave"],
   // Drafts
-  unsaved:        ["These changes aren't saved yet.", "Estos cambios aún no están guardados."],
+  unsaved:        ["Unsaved draft", "Borrador sin guardar"],
+  saveShort:      ["Save", "Guardar"],
+  discardShort:   ["Discard", "Descartar"],
   unsavedShort:   ["unsaved", "sin guardar"],
   saveChanges:    ["Save changes", "Guardar cambios"],
   discardChanges: ["Discard changes", "Descartar cambios"],
