@@ -247,6 +247,7 @@ def fill_template(template: str, data: dict) -> str:
     # and drop the font-size so it fits.
     result = _fit_long_names(result)
     result = _fit_type_line(result)
+    result = _fit_restrictions(result)
 
     # A name that wrapped to two lines needs the subtitle below it nudged down
     # so the lower line's descenders (blackletter tails) clear it.
@@ -378,6 +379,43 @@ def _fit_type_line(svg: str) -> str:
             f'lengthAdjust="spacingAndGlyphs">{content}</text>'
         )
     return _TYPE_LINE_RE.sub(repl, svg)
+
+# The restrictions subtitle (rule / ambition cards: "Swarms of the Hintertombs
+# · Leader, Beast, or Remnant keyword only") is centred, so a long line
+# overruns the trim on both sides. Over the limit (~1 mm per character at this size) it breaks onto two lines
+# (preferably after a " · "), and a half that is still too wide is compressed.
+RESTRICT_FIT_CHARS    = 52
+RESTRICT_FIT_WIDTH_MM = 56
+RESTRICT_LINE_GAP_MM  = 3.1
+_RESTRICT_RE = re.compile(r'<text class="restrict"([^>]*)>([^<]*)</text>')
+
+def _split_restriction(text: str) -> list[str]:
+    words = text.split()
+    best, best_score = None, 1e9
+    for i in range(1, len(words)):
+        a, b = " ".join(words[:i]), " ".join(words[i:])
+        # Prefer to break at a separator dot; otherwise balance the halves.
+        score = max(len(a), len(b)) - (8 if words[i - 1] == "·" else 0)
+        if score < best_score:
+            best, best_score = [a, b], score
+    return best or [text]
+
+def _fit_restrictions(svg: str) -> str:
+    def repl(m: re.Match) -> str:
+        attrs, content = m.group(1), m.group(2)
+        text = html.unescape(content).strip()
+        if "textLength" in attrs or len(text) <= RESTRICT_FIT_CHARS:
+            return m.group(0)
+        ym = re.search(r'\sy="([\d.]+)"', attrs)
+        y = float(ym.group(1)) if ym else 0.0
+        out = []
+        for n, line in enumerate(_split_restriction(text)):
+            a = re.sub(r'\sy="[\d.]+"', f' y="{y + n * RESTRICT_LINE_GAP_MM:.3f}"', attrs)
+            if len(line) > RESTRICT_FIT_CHARS:
+                a += f' textLength="{RESTRICT_FIT_WIDTH_MM}" lengthAdjust="spacingAndGlyphs"'
+            out.append(f'<text class="restrict"{a}>{html.escape(line, quote=False)}</text>')
+        return "".join(out)
+    return _RESTRICT_RE.sub(repl, svg)
 
 # ---------- per-card data adapters ----------
 

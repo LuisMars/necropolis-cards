@@ -92,6 +92,7 @@ export function renderCardSvg(q) {
   // Long card names overflow the banner — port build.py's _fit_long_names.
   tpl = fitLongNames(tpl);
   tpl = fitTypeLine(tpl);
+  tpl = fitRestrictions(tpl);
   // A name that wrapped to two lines needs the subtitle nudged down so the
   // lower line's descenders (blackletter tails) clear it. Mirrors build.py.
   if (/<text\s+class="name"[^>]*>\s*<tspan/.test(tpl)) {
@@ -202,6 +203,36 @@ function fitTypeLine(svg) {
   return svg.replace(TYPE_LINE_RE, (full, attrs, content) => {
     if (attrs.includes("textLength") || content.trim().length <= TYPE_LINE_FIT_CHARS) return full;
     return `<text class="type-line"${attrs} textLength="${TYPE_LINE_FIT_WIDTH_MM}" lengthAdjust="spacingAndGlyphs">${content}</text>`;
+  });
+}
+
+// The restrictions subtitle (rule / ambition cards) is centred, so a long one
+// overruns the trim on both sides: over the limit it breaks onto two lines
+// (preferably after a " · "), and a half still too wide is compressed.
+// Mirrors build.py:_fit_restrictions.
+const RESTRICT_FIT_CHARS    = 52;
+const RESTRICT_FIT_WIDTH_MM = 56;
+const RESTRICT_LINE_GAP_MM  = 3.1;
+const RESTRICT_RE = /<text\s+class="restrict"([^>]*)>([^<]*)<\/text>/g;
+
+function fitRestrictions(svg) {
+  return svg.replace(RESTRICT_RE, (full, attrs, content) => {
+    const text = content.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+      .replace(/&#0*39;|&apos;/g, "'").replace(/&amp;/g, "&").trim();
+    if (attrs.includes("textLength") || text.length <= RESTRICT_FIT_CHARS) return full;
+    const words = text.split(/\s+/);
+    let lines = [text], bestScore = Infinity;
+    for (let i = 1; i < words.length; i++) {
+      const a = words.slice(0, i).join(" "), b = words.slice(i).join(" ");
+      const score = Math.max(a.length, b.length) - (words[i - 1] === "·" ? 8 : 0);
+      if (score < bestScore) { bestScore = score; lines = [a, b]; }
+    }
+    const y = parseFloat((attrs.match(/\sy="([\d.]+)"/) || [])[1] || "0");
+    return lines.map((line, n) => {
+      let a = attrs.replace(/\sy="[\d.]+"/, ` y="${(y + n * RESTRICT_LINE_GAP_MM).toFixed(3)}"`);
+      if (line.length > RESTRICT_FIT_CHARS) a += ` textLength="${RESTRICT_FIT_WIDTH_MM}" lengthAdjust="spacingAndGlyphs"`;
+      return `<text class="restrict"${a}>${escapeXml(line)}</text>`;
+    }).join("");
   });
 }
 
