@@ -341,3 +341,18 @@ export function renderSheetsInto(wrap, list) {
     wrap.appendChild(back);
   }
 }
+
+/* On a phone the A4 preview is scaled to the column (screen only: the print
+ * CSS never reads --sheet-zoom, so paper output is unchanged). */
+const A4_PX = 210 * 96 / 25.4;
+function fitSheets(wrap) {
+  const w = wrap.clientWidth;
+  wrap.style.setProperty("--sheet-zoom", w ? String(Math.min(1, w / A4_PX)) : "1");
+}
+if (typeof ResizeObserver !== "undefined") {
+  const ro = new ResizeObserver(entries => entries.forEach(e => fitSheets(e.target)));
+  for (const id of ["sheets-wrap", "roster-sheets"]) {
+    const el = document.getElementById(id);
+    if (el) ro.observe(el);
+  }
+}

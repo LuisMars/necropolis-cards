@@ -79,6 +79,9 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 /** Does this gathering have changes that aren't saved? */
 const dirty = (g) => !!g && !!drafts.get(g.id) && !same(drafts.get(g.id), store.get(g.id));
 
+/** Does the gathering on screen have unsaved changes? (main.js: Print yields to Save.) */
+export const hasDraft = () => dirty(store.current());
+
 function keep(g) {
   status = "";   // "Changes saved", a copied link… no longer describe it
   // Back to exactly what is saved: no draft needed.
@@ -120,6 +123,19 @@ export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRoste
   $delBtn.addEventListener("click", () => {
     const g = store.current();
     if (g && confirm(L("confirmDelete"))) { drafts.remove(g.id); store.remove(g.id); status = ""; renderBuilder(); }
+  });
+  // The ⋯ menu closes on a choice, on Escape and on a tap outside it.
+  const $more = document.getElementById("bd-more");
+  $more.querySelector(".lib-more-panel").addEventListener("click", (e) => {
+    if (e.target.closest("button")) $more.open = false;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !$more.open) return;
+    $more.open = false;
+    $more.querySelector("summary").focus();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if ($more.open && !$more.contains(e.target)) $more.open = false;
   });
   $pick.addEventListener("change", () => {
     const g = store.get($pick.value);
@@ -563,6 +579,7 @@ function draw() {
   // The empty state has its own buttons.
   $dupBtn.hidden = $delBtn.hidden = $newBtn.hidden = !g;
   $importBtn.hidden = !g && $importBtn.getAttribute("aria-expanded") !== "true";
+  document.getElementById("bd-more").hidden = $dupBtn.hidden && $importBtn.hidden;
   $pick.hidden = all.length < 2;
   // Nothing left in the toolbar (the empty state): no gap above the message.
   // Inline, since .bd-toolbar's display beats [hidden].
@@ -715,7 +732,7 @@ function gatheringHeadHtml(g, ev) {
           <input type="text" data-act="lair-name" data-fid="g-lair" value="${esc(g.lair?.name || "")}" placeholder="${esc(L("lairPlaceholder"))}"></label>
         <div class="bd-lair-tools">
           <button type="button" class="link" data-act="lair-roll" data-fid="g-roll">${icon("dices")} ${esc(L("rollLair"))}</button>
-          <select data-act="lair-pick" data-fid="g-lair-pick" aria-label="${esc(L("pickLair"))}"><option value="">${esc(L("pickLair"))}</option>${lairs}</select>
+          <select data-act="lair-pick" data-fid="g-lair-pick" aria-label="${esc(L("pickLair"))}"><option value="">${esc(L("pickLairShort"))}</option>${lairs}</select>
         </div>
       </div>` : ""}
       <dl class="bd-figs">${figures}</dl>
@@ -908,11 +925,11 @@ function modelHtml(g, m, e, idx) {
                     </select>`}
             ${affinityHtml}
           </div>
-          ${affinityWarn}
         </div>
         <div class="bd-model-cost"><b>${e.cost}</b> ${esc(L("obols"))}${sw
           ? `<small>${esc(L("deployCost"))} ${Number(swRow.deploy_obols) || 0}</small>` : ""}</div>
       </header>
+      ${affinityWarn}
       <dl class="bd-stats">${stats}</dl>
       ${warnList(e.warnings.filter(w => !shown.has(warnField(m, w))))}
       <div class="bd-lists">${lists.join("")}</div>

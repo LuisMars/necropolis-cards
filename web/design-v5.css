@@ -441,7 +441,9 @@
 @media screen {
   /* Model card lists (v5.8): every list the model can have, each a block
      with its chips and its own "+ Add …" button, which opens the picker. */
-  .bd-lists{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:12px 0 4px}
+  .bd-lists{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 4px}
+  .bd-lists > .bd-list{flex:1 1 210px}
+  .bd-lists > .bd-list:has(.bd-mana){flex-basis:100%}
   #bd-body .bd-model .bd-list{
     display:flex;flex-direction:column;gap:6px;margin:0;padding:8px 10px 10px;
     border:1px solid var(--nc-line-soft);border-radius:3px;min-width:0;
@@ -457,6 +459,12 @@
   #bd-body .bd-add-btn:hover{background:var(--nc-hover);border-style:solid;color:var(--nc-bone)}
   .bd-model-foot{margin-top:10px}
   .bd-list .bd-mana{display:flex;flex-direction:column;align-items:stretch;gap:2px}
+  /* Desktop: Mana has the whole row, so its three rows sit side by side. */
+  @media (min-width:541px){
+    .bd-list .bd-mana{flex-direction:row;flex-wrap:wrap;gap:6px 28px}
+    .bd-list .bd-mana-row{flex:0 1 auto}
+    .bd-list .bd-mana-left{flex:1 0 100%;margin-top:0}
+  }
   .bd-mana-row{display:flex;align-items:center;gap:6px}
   .bd-mana-name{flex:1 1 auto;font:700 15px 'Alegreya SC',Georgia,serif;color:var(--nc-secondary)}
   .bd-mana-n{min-width:1.6em;text-align:center;font:700 20px 'Alegreya',Georgia,serif;color:var(--nc-bone);font-variant-numeric:tabular-nums lining-nums}
@@ -471,7 +479,8 @@
   .bd-gear-stash{margin-top:14px}
   .bd-gear-stash .bd-hint{margin:0 0 6px}
   @media (max-width:540px){
-    .bd-lists{grid-template-columns:1fr;gap:8px}
+    .bd-lists{flex-direction:column;flex-wrap:nowrap;gap:8px}
+    .bd-lists > .bd-list{flex:none}
     #bd-body .bd-model .bd-list{padding:7px 8px 8px}
   }
 
@@ -790,5 +799,51 @@
   header.app button.print-btn[hidden]{display:none}
   @media (max-width:720px){
     header.app:has(> button.print-btn[hidden]){grid-template-areas:"brand settings" "nav nav"}
+  }
+}
+
+/* === Design review fixes (queue stepper, phone queue, toolbar menu…) === */
+@media screen {
+  /* Queue stepper: the same skin as the printed stepper, so - N + is one control. */
+  .lib-tile .queue-ctl button,.lib-tile .queue-ctl .add{
+    border:1px solid var(--nc-line-soft);background:var(--nc-raised);color:var(--nc-secondary);cursor:pointer;
+    font:inherit;font-size:18px;line-height:1;
+  }
+  @media (hover:hover){.lib-tile .queue-ctl button:hover{background:var(--nc-hover);border-color:var(--nc-accent,var(--nc-line))}}
+
+  /* Icon + text in a button: centred on one line, wherever the button is. */
+  :where(button:has(> .nc-icon:first-child,> [data-icon]:first-child)){
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+
+  /* Print preview: the A4 page is scaled to the column (see print.js). */
+  .sheets-wrap .sheet{zoom:var(--sheet-zoom,1)}
+
+  /* Queue summary: no separator to strand; aligned with the checkbox row. */
+  #sheet-count{display:inline-flex;align-items:center;min-height:var(--nc-target-xs)}
+
+  /* Gathering toolbar: New + the ⋯ menu. */
+  .bd-more{margin-left:0}
+  .bd-more > summary{justify-content:center;min-width:44px;padding:0 10px}
+  .bd-more > summary .nav-ico{display:inline-flex;margin:0}
+  .bd-more > summary .nc-icon{width:20px;height:20px;margin:0}
+  .bd-more .lib-more-panel{left:0;right:auto}
+  .bd-more .lib-more-panel button.danger{color:var(--nc-error)}
+  .bd-more[hidden]{display:none}
+
+  /* Gathering header: title in line with the labels below, room under the draft bar. */
+  #bd-body .bd-ghead input.bd-gname{margin-left:-11px;width:calc(100% + 11px)}
+  .bd-ghead .bd-draft{margin-bottom:6px}
+
+  @media (max-width:540px){
+    #bd-body .bd-ghead input.bd-gname{margin-left:-7px;width:calc(100% + 7px)}
+    /* Stats: 4 + 3 for leaders; five fit one row for the rest. */
+    .bd-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px 6px}
+    .bd-stats:has(> :nth-child(6)){grid-template-columns:repeat(4,minmax(0,1fr))}
+    .bd-stats dt{white-space:nowrap}
+    /* Queue rows: the name has the full width, category and buttons under it. */
+    .queue-item{flex-wrap:wrap;align-items:center}
+    .queue-item .name{order:-1;flex:1 1 100%}
+    .queue-item .cat{flex:1 1 0;width:auto;min-width:0}
   }
 }

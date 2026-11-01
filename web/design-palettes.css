@@ -34,8 +34,8 @@
   .nav-settings-panel{background:var(--nc-surface);border-color:var(--nc-line)}
   button.primary,header.app button.print-btn{background:var(--nc-primary);color:var(--nc-on-primary);border-color:var(--nc-primary)}
   button.primary:hover,header.app button.print-btn:hover{background:var(--nc-bone)}
-  button.secondary{color:var(--nc-bone);background:var(--nc-raised);border-color:var(--nc-line-soft)}
-  button.secondary:hover{background:var(--nc-hover);border-color:var(--nc-line)}
+  button.secondary,header.app button.print-btn.quiet{color:var(--nc-bone);background:var(--nc-raised);border-color:var(--nc-line-soft)}
+  button.secondary:hover,header.app button.print-btn.quiet:hover{background:var(--nc-hover);border-color:var(--nc-line)}
   #bd-body select,.bd-toolbar select,.lib-toolbar select,header.app .lang-picker select,.print-toolbar select,
   #bd-body input[type="text"],#bd-body input[type="number"],#bd-body input[type="date"],
   #bd-body input[type="search"],.bd-toolbar input,.lib-toolbar input[type="text"],

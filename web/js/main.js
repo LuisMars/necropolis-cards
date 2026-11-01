@@ -28,7 +28,7 @@ import { loadFonts }          from "./fonts.js";
 import { initImport }         from "./import.js";
 import { initLibrary, renderLibrary } from "./library.js";
 import { initWarband, renderWarband }  from "./warband.js";
-import { initBuilder, renderBuilder, setView, rosterPayload } from "./builder-tab.js";
+import { initBuilder, renderBuilder, setView, rosterPayload, hasDraft } from "./builder-tab.js";
 import { initPrint, renderPrint, printList, renderSheetsInto, sheetCount, stillNeeded } from "./print.js";
 import { payloadCards }       from "./import.js";
 import { store }              from "./gatherings.js";
@@ -182,6 +182,8 @@ function refreshHeader() {
 
   // Nothing to print: the button and its reason line are not shown at all.
   $printBtn.hidden = !!reason;
+  // While the gathering has unsaved changes, Save changes is the one primary.
+  $printBtn.classList.toggle("quiet", r.dest === "gatherings" && hasDraft());
   $printBtn.removeAttribute("aria-disabled");
   $printBtn.title = "";
   $printReason.textContent = "";

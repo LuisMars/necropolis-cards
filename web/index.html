@@ -103,11 +103,14 @@
     <div class="bd-toolbar">
       <select id="bd-pick" hidden></select>
       <button class="secondary" id="bd-new">New gathering</button>
-      <button class="secondary" id="bd-import" aria-expanded="false" aria-controls="bd-import-panel">Import</button>
-      <span class="bd-toolbar-links">
-        <button class="link" id="bd-dup">Duplicate</button>
-        <button class="link danger" id="bd-del">Delete</button>
-      </span>
+      <details class="lib-more bd-more" id="bd-more">
+        <summary id="bd-more-sum" aria-label="More gathering actions" data-i18n-aria-label="gatheringMore"><span class="nav-ico" data-icon="ellipsis"></span></summary>
+        <div class="lib-more-panel">
+          <button class="secondary" id="bd-import" aria-expanded="false" aria-controls="bd-import-panel">Import</button>
+          <button class="secondary" id="bd-dup">Duplicate</button>
+          <button class="secondary danger" id="bd-del">Delete</button>
+        </div>
+      </details>
     </div>
     <div class="bd-panel bd-import" id="bd-import-panel" hidden>
       <p class="bd-import-intro" data-i18n-html="importIntro">
@@ -182,7 +185,6 @@
       <label data-i18n="gapToggle"><input type="checkbox" id="bleed-toggle"> Add gap between cards</label>
       <label data-i18n="backsToggle"><input type="checkbox" id="backs-toggle"> Print card backs</label>
       <label data-i18n="needToggle" data-i18n-title="needToggleTitle" title="Skip cards you've already printed enough of (queued minus printed)"><input type="checkbox" id="need-toggle"> Only what I still need</label>
-      <span style="color:var(--muted)">·</span>
       <span id="sheet-count"></span>
       <span class="spacer" style="flex:1;"></span>
       <button class="secondary" id="mark-printed-btn" data-i18n="markPrinted" data-i18n-title="markPrintedTitle" title="Add this run's cards to your printed inventory"><span data-icon="check"></span> Mark this run as printed</button>

@@ -826,10 +826,11 @@ test("the empty Gatherings page has no blank picker, and its buttons work", asyn
     await page.waitForSelector(".bd-empty");
     assert.equal(await page.locator('section[data-tab="builder"] .bd-toolbar select:visible, section[data-tab="builder"] .bd-toolbar .nc-select-trigger:visible').count(), 0);
     assert.equal(await page.isVisible(".bd-toolbar"), false);
-    // Import opens its panel, with its toggle back in the toolbar.
+    // Import opens its panel with the ⋯ menu closed; the menu is back in the toolbar.
     await page.click('#bd-body [data-act="import"]');
     assert.ok(await page.isVisible("#bd-import-panel"));
-    assert.ok(await page.isVisible("#bd-import"));
+    assert.ok(await page.isVisible("#bd-more"));
+    assert.equal(await page.evaluate(() => document.getElementById("bd-more").open), false);
     await page.click("#bd-import-close");
     assert.equal(await page.isVisible(".bd-toolbar"), false);
     // New gathering opens one; with only one there's still no picker.
