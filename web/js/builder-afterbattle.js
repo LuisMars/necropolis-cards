@@ -87,7 +87,6 @@ export function afterBattleClick(act, el, g) {
   const { uid, list, i, key, part } = el.dataset;
   switch (act) {
     case "ab-step":
-    case "ab-stepper": a.step = Math.max(0, Math.min(7, a.step + Number(el.dataset.by))); return true;
     case "ab-goto":    a.step = Number(el.dataset.step); return true;
     case "ab-discard": if (confirm(L("confirmDiscard"))) delete g.campaign.afterBattle; return true;
     // 1 Maladies
@@ -157,15 +156,11 @@ export function afterBattleHtml(g, ev) {
   const crumb = (n, text) => `<li class="${a.step === n ? "now" : a.step > n ? "done" : ""}">
       <button type="button" data-act="ab-goto" data-step="${n}"${a.step === n ? ' aria-current="step"' : ""}>${esc(text)}</button></li>`;
   const crumbs = `<ol class="bd-crumbs">${crumb(0, L("battle"))}${steps.map((s, n) => crumb(n + 1, pickField(s, "name", lang()))).join("")}</ol>`;
-  // Phones show one line, "Step 4 of 7: …", between previous and next,
-  // instead of the full list (the CSS picks one by width).
+  // Phones show one progress line, "Step 4 of 7: …", instead of the full list
+  // (the CSS picks one by width); Back and Next are the buttons below the step.
   const now = a.step === 0 ? L("battle")
     : L("stepOf").replace("{n}", a.step).replace("{total}", steps.length).replace("{name}", pickField(steps[a.step - 1] || {}, "name", lang()));
-  const stepper = `<div class="bd-stepper" role="group" aria-label="${esc(L("afterBattleSteps"))}">
-      <button type="button" class="secondary" data-act="ab-stepper" data-by="-1" aria-label="${esc(L("prevStep"))}" title="${esc(L("prevStep"))}"${a.step === 0 ? " disabled" : ""}>${icon("chevron-left")}</button>
-      <span class="bd-stepper-now">${esc(now)}</span>
-      <button type="button" class="secondary" data-act="ab-stepper" data-by="1" aria-label="${esc(L("nextStep"))}" title="${esc(L("nextStep"))}"${a.step >= 7 ? " disabled" : ""}>${icon("chevron-right")}</button>
-    </div>`;
+  const stepper = `<p class="bd-stepper" role="status" aria-label="${esc(L("afterBattleSteps"))}"><span class="bd-stepper-now">${esc(now)}</span></p>`;
   const body = [battleStep, maladiesStep, rewardsStep, minorStep, ambitionsStep, totalStep, bazaarStep, scenarioStep][a.step](g, a, ev);
   return `
     <div class="bd-panel bd-wizard">

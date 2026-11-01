@@ -22,7 +22,9 @@
  * closes it. The filter field is not focused there, so the keyboard stays down.
  *
  * Long lists (more than 12 options) get a filter field at the top of the
- * popup. Options may carry data-reason (or title): shown muted under the
+ * popup. An empty first option worded as a prompt ("Add a model…") is left
+ * out of the list; add data-clearable to the select to keep it as a choice.
+ * Options may carry data-reason (or title): shown muted under the
  * label and exposed as the option's accessible description.
  */
 
@@ -174,6 +176,16 @@ function queue(inst) {
   queueMicrotask(() => { inst.queued = false; sync(inst); });
 }
 
+/** The empty first option of an action select ("Add a model…") is a prompt,
+ *  not a choice: the list leaves it out. A select that can really be cleared
+ *  ("Choose a covenant…") says so with data-clearable and keeps it. */
+function isPrompt(inst, opt) {
+  const { select } = inst;
+  if (opt.value !== "" || opt.index !== 0 || select.hasAttribute("data-clearable")) return false;
+  const t = optText(opt);
+  return /^…|…$/.test(t) || t === inst.name;
+}
+
 const isDisabled = inst => inst.select.disabled || !!inst.select.closest("fieldset:disabled");
 
 function sync(inst, force) {
@@ -244,7 +256,9 @@ function build(inst) {
   inst.empty = el("div", "nc-select-empty", { role: "presentation" });
   inst.empty.textContent = select.dataset.noMatches || opts.noMatches || "No matches";
   inst.empty.hidden = true;
-  pop.append(list, inst.empty);
+  inst.note = el("div", "nc-select-note", { id: `${id}-note`, role: "note" });
+  inst.note.hidden = true;
+  pop.append(inst.note, list, inst.empty);
 
   // Keep focus on the trigger / filter while using the mouse in the list.
   list.addEventListener("mousedown", e => e.preventDefault());
@@ -276,17 +290,27 @@ function render(inst) {
   list.removeAttribute("aria-labelledby");
   if (inst.name && !inst.trigger.hasAttribute("aria-labelledby")) list.setAttribute("aria-label", inst.name);
   else list.setAttribute("aria-labelledby", inst.trigger.getAttribute("aria-labelledby") || inst.trigger.id);
+  // One reason every disabled row would repeat is said once above the list;
+  // rows with their own reason keep it. The rows stay dimmed.
+  const reasonOf = o => (o.dataset.reason || o.title || "").trim();
+  const dis = [...select.options].filter(o => !o.hidden && !isPrompt(inst, o) && (o.disabled || o.parentElement?.disabled));
+  const rs = new Set(dis.map(reasonOf));
+  const shared = dis.length > 1 && rs.size === 1 && [...rs][0] ? [...rs][0] : "";
+  inst.note.textContent = shared;
+  inst.note.hidden = !shared;
   let g = 0;
   const add = (opt, parent, group) => {
-    if (opt.hidden) return;
+    if (opt.hidden || isPrompt(inst, opt)) return;
     const oid = `${id}-o${opt.index}`;
     const node = el("div", "nc-select-option", { id: oid, role: "option" });
     const text = optText(opt);
     const lab = el("span", "nc-select-label");
     lab.textContent = text || " ";
     node.append(lab);
-    const reason = (opt.dataset.reason || opt.title || "").trim();
-    if (reason) {
+    const reason = reasonOf(opt);
+    const sharedHere = shared && reason === shared && (opt.disabled || group?.disabled);
+    if (sharedHere) node.setAttribute("aria-describedby", inst.note.id);
+    else if (reason) {
       const r = el("span", "nc-select-reason", { id: `${oid}-why` });
       r.textContent = reason;
       node.append(r);

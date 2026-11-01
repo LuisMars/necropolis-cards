@@ -258,9 +258,13 @@ function drawList() {
   const why = hooks.reasons(ctx.uid, values);
   // A line every row would repeat (the list is at its limit: "6 spells; it should
   // have 5") is said once above the list; row-specific reasons stay on their rows.
-  const reasonSet = new Set(values.map(v => why.get(v)));
-  const shared = values.length > 1 && reasonSet.size === 1 && [...reasonSet][0] ? [...reasonSet][0] : "";
-  if (shared) for (const v of values) why.delete(v);
+  // When only some rows carry it (a trait list where just the basic traits break
+  // the one-trait rule), those rows keep a bare warning mark and the note says why.
+  const reasoned = values.filter(v => why.get(v));
+  const reasonSet = new Set(reasoned.map(v => why.get(v)));
+  const shared = reasoned.length > 1 && reasonSet.size === 1 ? [...reasonSet][0] : "";
+  const marked = new Set(shared && reasoned.length < values.length ? reasoned : []);
+  if (shared) for (const v of reasoned) why.delete(v);
 
   let n = 0;
   const row = (value, key, cost) => {
@@ -269,10 +273,11 @@ function drawList() {
     const reason = why.get(value);
     const id = `bd-pk-${n++}`;
     return `<div class="bd-picker-row" role="option" id="${id}" data-pk="add" data-value="${esc(value)}" aria-selected="false"
-              ${reason ? `aria-describedby="${id}-why"` : shared ? 'aria-describedby="bd-pk-limit"' : ""}>
+              ${reason ? `aria-describedby="${id}-why"` : shared && (marked.size === 0 || marked.has(value)) ? 'aria-describedby="bd-pk-limit"' : ""}>
         <span class="bd-pk-name">${esc(pickField(r, "name", lang()) || key)}</span>
         <span class="bd-pk-cost">${esc(cost)}</span>
         ${line || rules ? `<span class="bd-pk-sum">${line ? `<b>${esc(line)}</b>` : ""}${line && rules ? " " : ""}${esc(rules)}</span>` : ""}
+        ${marked.has(value) ? `<span class="bd-pk-mark" aria-hidden="true">${icon("triangle-alert")}</span>` : ""}
         ${reason ? `<span class="bd-pk-why" id="${id}-why" data-reason="${esc(reason)}">${icon("triangle-alert")}<span>${esc(reason)}</span></span>` : ""}
       </div>`;
   };

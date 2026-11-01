@@ -982,16 +982,16 @@ test("the step line says where you are, and moves between steps", async () => {
   await afterBattle(page);
   const now = () => text(page, ".bd-stepper-now");
   assert.equal(await now(), "Battle");
-  const prev = '.bd-stepper [data-by="-1"]', next = '.bd-stepper [data-by="1"]';
+  const prev = '.bd-wizard-nav [data-by="-1"]', next = '.bd-wizard-nav [data-by="1"]';
+  assert.equal(await page.locator(".bd-stepper button").count(), 0);   // one set of Back and Next, below the step
   assert.ok(await page.isDisabled(prev));
-  // dispatchEvent: the line only shows on phones, and this page is wide.
-  await page.locator(next).dispatchEvent("click");
+  await page.locator(next).click();
   await page.waitForTimeout(100);
   assert.equal(await now(), "Step 1 of 7: Reconstitution Maladies");
-  for (let i = 0; i < 6; i++) { await page.locator(next).dispatchEvent("click"); await page.waitForTimeout(50); }
+  for (let i = 0; i < 6; i++) { await page.locator(next).click(); await page.waitForTimeout(50); }
   assert.match(await now(), /^Step 7 of 7: /);
-  assert.ok(await page.isDisabled(next));
-  await page.locator(prev).dispatchEvent("click");
+  assert.equal(await page.locator(next).count(), 0);   // the last step has no Next
+  await page.locator(prev).click();
   await page.waitForTimeout(100);
   assert.match(await now(), /^Step 6 of 7: /);
   assert.equal(await page.locator(".bd-crumbs li button").count(), 8);  // the full list is still there

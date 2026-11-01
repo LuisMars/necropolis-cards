@@ -100,21 +100,20 @@ function markRunPrinted() {
 }
 
 export function renderPrint() {
+  // An empty queue is one message: no list, no preview, no More menu.
+  const none = !state.queue.length;
+  const $panel = $("queue-panel"), $msg = $("queue-empty");
+  $panel.hidden = none;
+  $printMore.hidden = none;
+  $msg.hidden = !none;
+  $msg.textContent = L("queueIsEmpty");
   renderQueue();
   renderSheets();
 }
 
 function renderQueue() {
   $queueList.innerHTML = "";
-  if (!state.queue.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-msg";
-    empty.style.padding = "20px";
-    empty.style.border = "none";
-    empty.textContent = L("queueIsEmpty");
-    $queueList.appendChild(empty);
-    return;
-  }
+  if (!state.queue.length) return;
   state.queue.forEach((q, i) => {
     const cat = state.bundle.categories[q.key];
     const ov = q.override || {};
@@ -130,8 +129,8 @@ function renderQueue() {
       <span class="cat">${escapeHtml(cat ? categoryTitle("cat", q.key, cat.title, lang()) : q.key)}</span>
       <span class="name" contenteditable="true" spellcheck="false" title="${escapeHtml(L("clickRename"))}">${escapeHtml(label)}</span>
       <button title="${escapeHtml(L("editFields"))}" aria-label="${escapeHtml(L("editFields"))}" aria-expanded="${expanded}" class="edit-btn">${icon("pencil")}</button>
-      <button title="${escapeHtml(L("moveUp"))}" aria-label="${escapeHtml(L("moveUp"))}">${icon("arrow-up")}</button>
-      <button title="${escapeHtml(L("moveDown"))}" aria-label="${escapeHtml(L("moveDown"))}">${icon("arrow-down")}</button>
+      <button title="${escapeHtml(L("moveUp"))}" aria-label="${escapeHtml(L("moveUp"))}"${i === 0 ? " disabled" : ""}>${icon("arrow-up")}</button>
+      <button title="${escapeHtml(L("moveDown"))}" aria-label="${escapeHtml(L("moveDown"))}"${i === state.queue.length - 1 ? " disabled" : ""}>${icon("arrow-down")}</button>
       <button title="${escapeHtml(L("remove"))}" aria-label="${escapeHtml(L("remove"))}">${icon("x")}</button>`;
     const nameSpan = item.querySelector(".name");
     const edBtn = item.querySelector(".edit-btn");

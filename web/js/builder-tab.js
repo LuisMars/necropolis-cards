@@ -802,7 +802,7 @@ function gatheringHeadHtml(g, ev) {
              placeholder="${esc(L("untitled"))}" aria-label="${esc(L("name"))}">
       ${full ? `<div class="bd-fields">
         <label class="bd-gfield">${esc(L("covenant"))}
-          <select data-act="covenant" data-fid="g-cov"><option value="">${esc(L("chooseCovenant"))}</option>${covs}</select></label>
+          <select data-act="covenant" data-fid="g-cov" data-clearable><option value="">${esc(L("chooseCovenant"))}</option>${covs}</select></label>
         <label class="bd-gfield">${esc(L("lair"))}
           <input type="text" data-act="lair-name" data-fid="g-lair" value="${esc(g.lair?.name || "")}" placeholder="${esc(L("lairPlaceholder"))}"></label>
         <div class="bd-lair-tools">

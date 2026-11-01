@@ -631,8 +631,6 @@ const UI = {
   // After-battle steps on a phone
   stepOf:         ["Step {n} of {total}: {name}", "Paso {n} de {total}: {name}"],
   afterBattleSteps: ["After-battle steps", "Pasos tras la batalla"],
-  prevStep:       ["Previous step", "Paso anterior"],
-  nextStep:       ["Next step", "Paso siguiente"],
   // Names for fields that show no label
   itemToBuy:      ["Item to buy", "Objeto a comprar"],
   buyFor:         ["Buy for", "Comprar para"],
@@ -701,7 +699,7 @@ export function describe(w, catalog, lang = "en") {
     case "multiple-armour":     return es ? "Solo puede llevar una armadura." : "Only one suit of armour.";
     case "multiple-shields":    return es ? "Solo puede llevar un escudo." : "Only one shield.";
     case "too-much-equipment":  return es ? `Solo ${p.max} ${p.max === 1 ? "pieza" : "piezas"} de equipo misceláneo.` : `Only ${p.max} ${p.max === 1 ? "piece" : "pieces"} of miscellaneous equipment.`;
-    case "too-many-traits":     return es ? `${p.count} rasgos; el máximo es ${p.max}.` : `${p.count} traits; the most is ${p.max}.`;
+    case "too-many-traits":     return es ? `${p.count} ${p.count === 1 ? "rasgo" : "rasgos"}; el máximo es ${p.max}.` : `${p.count} ${p.count === 1 ? "trait" : "traits"}; the most is ${p.max}.`;
     case "basic-trait-count":   return es ? "El líder elige exactamente 1 rasgo básico de líder." : "The leader takes exactly 1 basic leader trait.";
     case "spell-count":         return es ? `${p.count} ${p.count === 1 ? "hechizo" : "hechizos"}; le ${p.allowed === 1 ? "corresponde" : "corresponden"} ${p.allowed}.`
                                           : `${p.count} ${p.count === 1 ? "spell" : "spells"}; it should have ${p.allowed}.`;
@@ -716,23 +714,23 @@ export function describe(w, catalog, lang = "en") {
     case "covenant-leader-trait-missing": return es ? `Al líder le falta el rasgo del pacto, ${item}.` : `The leader is missing the covenant's trait, ${item}.`;
     case "unique-model":        return es ? `Solo puede haber 1 ${item} por Séquito.` : `Only 1 ${item} per gathering.`;
     case "unique-trait":        return es ? `Solo una miniatura puede tener ${item}.` : `Only one model may take ${item}.`;
-    case "covenant-traits":     return es ? `${p.count} rasgos de pacto o de No Muertos Miserables; se permiten ${p.allowed}.`
-                                          : `${p.count} covenant or Wretched Undead traits; ${p.allowed} allowed.`;
+    case "covenant-traits":     return es ? `${p.count} ${p.count === 1 ? "rasgo" : "rasgos"} de pacto o de No Muertos Miserables; ${p.allowed === 1 ? "se permite" : "se permiten"} ${p.allowed}.`
+                                          : `${p.count} covenant or Wretched Undead ${p.count === 1 ? "trait" : "traits"}; ${p.allowed} allowed.`;
     case "over-budget":         return es ? `${p.total} óbolos gastados de los ${p.budget} de la primera creación. Si el Séquito ya está creado, empieza su campaña.`
                                           : `${p.total} obols spent of the ${p.budget} for the first build. If the gathering is already built, start its campaign.`;
     case "over-deployment":     return es ? `${p.total} óbolos desplegados; el límite es ${p.limit}.` : `${p.total} obols fielded; the deployment limit is ${p.limit}.`;
-    case "too-many-treasures":  return es ? `${p.count} tesoros ${p.kind === "greater" ? "mayores" : "menores"}; puede llevar ${p.max}.`
-                                          : `${p.count} ${p.kind} treasures; it can carry ${p.max}.`;
+    case "too-many-treasures":  return es ? `${p.count} ${p.count === 1 ? "tesoro" : "tesoros"} ${p.kind === "greater" ? (p.count === 1 ? "mayor" : "mayores") : (p.count === 1 ? "menor" : "menores")}; puede llevar ${p.max}.`
+                                          : `${p.count} ${p.kind} ${p.count === 1 ? "treasure" : "treasures"}; it can carry ${p.max}.`;
     case "duplicate-greater":   return es ? "Los tesoros mayores que lleve un líder deben ser distintos." : "A leader's greater treasures must be different.";
     case "deployment-cap":      return es ? `Límite de despliegue ${p.limit}; el máximo es ${p.max}.` : `Deployment limit ${p.limit}; the most it can reach is ${p.max}.`;
-    case "too-many-sellswords": return es ? `${p.count} mercenarios desplegados; solo se permite 1 por escenario.` : `${p.count} sellswords fielded; only 1 per scenario.`;
+    case "too-many-sellswords": return es ? `${p.count} ${p.count === 1 ? "mercenario desplegado" : "mercenarios desplegados"}; solo se permite 1 por escenario.` : `${p.count} ${p.count === 1 ? "sellsword" : "sellswords"} fielded; only 1 per scenario.`;
     case "treasury-negative":   return es ? `El tesoro está en ${p.treasury} óbolos. Vende algo o deshaz una compra para volver a 0 o más.`
                                           : `The treasury is at ${p.treasury} obols. Sell something or undo a purchase to get back to 0 or more.`;
     case "duplicate-upgrade":   return es ? `${item} solo puede comprarse una vez.` : `${item} can only be bought once.`;
     case "channel-spell-missing": return es ? `El líder ya no conoce ${item}, el hechizo con +1 a canalizar.`
                                           : `The leader no longer knows ${item}, the spell with +1 to channel.`;
-    case "too-many-ambitions":  return es ? `${p.count} ambiciones activas; el máximo es 4.` : `${p.count} active ambitions; the most is 4.`;
-    case "too-many-weapons":    return es ? `${p.count} armas; puede llevar ${p.max}.` : `${p.count} weapons; it can have ${p.max}.`;
+    case "too-many-ambitions":  return es ? `${p.count} ${p.count === 1 ? "ambición activa" : "ambiciones activas"}; el máximo es 4.` : `${p.count} active ${p.count === 1 ? "ambition" : "ambitions"}; the most is 4.`;
+    case "too-many-weapons":    return es ? `${p.count} ${p.count === 1 ? "arma" : "armas"}; puede llevar ${p.max}.` : `${p.count} ${p.count === 1 ? "weapon" : "weapons"}; it can have ${p.max}.`;
     case "apprentice-spell":    return es ? `${item}: un Aprendiz solo conoce un hechizo que también conozca el líder.`
                                           : `${item}: an Apprentice only knows a spell the leader also knows.`;
     case "foreign-covenant-trait": return es ? `${item} no pertenece al Pacto de este Séquito.` : `${item} isn't this gathering's covenant trait.`;
