@@ -437,7 +437,9 @@ export function lockMana(gathering, catalog, { topUp = false } = {}) {
     const total = AFFINITIES.reduce((n, a) => n + (Number(m.mana?.[a]) || 0), 0);
     const inLock = AFFINITIES.every(a => a === lock || !(Number(m.mana?.[a]) || 0));
     const allowed = ev[i]?.mana || 0;
-    if (!(total === 0 || (topUp && inLock)) || total === allowed) return;
+    // An explicit 0 is the player's: refilling it would snap Bone back to 4 mid-split.
+    const unset = !Object.keys(m.mana || {}).length;
+    if (!(unset || (topUp && inLock)) || total === allowed) return;
     m.mana = allowed ? { [lock]: allowed } : {};
     changed = true;
   });

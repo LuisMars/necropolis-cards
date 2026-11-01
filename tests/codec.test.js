@@ -136,3 +136,10 @@ test("decoding a link prefills locked mana", () => {
   const { gathering: g } = decodeLink("c1;pl0,tc0,tb5,sn0;pm3,ewm6", catalog);
   assert.deepEqual(g.models[0].mana, { bone: evalG(g, catalog).models[0].mana });
 });
+
+test("locked mana: a player's explicit 0 is not refilled", () => {
+  const g = mk("covenants/cairn-born", "leaders/lich");
+  g.models[0].mana = { bone: 0 };
+  assert.equal(lockMana(g, catalog), false);
+  assert.deepEqual(g.models[0].mana, { bone: 0 });
+});
