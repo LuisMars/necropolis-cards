@@ -187,7 +187,7 @@ function buildTile(key, cat, row) {
   t.className = "lib-tile" + (printed ? " has-printed" : "");
   t.innerHTML = `
     <div class="tile-head">
-      <span class="cat">${escapeHtml(catName(key, cat))}</span>
+      <span class="cat" title="${escapeHtml(catName(key, cat))}">${escapeHtml(catName(key, cat))}</span>
       ${queued ? `<span class="queue-ctl" title="${escapeHtml(plural("libQueued", queued, lang()))}">
         <button type="button" class="qdec" data-fid="${escapeHtml(id)}:qdec" aria-label="${escapeHtml(plural("libQueueLess", 1, lang(), { name: displayName(row) }))}">−</button>
         <span class="in-queue queue-n" aria-live="polite">${queued}</span>

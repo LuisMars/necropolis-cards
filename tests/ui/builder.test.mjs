@@ -414,7 +414,7 @@ test("campaign gear: buy, keep in the stash, take back free, sell for half", asy
 
   // Buying from the Markets costs its price.
   await page.click('[data-act="m-pick"][data-uid="m3"][data-list="weapons"]');
-  assert.equal(await text(page, ".bd-picker-sec-title"), "Buy at the Markets");
+  assert.equal(await text(page, ".bd-picker-sec-title"), "Buy at the Bazaar");
   await page.click('.bd-picker-row[data-value="weapons|melee-weapons/axe"]');
   await page.waitForTimeout(150);
   await page.click('dialog.bd-picker [data-pk="close"].primary');
@@ -431,7 +431,7 @@ test("campaign gear: buy, keep in the stash, take back free, sell for half", asy
 
   // Another model takes it from the stash, free.
   await page.click('[data-act="m-pick"][data-uid="m4"][data-list="weapons"]');
-  assert.deepEqual(await page.locator(".bd-picker-sec-title").allTextContents(), ["From the stash (free)", "Buy at the Markets"]);
+  assert.deepEqual(await page.locator(".bd-picker-sec-title").allTextContents(), ["From the stash (free)", "Buy at the Bazaar"]);
   await page.click('.bd-picker-row[data-value="stash|0"]');
   await page.waitForTimeout(150);
   await page.click('dialog.bd-picker [data-pk="close"].primary');
@@ -1695,7 +1695,7 @@ test("picker: spells and traits have no Markets heading or price; gear does", as
   assert.equal(await page.locator("dialog.bd-picker[open] .bd-pk-cost").filter({ hasText: /free/i }).count(), 0);
   await page.click('dialog.bd-picker [data-pk="close"].primary');
   await page.click('[data-act="m-pick"][data-uid="m3"][data-list="weapons"]');
-  assert.equal(await text(page, ".bd-picker-sec-title"), "Buy at the Markets");
+  assert.equal(await text(page, ".bd-picker-sec-title"), "Buy at the Bazaar");
   assert.deepEqual(errors, []);
 });
 

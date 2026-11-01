@@ -98,6 +98,8 @@
   .bd-list h4{font-size:15px;color:var(--nc-secondary)}
   .bd-item,.bd-tag,.bd-choice{border-radius:3px}
   .bd-item small{color:var(--nc-secondary)}
+  /* A locked chip has no remove button: keep the chip's height and a right edge. */
+  .bd-item:not(:has(button,select,.nc-select)){min-height:var(--nc-target);box-sizing:border-box;padding-right:12px}
   .bd-item button{color:var(--nc-secondary)}
   /* View switches (Gathering / Campaign / Roster, Library / Print queue):
      a light row of words; the open one is raised with a border, as the
@@ -227,7 +229,8 @@
   }
   #bd-body .bd-callout{border-left-color:var(--nc-primary)}
   #bd-body .bd-prog{color:var(--nc-bone)}
-  .lib-tile .tile-head{gap:10px}
+  .lib-tile .tile-head{gap:10px;min-height:var(--nc-target)}
+  .lib-tile .tile-head .cat{min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .lib-tile .printed-n{color:var(--nc-bone)}
 
   @media(max-width:900px){
@@ -356,6 +359,8 @@
   @media (max-width:540px){
     .bd-import-actions > button{flex:1 1 auto;white-space:nowrap}
     #load-warband-btn{flex-basis:100%}
+    #bd-import-close{min-height:var(--nc-target);min-width:var(--nc-target);padding:0 12px}
+    .match-fold > summary{display:flex;align-items:center;min-height:var(--nc-target)}
   }
 }
 @media screen and (max-width:900px){
@@ -837,7 +842,8 @@
     /* Stats: 4 + 3 for leaders; five fit one row for the rest. */
     .bd-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px 6px}
     .bd-stats:has(> :nth-child(6)){grid-template-columns:repeat(4,minmax(0,1fr))}
-    .bd-stats dt{white-space:nowrap}
+    .bd-stats dt{white-space:nowrap;letter-spacing:0}
+    .bd-stats{column-gap:10px}
   }
 }
 
@@ -1111,9 +1117,9 @@
   .bd-tr-add > :is(select:not(.nc-select-src),.nc-select){width:240px}
   .bd-tr-act > :is(select:not(.nc-select-src),.nc-select){width:100%;min-width:0;margin:0}
   .bd-tr-act > button{min-width:44px;min-height:44px;margin:0;padding:0 6px}
-  .bd-tr-act .bd-sell{text-align:center;white-space:nowrap;min-height:44px;padding:0 8px;border:1px solid var(--nc-line-soft);border-radius:3px;text-decoration:none;color:var(--nc-secondary);background:transparent}
+  .bd-tr-act .bd-sell{text-align:center;white-space:nowrap;min-height:44px;padding:0 8px;font-size:16px;border:1px solid var(--nc-control-line,var(--nc-line));border-radius:3px;text-decoration:none;color:var(--nc-bone);background:transparent}
   @media (hover:hover){.bd-tr-act .bd-sell:hover{background:var(--nc-hover)}}
-  .bd-tr-rules{grid-column:1 / -1;margin:0 0 4px 24px;padding-left:10px;border-left:2px solid var(--nc-line-soft)}
+  .bd-tr-rules{grid-column:1 / -1;margin:0 0 4px 24px;padding:0 12px 0 10px;border-left:2px solid var(--nc-line-soft)}
   .bd-tr-rules p{margin:2px 0;font-size:15px;line-height:1.4;white-space:pre-line;color:var(--nc-bone)}
   .bd-tr-rules .bd-tr-line{color:var(--nc-secondary)}
   .bd-tr-rules[hidden]{display:none}

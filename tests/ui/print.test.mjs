@@ -194,6 +194,25 @@ test("print queue: summary and a More menu; options are real checkboxes with sta
   await p.click("#print-more > summary");
   await p.click("#clear-queue-btn-2");
   assert.equal(await p.textContent("#queue-count"), "0");
+  // Nothing queued: one message, no More menu, no list or preview panel.
+  assert.equal(await p.isVisible("#queue-empty"), true);
+  assert.equal(await p.isVisible("#print-more"), false);
+  assert.equal(await p.isVisible(".queue-panel"), false);
+  await p.context().close();
+});
+
+test("print queue: the first Move up and the last Move down are disabled", async () => {
+  const p = await withGathering();
+  await p.click('.bd-roster-bar [data-act="cards"], .bd-ghead [data-act="cards"]');
+  await p.goto(`${URL_}#cards/queue`);
+  await p.waitForTimeout(700);
+  const n = await p.locator("#queue-list .queue-item").count();
+  assert.ok(n > 2, "several queued cards");
+  const dis = (i, label) => p.locator("#queue-list .queue-item").nth(i).locator(`button[aria-label="${label}"]`).isDisabled();
+  assert.equal(await dis(0, "Move up"), true);
+  assert.equal(await dis(0, "Move down"), false);
+  assert.equal(await dis(n - 1, "Move down"), true);
+  assert.equal(await dis(n - 1, "Move up"), false);
   await p.context().close();
 });
 

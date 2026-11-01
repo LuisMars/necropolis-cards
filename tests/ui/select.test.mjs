@@ -315,3 +315,47 @@ test("wider layouts keep the dropdown, touch or not", async () => {
   assert.equal(await page.locator(".nc-select-pop.nc-select-sheet").count(), 0);
   assert.equal(await page.locator(".nc-select-backdrop").count(), 0);
 });
+
+test("a prompt first option is left out of the list; data-clearable keeps it, unmarked", async () => {
+  const { page, errors } = await open();
+  await page.evaluate(() => {
+    const h = document.createElement("div");
+    h.innerHTML = `<select id="prompt" aria-label="Model"><option value="">Add a model…</option><option value="a">Alpha</option><option value="b">Beta</option></select>
+      <select id="clearable" data-clearable aria-label="Covenant"><option value="">Choose a covenant…</option><option value="a">Blood</option></select>
+      <select id="none" aria-label="Env"><option value="">None</option><option value="a">Fog</option></select>`;
+    document.body.append(h);
+  });
+  await page.waitForSelector(trig("prompt"));
+  const labels = async id => { await page.click(trig(id)); const t = await page.locator(".nc-select-pop .nc-select-label").allTextContents(); await page.keyboard.press("Escape"); return t; };
+  assert.deepEqual(await labels("prompt"), ["Alpha", "Beta"]);
+  assert.deepEqual(await labels("clearable"), ["Choose a covenant…", "Blood"]);
+  assert.deepEqual(await labels("none"), ["None", "Fog"]);       // a real value, not a prompt
+  await page.click(trig("clearable"));
+  const mark = await page.evaluate(() => getComputedStyle(document.querySelector(".nc-select-pop .nc-select-option[data-placeholder]"), "::before").display);
+  assert.equal(mark, "none");
+  assert.deepEqual(errors, []);
+});
+
+test("one reason shared by every disabled option is said once above the list", async () => {
+  const { page, errors } = await open();
+  await page.evaluate(() => {
+    const h = document.createElement("div");
+    const r = "Only allows Leader models";
+    h.innerHTML = `<select id="why" aria-label="Type"><option value="a">Alpha</option>
+      <option value="b" disabled data-reason="${r}">Beta</option><option value="c" disabled data-reason="${r}">Gamma</option>
+      <option value="d" disabled data-reason="Own reason">Delta</option></select>
+      <select id="same" aria-label="Kind"><option value="a">Alpha</option>
+      <option value="b" disabled data-reason="${r}">Beta</option><option value="c" disabled data-reason="${r}">Gamma</option></select>`;
+    document.body.append(h);
+  });
+  await page.waitForSelector(trig("same"));
+  await page.click(trig("same"));
+  assert.equal((await page.locator(".nc-select-note").textContent()).trim(), "Only allows Leader models");
+  assert.equal(await page.locator(".nc-select-pop .nc-select-reason").count(), 0);
+  assert.equal(await page.locator(".nc-select-pop .nc-select-option[aria-disabled=true]").count(), 2);  // still shown disabled
+  await page.keyboard.press("Escape");
+  await page.click(trig("why"));
+  assert.equal(await page.locator(".nc-select-note").isVisible(), false);   // reasons differ: they stay on their rows
+  assert.equal(await page.locator(".nc-select-pop .nc-select-reason").count(), 3);
+  assert.deepEqual(errors, []);
+});

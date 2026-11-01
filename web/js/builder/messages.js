@@ -98,7 +98,7 @@ const UI = {
   filterByKind:   ["Show only", "Mostrar solo"],
   allKinds:       ["All", "Todo"],
   fromStash:      ["From the stash (free)", "Del almacén (gratis)"],
-  buyAtMarkets:   ["Buy at the Markets", "Comprar en los Mercados"],
+  buyAtMarkets:   ["Buy at the Bazaar", "Comprar en el Bazar"],
   addedItem:      ["Added {item}.", "Añadido: {item}."],
   done:           ["Done", "Hecho"],
   attacksShort:   ["Attacks", "Ataques"],

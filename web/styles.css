@@ -435,7 +435,7 @@ button.link.danger:hover, button.secondary.danger:hover { color: var(--bad); }
 }
 .bd-fold[open] > summary::before { transform: rotate(90deg); }
 .bd-fold > summary h3 { margin: 0; font-family: var(--caps); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; }
-.bd-fold-meta { color: var(--muted); font-size: 15px; }
+.bd-fold-meta { color: var(--muted); font-size: 15px; white-space: nowrap; flex: none; }
 .bd-fold-body { padding: 0 16px 16px 40px; }
 .bd-fold-body h4, .bd-panel h4 { margin: 12px 0 4px; font-family: var(--caps); font-size: 16px; font-weight: 400; color: var(--muted); }
 .bd-panel { margin-bottom: 12px; padding: 14px 16px; }
@@ -493,7 +493,8 @@ button.link.danger:hover, button.secondary.danger:hover { color: var(--bad); }
 .bd-plain li { margin: 3px 0; }
 .bd-tx { list-style: none; margin: 4px 0 8px; padding: 0; max-width: 46ch; }
 .bd-tx li { display: flex; gap: 6px; align-items: baseline; }
-.bd-tx li span { color: var(--muted); }
+.bd-tx li > span:first-child { color: var(--muted); flex: none; }
+.bd-tx li .tx-what { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
 .bd-tx li b { margin-left: auto; font-variant-numeric: lining-nums tabular-nums; }
 .bd-tx b.down { color: var(--bad); }
 .bd-tx b.up { color: var(--good); }
@@ -565,17 +566,17 @@ button.link.danger:hover, button.secondary.danger:hover { color: var(--bad); }
   object-fit: cover; opacity: 0.07; pointer-events: none;
 }
 .wb-banner {
-  position: relative; height: 10mm;
+  position: relative; height: 13mm;
   display: flex; align-items: center; justify-content: center;
 }
 .wb-banner img {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: fill; pointer-events: none;
+  object-fit: cover; pointer-events: none;
 }
 .wb-banner span {
   position: relative; z-index: 1;
   font-family: 'JSL Blackletter', serif; font-size: 5.2mm; color: #fff;
-  line-height: 1; padding: 0 6mm; text-align: center;
+  line-height: 1.3; padding: 1mm 6mm 0; text-align: center;
 }
 .wb-head-body, .wb-member-body { position: relative; z-index: 1; padding: 2.5mm 5mm 3mm; }
 

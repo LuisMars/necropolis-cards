@@ -230,7 +230,7 @@ export function transactionsHtml(g, list) {
     const what = t.item ? (catalog().row(t.item) ? name(t.item)
       : pickField((catalog().rules.maladies || []).find(x => x.key === t.item) || {}, "name", lang()) || t.item) : "";
     const n = Number(t.obols) || 0;
-    return `<li><span>${esc(L(`tx-${t.type}`))}</span> ${esc(what)}${m ? ` <small>(${esc(modelTitle(m))})</small>` : ""}` +
+    return `<li><span>${esc(L(`tx-${t.type}`))}</span><span class="tx-what">${esc(what)}${m ? ` <small>· ${esc(modelTitle(m))}</small>` : ""}</span>` +
       `<b class="${n < 0 ? "down" : n > 0 ? "up" : ""}">${n > 0 ? "+" : ""}${n || ""}</b></li>`;
   }).join("")}</ul>`;
 }

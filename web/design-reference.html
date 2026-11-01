@@ -191,7 +191,7 @@
 
   <section class="ds-section" id="controls">
     <h2>04 · Controls</h2>
-    <p class="ds-description">Selects are themed dropdowns on every pointer (<code>web/js/select.js</code>, a WAI-ARIA select-only combobox over the native <code>&lt;select&gt;</code>, which stays the source of truth); at 540px and below the popup is a bottom sheet over a backdrop, with 44px options. Long lists get a filter field. An option may carry <code>data-reason</code>: shown muted under it and announced as its description; it stays selectable. Affinities are visible radios. Icons are Lucide, from <code>web/js/lucide.js</code>.</p>
+    <p class="ds-description">Selects are themed dropdowns on every pointer (<code>web/js/select.js</code>, a WAI-ARIA select-only combobox over the native <code>&lt;select&gt;</code>, which stays the source of truth); at 540px and below the popup is a bottom sheet over a backdrop, with 44px options. Long lists get a filter field. An option may carry <code>data-reason</code>: shown muted under it and announced as its description; it stays selectable. When every disabled option gives the same reason it is said once above the list (<code>.nc-select-note</code>) and the rows stay dimmed; reasons of their own stay on their rows. An empty first option worded as a prompt ("Add a model…") is not a choice and is left out of the list; <code>data-clearable</code> keeps it where choosing it clears the value ("Choose a covenant…"), without a check mark. Affinities are visible radios. Icons are Lucide, from <code>web/js/lucide.js</code>.</p>
     <div class="ds-grid">
       <div class="ds-specimen">
         <h3>Button hierarchy</h3>
@@ -336,7 +336,7 @@
 
   <section class="ds-section" id="picker">
     <h2>06 · The "Add" picker</h2>
-    <p class="ds-description">Each list on a model card has its own <b>Add</b> button, opening one shared modal <code>&lt;dialog&gt;</code> (<code>web/js/builder-picker.js</code>): a search over name, kind and rules text, filter chips by kind, and the rows grouped as on the cards with cost and a short summary. A row that would break a rule says why (<code>data-reason</code>, the first new warning from the real rules engine) and still adds: the Builder warns, it never blocks. In a campaign, "From the stash (free)" comes before "Buy at the Markets" (gear only: spells and traits are rewards, so they show no heading and no price). On a phone the search is not focused on open, so the keyboard does not cover the list. Adding keeps it open ("Added Blade."); Done closes it. Full screen on phones. When every row would repeat the same reason (a list at its limit: "6 spells; it should have 5"), it is said once above the list (<code>.bd-picker-limit</code>) and the rows carry only reasons of their own.</p>
+    <p class="ds-description">Each list on a model card has its own <b>Add</b> button, opening one shared modal <code>&lt;dialog&gt;</code> (<code>web/js/builder-picker.js</code>): a search over name, kind and rules text, filter chips by kind, and the rows grouped as on the cards with cost and a short summary. A row that would break a rule says why (<code>data-reason</code>, the first new warning from the real rules engine) and still adds: the Builder warns, it never blocks. In a campaign, "From the stash (free)" comes before "Buy at the Bazaar" (gear only: spells and traits are rewards, so they show no heading and no price). On a phone the search is not focused on open, so the keyboard does not cover the list. Adding keeps it open ("Added Blade."); Done closes it. Full screen on phones. When every row would repeat the same reason (a list at its limit: "6 spells; it should have 5"), it is said once above the list (<code>.bd-picker-limit</code>) and the rows carry only reasons of their own. When only some rows share one (a trait list where just the basic traits break the one-trait rule), the note says it and those rows keep a bare warning mark (<code>.bd-pk-mark</code>). Hover styles are wrapped in <code>@media (hover:hover)</code> everywhere, so a tap leaves nothing stuck; <code>:active</code> feedback stays.</p>
     <div class="ds-specimen">
       <div class="bd-picker ds-picker-static" role="presentation">
         <div class="bd-picker-box">
@@ -347,7 +347,7 @@
           <div class="bd-picker-list">
             <div class="bd-picker-sec-title">From the stash (free)</div>
             <div class="bd-picker-row is-active"><span class="bd-pk-name">Blade</span><span class="bd-pk-cost">free</span><span class="bd-pk-sum"><b>Attacks 3 · Damage 1/3 · Range 1" · 1-handed</b> +1 armour against Attack actions from melee weapons.</span></div>
-            <div class="bd-picker-sec-title">Buy at the Markets</div>
+            <div class="bd-picker-sec-title">Buy at the Bazaar</div>
             <div class="bd-picker-group-title">Melee</div>
             <div class="bd-picker-row"><span class="bd-pk-name">Great Weapon</span><span class="bd-pk-cost">35 obols</span><span class="bd-pk-sum"><b>Attacks 2 · Damage 2/6 · Range 1" · 2-handed</b></span>
               <span class="bd-pk-why" data-reason="Needs 3 hands; a model has 2."><span data-icon="triangle-alert"></span><span>Needs 3 hands; a model has 2.</span></span></div>
