@@ -505,6 +505,8 @@
   .bd-pk-sum{color:var(--nc-secondary);overflow-wrap:anywhere}
   .bd-pk-sum b{font-weight:600;color:var(--nc-bone)}
   .bd-pk-why{color:var(--nc-muted);font-style:italic}
+  .bd-picker-limit{display:flex;gap:6px;align-items:flex-start;margin:0 0 8px;font-size:14px;line-height:1.35;color:var(--nc-muted);font-style:italic}
+  .bd-picker-limit > .nc-icon{flex:none;color:var(--nc-warning);width:14px;height:14px;margin-top:3px}
   .bd-picker-empty{color:var(--nc-muted);font-style:italic;margin:14px 0}
   .bd-picker-foot{display:flex;align-items:center;gap:12px}
   .bd-picker-status{flex:1;margin:0;color:var(--nc-success);font-size:15px;min-height:1.4em}

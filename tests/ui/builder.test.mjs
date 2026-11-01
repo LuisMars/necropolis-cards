@@ -1599,3 +1599,28 @@ test("a no-op change on a gathering that needs a keyword correction makes no dra
   assert.equal(await page.isVisible(".bd-draft"), true);
   assert.deepEqual(errors, []);
 });
+
+test("picker: a limit every row would repeat is said once above the list; row reasons stay on rows", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  // The Lich holds 5 spells: adding any other makes 6, for every row alike.
+  await page.click('[data-act="m-pick"][data-uid="m1"][data-list="spells"]');
+  const note = page.locator(".bd-picker-list .bd-picker-limit");
+  assert.equal(await note.count(), 1);
+  assert.match(await note.textContent(), /6 spells.*5/);
+  assert.equal(await page.locator(".bd-picker-row .bd-pk-why").count(), 0, "no row repeats it");
+  assert.ok((await page.locator(".bd-picker-row").count()) > 5);
+  // The note comes before the first row, and rows point to it for assistive tech.
+  assert.equal(await page.evaluate(() => document.querySelector(".bd-picker-list").firstElementChild.className), "bd-picker-limit");
+  assert.equal(await page.locator(".bd-picker-row").first().getAttribute("aria-describedby"), "bd-pk-limit");
+  // Filtering to one row keeps it said once too (a single row has nothing to share).
+  await page.fill(".bd-picker-search", "zzzz");
+  assert.equal(await page.locator(".bd-picker-limit").count(), 0);
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
+  // A reason only some rows have stays on those rows (second suit of armour).
+  await pick(page, "m3", "armour", "armour|armours/heavy-armour");
+  await page.click('[data-act="m-pick"][data-uid="m3"][data-list="armour"]');
+  assert.equal(await page.locator(".bd-picker-limit").count(), 0);
+  assert.ok((await page.locator(".bd-picker-row .bd-pk-why").count()) >= 1);
+  assert.deepEqual(errors, []);
+});

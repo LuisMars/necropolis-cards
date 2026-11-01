@@ -253,6 +253,11 @@ function drawList() {
   const shown = groups.map(gr => ({ ...gr, rows: gr.rows.filter(([k, r]) => keep(k, r)) })).filter(gr => gr.rows.length);
   const values = [...stash.map(([, i]) => `stash|${i}`), ...shown.flatMap(gr => gr.rows.map(([k]) => `${ctx.list}|${k}`))];
   const why = hooks.reasons(ctx.uid, values);
+  // A line every row would repeat (the list is at its limit: "6 spells; it should
+  // have 5") is said once above the list; row-specific reasons stay on their rows.
+  const reasonSet = new Set(values.map(v => why.get(v)));
+  const shared = values.length > 1 && reasonSet.size === 1 && [...reasonSet][0] ? [...reasonSet][0] : "";
+  if (shared) for (const v of values) why.delete(v);
 
   let n = 0;
   const row = (value, key, cost) => {
@@ -261,7 +266,7 @@ function drawList() {
     const reason = why.get(value);
     const id = `bd-pk-${n++}`;
     return `<div class="bd-picker-row" role="option" id="${id}" data-pk="add" data-value="${esc(value)}" aria-selected="false"
-              ${reason ? `aria-describedby="${id}-why"` : ""}>
+              ${reason ? `aria-describedby="${id}-why"` : shared ? 'aria-describedby="bd-pk-limit"' : ""}>
         <span class="bd-pk-name">${esc(pickField(r, "name", lang()) || key)}</span>
         <span class="bd-pk-cost">${esc(cost)}</span>
         ${line || rules ? `<span class="bd-pk-sum">${line ? `<b>${esc(line)}</b>` : ""}${line && rules ? " " : ""}${esc(rules)}</span>` : ""}
@@ -284,6 +289,7 @@ function drawList() {
     html = (stash.length ? section(L("fromStash"), stash.map(([e, i]) => row(`stash|${i}`, e.key, L("free"))).join("")) : "") +
       (shown.length ? section(L("buyAtMarkets"), html) : "");
   }
+  if (shared) html = `<p class="bd-picker-limit" id="bd-pk-limit" role="status">${icon("triangle-alert")}<span>${esc(shared)}</span></p>` + html;
   const list = dlg.querySelector(".bd-picker-list");
   list.innerHTML = html || `<p class="bd-picker-empty">${esc(L("pickerNone"))}</p>`;
   rows = [...list.querySelectorAll(".bd-picker-row")].map(el => ({ value: el.dataset.value, el }));
