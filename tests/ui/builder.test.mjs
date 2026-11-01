@@ -275,44 +275,55 @@ test("the Print button names what it prints, and is absent when it can't", async
   // Only one primary action in the header.
   assert.equal(await page.locator("header.app :is(.primary, .print-btn)").count(), 1);
   // Spanish.
-  await page.click("#nav-settings > summary");
+  await page.click("#nav-settings");
   await page.selectOption("#lang-select", "es");
+  await page.keyboard.press("Escape");
   assert.equal(await text(page, btn), `Imprimir ${n} cartas`);
   await go(page, "gatherings");
   assert.equal(await text(page, btn), "Imprimir lista");
 });
 
-test("the Settings menu works from the keyboard", async () => {
+test("the Settings sheet works from the keyboard", async () => {
   const { page } = await open();
-  const isOpen = () => page.evaluate(() => document.getElementById("nav-settings").open);
-  await page.focus("#nav-settings > summary");
+  const isOpen = () => page.evaluate(() => document.getElementById("settings-sheet").open);
+  await page.focus("#nav-settings");
   await page.keyboard.press("Enter");
   assert.equal(await isOpen(), true);
   // Language and Theme are themed dropdowns: focus lands on their triggers.
   const focusedSelect = () => page.evaluate(() => document.activeElement.closest(".nc-select")?.querySelector("select")?.id);
-  await page.keyboard.press("Tab");
+  await page.focus("#settings-sheet .nc-select button, #settings-sheet .nc-select [role=combobox]");
   assert.equal(await focusedSelect(), "lang-select");
   await page.keyboard.press("Tab");
   assert.equal(await focusedSelect(), "nc-theme-select");
-  // Choosing from the list (a portal in <body>) keeps Settings open.
+  // Choosing from the list (portalled into the sheet) keeps Settings open.
   await page.keyboard.press("ArrowDown");
   await page.click('.nc-select-pop .nc-select-option:has-text("Slate")');
   assert.equal(await isOpen(), true);
   assert.equal(await page.evaluate(() => document.documentElement.dataset.ncPalette), "slate");
   await page.keyboard.press("Escape");
   assert.equal(await isOpen(), false);
-  assert.ok(await page.evaluate(() => document.activeElement.matches("#nav-settings > summary")));
+  assert.ok(await page.evaluate(() => document.activeElement.matches("#nav-settings")));
   await page.keyboard.press("Space");
   assert.equal(await isOpen(), true);
-  // Language sets the card language, and the header follows it.
+  // Language sets the card language, the header follows it, and the sheet stays open with focus kept.
   await page.selectOption("#lang-select", "es");
+  assert.equal(await isOpen(), true);
   assert.equal(await text(page, 'nav.tabs a[data-dest="gatherings"]'), "Séquitos");
   assert.equal(await page.evaluate(() => localStorage.getItem("necropolis-card-printer-lang-v1")), "es");
+  assert.equal(await page.getAttribute("#nav-settings", "aria-label"), "Ajustes");
+  assert.equal(await page.getAttribute("#settings-close", "aria-label"), "Cerrar");
+  assert.equal(await text(page, "#settings-title"), "Ajustes");
   // Theme keeps its palette control.
   await page.selectOption("#nc-theme-select", "slate");
   assert.equal(await page.evaluate(() => document.documentElement.dataset.ncPalette), "slate");
-  // A click outside closes it.
-  await page.mouse.click(600, 600);
+  assert.equal(await isOpen(), true);
+  // The close button closes it and focus returns to the trigger.
+  await page.click("#settings-close");
+  assert.equal(await isOpen(), false);
+  assert.ok(await page.evaluate(() => document.activeElement.matches("#nav-settings")));
+  // A tap on the backdrop closes it on wide layouts.
+  await page.click("#nav-settings");
+  await page.mouse.click(100, 600);
   assert.equal(await isOpen(), false);
 });
 
@@ -857,10 +868,10 @@ test("a dropdown's filter text follows the language", async () => {
   await page.fill(".nc-select-filter-input", "zzzz");
   assert.equal(await text(page, ".nc-select-empty"), "No matches");
   await page.keyboard.press("Escape");
-  await page.click("#nav-settings > summary");
+  await page.click("#nav-settings");
   await page.selectOption("#lang-select", "es");
   await page.waitForTimeout(150);
-  await page.click("#nav-settings > summary");
+  await page.keyboard.press("Escape");
   await page.click(trigger);
   assert.equal(await page.getAttribute(".nc-select-filter-input", "placeholder"), "Escribe para filtrar…");
   await page.fill(".nc-select-filter-input", "zzzz");

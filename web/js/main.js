@@ -104,7 +104,8 @@ const $queueCount = $("queue-count");
 const $queueLink  = $("nav-queue-link");
 const $printBtn   = $("global-print-btn");
 const $printReason = $("print-reason");
-const $settings   = $("nav-settings");
+const $settingsBtn = $("nav-settings");
+const $settings   = $("settings-sheet");
 
 /** Static markup names its strings in data-i18n (the text after any icon
  *  or checkbox), data-i18n-html (trusted markup from messages.js) and
@@ -131,6 +132,9 @@ function refreshLabels() {
   $nav.querySelector('a[data-dest="gatherings"]').textContent = L("navGatherings");
   $nav.querySelector('a[data-dest="cards"]').textContent = L("navCards");
   $("nav-settings-label").textContent = L("settings");
+  $settingsBtn.setAttribute("aria-label", L("settings"));
+  $("settings-title").textContent = L("settings");
+  $("settings-close").setAttribute("aria-label", L("close"));
   $("lang-label").textContent = L("language");
   $("lang-select").closest("label").title = L("languageHint");
   $("theme-label").textContent = L("theme");
@@ -195,18 +199,13 @@ document.addEventListener("click", (e) => {
   if (b) navigate(b.dataset.route);
 });
 
-// Settings: a <details> disclosure that also closes on Escape and on a click
-// outside it.
-document.addEventListener("keydown", (e) => {
-  if (e.key !== "Escape" || !$settings.open) return;
-  $settings.open = false;
-  $settings.querySelector("summary").focus();
-});
-document.addEventListener("pointerdown", (e) => {
-  // A themed dropdown's list is a portal in <body>: choosing from the
-  // Language or Theme list is still a click inside Settings.
-  if ($settings.open && !$settings.contains(e.target) && !e.target.closest?.(".nc-select-pop")) $settings.open = false;
-});
+// Settings: a modal <dialog> sheet (Esc, focus trap and focus return are
+// native). A tap on the backdrop closes it; the themed dropdown lists are
+// portalled into the dialog, so they count as inside.
+function openSettings() { if (!$settings.open) $settings.showModal(); }
+$settingsBtn.addEventListener("click", openSettings);
+$("settings-close").addEventListener("click", () => $settings.close());
+$settings.addEventListener("click", (e) => { if (e.target === $settings) $settings.close(); });
 
 // Print. Show what will print first so it's laid out (some browsers freeze
 // a snapshot of hidden tabs and print them as blank), then open the dialog
@@ -358,7 +357,7 @@ document.getElementById("lang-select")?.addEventListener("change", () => pwa.ren
 initSync({
   lang: () => state.lang || "en",
   onPulled: refreshFromStorage,
-  onConflicts: () => { $settings.open = true; },
+  onConflicts: openSettings,
 });
 current = startRoute();
 history.replaceState(null, "", `#${current}`);

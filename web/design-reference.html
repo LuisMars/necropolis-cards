@@ -80,7 +80,6 @@
     .ds-header-specimen{padding:0;overflow:visible}
     .ds-header-specimen > .ds-row,.ds-header-specimen > .ds-note{padding:0 20px}
     .ds-header-specimen > .ds-note{padding-bottom:16px}
-    .ds-header-specimen .nav-settings{display:flex;flex-direction:column;align-items:flex-end}
     .ds-picker-static{display:block;position:static;max-width:640px;width:auto;max-height:none;margin:0;box-shadow:none}
     .ds-picker-static .bd-picker-box{max-height:none}
     .ds-icons{gap:10px 20px;font-size:15px;color:var(--nc-secondary)}
@@ -175,17 +174,7 @@
           <span class="nav-item"><a class="nav-dest" href="#shell">Cards</a><a class="nav-count" href="#shell">12</a></span>
         </nav>
         <span class="spacer"></span>
-        <details class="nav-settings" open>
-          <summary><span class="nav-ico" data-icon="settings"></span><span>Settings</span><span class="nav-chev" data-icon="chevron-down"></span></summary>
-          <div class="nav-settings-panel" style="position:static;margin-top:6px">
-            <label class="lang-picker"><span>Language</span><select><option>English</option><option>Español</option></select></label>
-            <label class="nc-theme-picker"><span>Theme</span>
-              <select data-nc-palette-control aria-label="Theme (specimen)">
-                <option value="auto">Match device</option><option value="obsidian">Obsidian</option><option value="vellum">Vellum (light)</option>
-                <option value="ink-bone">Ink &amp; Bone</option><option value="soft-ash">Soft Ash</option><option value="slate">Slate</option>
-              </select></label>
-          </div>
-        </details>
+        <button type="button" class="nav-settings-btn" aria-label="Settings"><span class="nav-ico" data-icon="settings"></span><span>Settings</span></button>
         <button class="print-btn" type="button"><span class="pb-verb">Print</span><span class="pb-rest"> roster</span></button>
       </header>
       <div class="ds-row" style="margin-top:16px">

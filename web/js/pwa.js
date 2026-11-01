@@ -13,6 +13,25 @@ import { label, fill } from "./builder/messages.js";
 const HOUR = 60 * 60 * 1000;
 const $ = (id) => document.getElementById(id);
 
+/* Install. beforeinstallprompt can fire before initPwa runs, so the listener
+ * is registered when this module loads and keeps the event for later. */
+let deferredPrompt = null;
+const installListeners = new Set();
+const tellInstall = () => installListeners.forEach((f) => f());
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; tellInstall(); });
+  window.addEventListener("appinstalled", () => { deferredPrompt = null; tellInstall(); });
+}
+const isStandalone = () => {
+  try { return !!(window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone); } catch { return false; }
+};
+/** iOS Safari (and iPadOS, which says Macintosh) has no prompt: only a hint. */
+const isIosSafari = () => {
+  const ua = navigator.userAgent || "";
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return ios && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+};
+
 export function initPwa({ lang = () => "en" } = {}) {
   const L = (k, vars) => fill(label(k, lang()), vars);
   const supported = typeof navigator !== "undefined" && "serviceWorker" in navigator;
@@ -42,6 +61,17 @@ export function initPwa({ lang = () => "en" } = {}) {
       $("nc-update-btn").textContent = L("pwaUpdate");
     }
     if (!$("pwa-section")) return;
+    const inst = $("pwa-install");
+    if (inst) {
+      const prompt = !isStandalone() && !!deferredPrompt;
+      const hint = !isStandalone() && !prompt && isIosSafari();
+      inst.hidden = !(prompt || hint);
+      $("pwa-install-btn").hidden = !prompt;
+      $("pwa-install-btn").textContent = L("pwaInstall");
+      $("pwa-ios-hint").hidden = !hint;
+      $("pwa-ios-hint").textContent = L("pwaIosHint");
+    }
+    $("pwa-section").hidden = !!($("pwa-updates")?.hidden && inst?.hidden);
     $("pwa-title").textContent = L("pwaTitle");
     $("pwa-version").textContent = version ? L("pwaVersion", { v: version }) : L("pwaNoVersion");
     $("pwa-check").textContent = L("pwaCheck");
@@ -129,8 +159,17 @@ export function initPwa({ lang = () => "en" } = {}) {
 
   $("nc-update-btn")?.addEventListener("click", applyUpdate);
   $("pwa-check")?.addEventListener("click", check);
-  const section = $("pwa-section");
-  if (section) section.hidden = !supported;
+  installListeners.add(render);
+  $("pwa-install-btn")?.addEventListener("click", async () => {
+    const ev = deferredPrompt;
+    if (!ev) return;
+    deferredPrompt = null;            // a prompt can be used once
+    render();
+    try { await ev.prompt(); await ev.userChoice; } catch {}
+    render();
+  });
+  const updates = $("pwa-updates");
+  if (updates) updates.hidden = !supported;
   render();
   return { check, render };
 }
