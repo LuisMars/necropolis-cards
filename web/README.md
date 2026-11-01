@@ -121,19 +121,29 @@ python3 -m http.server -d web 8000
 then open `http://localhost:8000/`. (`file://` won't work because the page
 uses ES modules.)
 
-## Deploying to GitHub Pages
+## Deploying
 
-A workflow at `.github/workflows/pages.yml` builds the bundle on every push
-to `main` and publishes `web/` as the Pages site. To enable it:
+The live site, `necropolis.luismars.com`, is served by the owner's homelab
+through **sitekeeper** (site `necropolis`). Pushing to `main` does **not**
+update it.
 
-1. **Settings → Pages → Source: GitHub Actions.**
-2. Push to `main` (or trigger the workflow manually under the **Actions**
-   tab → *Deploy card printer to GitHub Pages* → *Run workflow*).
-3. First successful run prints the live URL.
+To deploy:
 
-If you'd rather avoid Actions, you can also use the branch approach: run
-`python3 web/bundle.py` locally, then push the `web/` directory to a
-`gh-pages` branch and point Pages at it.
+1. Check out `origin/main` and run `python3 web/bundle.py` (it writes
+   `data.json` and `sw.js`).
+2. Upload `web/` to the sitekeeper site as a new deploy. Leave out dotfiles,
+   `__pycache__`, `*.py` and `*.template.js`, but **include the generated
+   `sw.js`**. Build the archive from `find` piped to `tar --null -T -`, run
+   inside `web/`: `tar --exclude='.*'` also matches the `.` entry and silently
+   produces an empty deploy.
+3. Finalize the deploy without activating it, open the preview URL, and check
+   that the file count is not 0.
+4. Activate it.
+
+`.github/workflows/pages.yml` still builds the bundle and publishes `web/` to
+GitHub Pages on every push to `main`. That run can go green without changing
+the live site, so a green run is not a deploy. The Pages copy only matters if
+Pages is switched on in the repository settings.
 
 ## Offline use and updates (PWA)
 
@@ -147,8 +157,8 @@ icons, and a service worker). No libraries.
   byte change in `sw.js` is what makes browsers update. `sw.js` is generated
   and gitignored. `python3 web/bundle.py --sw-only` regenerates just it.
 - **Deploy: run `bundle.py` first, and ship `sw.js` with the rest of `web/`**
-  (the GitHub Pages workflow does; for sitekeeper, deploy the bundled `web/`
-  directory). Without `sw.js` the app still works, just not offline.
+  (the Pages workflow does; for sitekeeper, deploy the bundled `web/`
+  directory as described under Deploying). Without `sw.js` the app still works, just not offline.
 - Install precaches everything (about 20 MB, mostly card images). A new
   version waits; the app shows "A new version is available" and reloads only
   when the player presses Update. Settings > App updates shows the version and
