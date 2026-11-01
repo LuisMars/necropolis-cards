@@ -73,13 +73,19 @@ test("victory rewards, lair income and Purloiner add up in the treasury and the 
   assert.equal(applyLairIncome(g, catalog, "lair-upgrades/dank-culvert", 6), 0);   // not owned
   assert.equal(applyPurloiner(g, "m4", 3, 2, 8), 8);                   // 2 ≤ Move 3
   assert.equal(g.treasury, 50 + 41 + 6 + 8);
-  finishAfterBattle(g, { mission: "missions/the-horde" });
+  g.campaign.nextScenario = { environment: null, mission: "missions/the-horde", omen: null };  // picked in the Campaign view
+  g.campaign.alchemyBought = true;
+  finishAfterBattle(g);
   assert.equal(g.history.at(-1).obols, 55);
   assert.deepEqual(g.history.at(-1).transactions.map(t => t.type), ["upgrade"]);   // bought before the sequence
   assert.equal(g.history.at(-1).mission, "missions/relic-hunters");
   assert.equal(g.campaign.afterBattle, undefined);
-  assert.equal(g.campaign.nextScenario.mission, "missions/the-horde");
-  // The next sequence starts from the scenario rolled for it.
+  // The scenario was that battle's: finishing clears it, and the alchemy allowance.
+  assert.equal(g.campaign.nextScenario, null);
+  assert.equal(g.campaign.alchemyBought, false);
+  assert.equal(startAfterBattle(g, {}).battle.mission, null);
+  // A scenario picked beforehand prefills the next battle.
+  g.campaign.nextScenario = { environment: null, mission: "missions/the-horde", omen: null };
   assert.equal(startAfterBattle(g, {}).battle.mission, "missions/the-horde");
 });
 
@@ -117,8 +123,7 @@ test("the Markets: buying (with the Forgotten Forge), recruiting, selling", () =
 
 test("Tomb Robber once per gathering; the Alchemy Workshop once per sequence", () => {
   const g = campaign();
-  startAfterBattle(g, {});
-  assert.ok(tombRobber(g, catalog, "minor-treasures/blade-oil", { to: "m1" }));
+  assert.ok(tombRobber(g, catalog, "minor-treasures/blade-oil", { to: "m1" }));  // no sequence needed
   assert.equal(g.treasury, 70);
   assert.ok(!tombRobber(g, catalog, "minor-treasures/blade-oil"));
   assert.ok(!buyAlchemy(g, catalog, "potions/mana-bottle"));           // no workshop

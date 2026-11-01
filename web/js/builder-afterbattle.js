@@ -1,8 +1,9 @@
 /**
  * Builder tab, after-battle sequence (rulebook p.65): a step-by-step wizard
  * run after each game — the battle, then 1 Reconstitution Maladies,
- * 2 Victory Rewards, 3 Minor Ambitions, 4 Ambitions, 5 Total Ambitions,
- * 6 The Bazaar, 7 Roll New Scenario — finishing with one battle-log entry.
+ * 2 Victory Rewards, 3 Minor Ambitions, 4 Ambitions, 5 Total Ambitions —
+ * finishing with one battle-log entry. The Bazaar and the next scenario are
+ * folds of the Campaign view (builder-bazaar.js), not steps.
  *
  * The sequence lives in the gathering (`campaign.afterBattle`), so leaving
  * the page and coming back resumes it at the same step. Every roll has a
@@ -15,26 +16,21 @@ import { icon } from "./lucide.js";
 import { state } from "./state.js";
 import { escapeHtml } from "./util.js";
 import { pickField } from "./i18n.js";
-import { slug } from "./builder/catalog.js";
 import { treasureKind, evaluate } from "./builder/rules.js";
 import { label, itemName } from "./builder/messages.js";
 import {
   d, ensureCampaign, startAfterBattle, maladyFor, applyMalady, applyVictoryRewards, incomeUpgrades,
-  applyLairIncome, applyPurloiner, buyGear, buyPrice, recruit, recruitPrice, sellGear, sellValue, sellTreasure,
-  soulBinder, tombRobber, hasAlchemy, buyAlchemy, price, rollScenarioPart, canRerollOmen,
-  finishAfterBattle, greaterOwed, rollTreasure, treasureTable, weaponLocked,
+  applyLairIncome, applyPurloiner, finishAfterBattle, greaterOwed, rollTreasure,
 } from "./builder/campaign.js";
-import { ambitionsHtml, pendingHtml, upgradesHtml, setPending, pendingTreasure, noticeHtml, uiError, deployNoteHtml } from "./builder-campaign.js";
-import { maladiesOf } from "./builder/ledger.js";
+import { val, select, opts, rollBtn } from "./builder-bazaar.js";
+import { ambitionsHtml, pendingHtml, setPending, pendingTreasure, noticeHtml, uiError, deployNoteHtml } from "./builder-campaign.js";
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
 const L = (k) => label(k, lang());
 const catalog = () => state.catalog;
 const name = (key) => itemName(catalog(), key, lang());
-const rows = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r => [`${cat}/${slug(r.name)}`, r]);
 const modelTitle = (m) => (m.name ? `${m.name} (${name(m.profile)})` : name(m.profile));
-const val = (id) => document.getElementById(id)?.value ?? "";
 const isLeader = (m) => String(m.profile).startsWith("leaders/");
 
 /* ---- checks before applying -------------------------------------------------- */
@@ -71,10 +67,6 @@ export function afterBattleChange(act, el, g) {
   switch (act) {
     case "ab-field":       a.battle[el.dataset.field] = el.type === "checkbox" ? el.checked : (v || null); return true;
     case "ab-malady-roll": a.maladyRoll = Math.min(10, Math.max(1, parseInt(v, 10) || 1)); return true;
-    case "ab-next":        a.next = { ...(a.next || {}), [el.dataset.part]: v || null }; return true;
-    // Withdrawing agreement withdraws the omen rolled for it.
-    case "ab-omen-agree":  a.omenAgreed = el.checked; if (!el.checked) a.next = { ...(a.next || {}), "dread-omens": null }; return true;
-    case "ab-tomb-pick":   a.tombRoll = v || null; return true;
   }
   return false;
 }
@@ -84,10 +76,10 @@ export function afterBattleClick(act, el, g) {
   if (act === "ab-open") { startAfterBattle(g, {}); return true; }
   const a = g.campaign.afterBattle;
   if (!a) return false;
-  const { uid, list, i, key, part } = el.dataset;
+  const { uid, key } = el.dataset;
   switch (act) {
-    case "ab-step":    a.step = Math.max(0, Math.min(7, a.step + Number(el.dataset.by))); return true;
-    case "ab-goto":    a.step = Number(el.dataset.step); return true;
+    case "ab-step":    a.step = Math.max(0, Math.min(LAST, Math.min(a.step, LAST) + Number(el.dataset.by))); return true;
+    case "ab-goto":    a.step = Math.max(0, Math.min(LAST, Number(el.dataset.step))); return true;
     case "ab-discard": if (confirm(L("confirmDiscard"))) delete g.campaign.afterBattle; return true;
     // 1 Maladies
     case "ab-roll-malady": a.maladyRoll = d(10); return true;
@@ -109,33 +101,7 @@ export function afterBattleClick(act, el, g) {
       applyPurloiner(g, uid, move, ...readDice(`ab-pr1-${uid}`, `ab-pr2-${uid}`));
       return true;
     }
-    // 6 Bazaar
-    case "ab-buy": {
-      const [lst, k] = val("ab-buy-item").split("|");
-      if (lst && k && val("ab-buy-model")) buyGear(g, catalog(), val("ab-buy-model"), lst, k);
-      return true;
-    }
-    case "ab-recruit": if (val("ab-recruit-key")) recruit(g, catalog(), val("ab-recruit-key")); return true;
-    case "ab-sell":    sellGear(g, catalog(), uid, list, i); return true;
-    case "ab-sell-t":  sellTreasure(g, catalog(), el.dataset.from || null, i); return true;
-    case "ab-soul":    soulBinder(g, catalog(), uid, el.dataset.ref); return true;
-    case "ab-tomb-roll": a.tombRoll = rollTreasure(catalog(), "minor")[0]; return true;
-    case "ab-tomb-take": if (a.tombRoll) tombRobber(g, catalog(), a.tombRoll, { pay: true, to: val("ab-tomb-to") || null }); return true;
-    case "ab-tomb-decline": tombRobber(g, catalog(), a.tombRoll, { pay: false }); return true;
-    case "ab-alchemy": if (val("ab-alc-key")) buyAlchemy(g, catalog(), val("ab-alc-key"), val("ab-alc-to") || null); return true;
-    // 7 Scenario
-    case "ab-roll-scn": {
-      a.next = { ...(a.next || {}), [part]: rollScenarioPart(catalog(), part) };
-      if (el.dataset.reroll) a.omenRerolled = true;
-      return true;
-    }
-    case "ab-finish": {
-      const n = a.next || {};
-      // An omen only stands while both players agree to one.
-      const omen = a.omenAgreed ? n["dread-omens"] || null : null;
-      finishAfterBattle(g, { environment: n.environments || null, mission: n.missions || null, omen });
-      return true;
-    }
+    case "ab-finish": finishAfterBattle(g); return true;
   }
   return false;
 }
@@ -145,23 +111,26 @@ export function afterBattleClick(act, el, g) {
 /** "Roll" button + a field to type a physical die. */
 const dieInput = (id, value, n = 1) =>
   `<input type="number" min="1" max="10" id="${id}" value="${value ?? ""}" class="bd-die" placeholder="d10" aria-label="${esc(L("die"))} ${n}">`;
-const rollBtn = (act, attrs = "") =>
-  `<button type="button" class="secondary" data-act="${act}"${attrs}>${icon("dices")} ${esc(L("roll"))}</button>`;
+
+/** The last step; Next stops here, where Finish is. */
+const LAST = 5;
 
 export function afterBattleHtml(g, ev) {
   const a = g.campaign.afterBattle;
+  // A gathering saved when there were seven steps may be on a step that is gone.
+  const step = Math.min(Math.max(0, Number(a.step) || 0), LAST);
   const steps = catalog().rules.after_battle || [];
   // The steps are a sequence, so they're numbered; the ones behind the
   // current step are marked done.
-  const crumb = (n, text) => `<li class="${a.step === n ? "now" : a.step > n ? "done" : ""}">
-      <button type="button" data-act="ab-goto" data-step="${n}"${a.step === n ? ' aria-current="step"' : ""}>${esc(text)}</button></li>`;
+  const crumb = (n, text) => `<li class="${step === n ? "now" : step > n ? "done" : ""}">
+      <button type="button" data-act="ab-goto" data-step="${n}"${step === n ? ' aria-current="step"' : ""}>${esc(text)}</button></li>`;
   const crumbs = `<ol class="bd-crumbs">${crumb(0, L("battle"))}${steps.map((s, n) => crumb(n + 1, pickField(s, "name", lang()))).join("")}</ol>`;
-  // Phones show one progress line, "Step 4 of 7: …", instead of the full list
+  // Phones show one progress line, "Step 4 of 5: …", instead of the full list
   // (the CSS picks one by width); Back and Next are the buttons below the step.
-  const now = a.step === 0 ? L("battle")
-    : L("stepOf").replace("{n}", a.step).replace("{total}", steps.length).replace("{name}", pickField(steps[a.step - 1] || {}, "name", lang()));
+  const now = step === 0 ? L("battle")
+    : L("stepOf").replace("{n}", step).replace("{total}", steps.length).replace("{name}", pickField(steps[step - 1] || {}, "name", lang()));
   const stepper = `<p class="bd-stepper" role="status" aria-label="${esc(L("afterBattleSteps"))}"><span class="bd-stepper-now">${esc(now)}</span></p>`;
-  const body = [battleStep, maladiesStep, rewardsStep, minorStep, ambitionsStep, totalStep, bazaarStep, scenarioStep][a.step](g, a, ev);
+  const body = STEPS[step](g, a, ev);
   return `
     <div class="bd-panel bd-wizard">
       <h3>${esc(L("afterBattleT"))}</h3>
@@ -170,21 +139,13 @@ export function afterBattleHtml(g, ev) {
       ${stepper}
       <div class="bd-step">${noticeHtml(g)}${body}</div>
       <div class="bd-inline bd-wizard-nav">
-        <button type="button" class="secondary" data-act="ab-step" data-by="-1"${a.step === 0 ? " disabled" : ""}>${esc(L("back"))}</button>
-        ${a.step < 7 ? `<button type="button" class="primary" data-act="ab-step" data-by="1">${esc(L(a.step === 0 ? "begin" : "next"))}</button>` : ""}
+        <button type="button" class="secondary" data-act="ab-step" data-by="-1"${step === 0 ? " disabled" : ""}>${esc(L("back"))}</button>
+        ${step < LAST ? `<button type="button" class="primary" data-act="ab-step" data-by="1">${esc(L(step === 0 ? "begin" : "next"))}</button>` : ""}
         <span class="spacer"></span>
         <button type="button" class="link danger" data-act="ab-discard">${esc(L("discardSequence"))}</button>
       </div>
     </div>`;
 }
-
-/** A <select>; `label` names it when no <label> around it does. */
-function select(id, opts, current, { act = "", attrs = "", empty = null, label = "" } = {}) {
-  return `<select id="${id}"${act ? ` data-act="${act}"` : ""}${label ? ` aria-label="${esc(label)}"` : ""}${attrs}>` +
-    (empty != null ? `<option value="">${esc(empty)}</option>` : "") +
-    opts.map(([v, t]) => `<option value="${esc(v)}"${v === current ? " selected" : ""}>${esc(t)}</option>`).join("") + `</select>`;
-}
-const opts = (cat) => rows(cat).map(([k, r]) => [k, pickField(r, "name", lang())]);
 
 function battleStep(g, a) {
   const b = a.battle;
@@ -275,89 +236,16 @@ function rewardsStep(g, a) {
 
 const minorStep = (g) => `${stepText("minor")}<p class="bd-hint">${esc(L("stepMinor"))}</p>${ambitionsHtml(g)}`;
 const ambitionsStep = (g) => `${stepText("ambitions")}<p class="bd-hint">${esc(L("stepAmbitions"))}</p>${pendingHtml(g)}${ambitionsHtml(g)}`;
+
 function totalStep(g) {
   const owed = greaterOwed(g);
+  const lost = g.campaign.afterBattle.treasuresLeft;
   return `${stepText("total")}<p class="bd-hint">${esc(L("stepTotal"))}</p>
     <p>${g.ambitions.completed} ${esc(L("completed"))}</p>
-    ${owed > 0 ? "" : `<p>${esc(L("noneOwed"))}</p>`}${pendingHtml(g)}`;
-}
-
-function bazaarStep(g, a) {
-  const locs = Object.fromEntries((catalog().rules.bazaar?.locations || []).map(l => [l.key, l]));
-  const text = (k) => `<p class="bd-hint">${esc(pickField(locs[k] || {}, "effect", lang()))}</p>`;
-  const models = g.models.map(m => [m.uid, modelTitle(m)]);
-
-  // Markets: buy gear, recruit, sell gear and treasures.
-  // Thrown weapons are Miscellaneous Equipment (p.41).
-  const gear = [["weapons", ["melee-weapons", "ranged-weapons", "colossal-weapons"]],
-                ["armour", ["armours"]], ["equipment", ["miscellaneous-equipment", "thrown-weapons"]]]
-    .flatMap(([lst, cats]) => cats.flatMap(cat => rows(cat)
-      .filter(([k]) => buyPrice(g, catalog(), k) > 0)       // nothing to buy in a free Improvised Weapon
-      .map(([k, r]) => [`${lst}|${k}`, `${pickField(r, "name", lang())} · ${buyPrice(g, catalog(), k)}`])));
-  // The price includes the weapon a new minion starts with (a beast's Claws and Fangs).
-  const recruits = rows("minions").map(([k, r]) => [k, `${pickField(r, "name", lang())} · ${recruitPrice(g, catalog(), k)}`]);
-  // Anything with a cost sells (the house rule at campaign.js `sellValue`), but
-  // not a beast's last weapon.
-  const sells = g.models.flatMap(m => ["weapons", "armour", "equipment"].flatMap(lst => (m[lst] || []).map((k, n) =>
-    sellValue(catalog(), k) > 0 && !weaponLocked(catalog(), m, lst, n) ? `<span class="bd-item">${esc(modelTitle(m))}: ${esc(name(k))}
-      <button type="button" class="bd-sell" data-act="ab-sell" data-uid="${esc(m.uid)}" data-list="${lst}" data-i="${n}">${esc(L("sell"))} ${sellValue(catalog(), k)}</button></span>` : "")));
-  const b = catalog().rules.bazaar || {};
-  const tVal = (k) => treasureKind(catalog(), k) === "greater" ? b.sell_greater_treasure : b.sell_minor_treasure;
-  const tsells = [[null, g.stash], ...g.models.map(m => [m.uid, m.treasures || []])].flatMap(([from, list]) => list.map((k, n) =>
-    `<span class="bd-item">${esc(name(k))}
-      <button type="button" class="bd-sell" data-act="ab-sell-t" data-from="${esc(from || "")}" data-i="${n}">${esc(L("sell"))} ${tVal(k)}</button></span>`));
-
-  // Soul Binder: the leader's maladies.
-  const souls = g.models.flatMap(m => maladiesOf(m, catalog().rules).map(mal => {
-    const def = (catalog().rules.maladies || []).find(x => x.key === mal.key) || {};
-    return `<span class="bd-item">${esc(modelTitle(m))}: ${esc(pickField(def, "name", lang()) || mal.key)}${mal.stat ? ` (${esc(L(mal.stat))})` : ""}
-      <button type="button" class="bd-sell" data-act="ab-soul" data-uid="${esc(m.uid)}" data-ref="${esc(mal.ref)}">${esc(L("remove"))} · ${b.soul_binder}</button></span>`;
-  }));
-
-  // Tomb Robber: once per gathering.
-  const tomb = g.campaign.tombRobberUsed ? `<p>${esc(L("tombUsed"))}</p>` : `
-    <div class="bd-inline">${rollBtn("ab-tomb-roll")}
-      ${select("ab-tomb-pick", treasureTable(catalog(), "minor").map(k => [k, name(k)]), a.tombRoll, { act: "ab-tomb-pick", empty: L("pickTreasure"), label: L("pickTreasure") })}
-      ${a.tombRoll ? `${esc(L("giveTo"))} ${select("ab-tomb-to", models, null, { empty: L("stash"), label: L("giveTo") })}
-        <button type="button" class="secondary" data-act="ab-tomb-take">${esc(L("payTake"))} · ${b.tomb_robber}</button>
-        <button type="button" class="secondary" data-act="ab-tomb-decline">${esc(L("decline"))}</button>` : ""}
-    </div>`;
-
-  const alchemy = !hasAlchemy(g, catalog()) ? "" : `
-    <h4>${esc(L("alchemy"))}</h4>
-    ${a.alchemyBought ? `<p>${esc(L("alchemyDone"))}</p>` : `<div class="bd-inline">
-      ${select("ab-alc-key", [...rows("potions"), ...rows("throwing-pots")].map(([k, r]) => [k, `${pickField(r, "name", lang())} · ${price(r)}`]), null, { label: L("itemToBuy") })}
-      ${esc(L("giveTo"))} ${select("ab-alc-to", models, null, { empty: L("stash"), label: L("giveTo") })}
-      <button type="button" class="secondary" data-act="ab-alchemy">${esc(L("buyGear"))}</button></div>`}`;
-
-  return `${stepText("bazaar")}
-    <h4>${esc(L("markets"))}</h4>${text("markets")}
-    <div class="bd-inline">${select("ab-buy-item", gear, null, { label: L("itemToBuy") })} ${esc(L("forModel"))} ${select("ab-buy-model", models, null, { label: L("buyFor") })}
-      <button type="button" class="secondary" data-act="ab-buy">${esc(L("buyGear"))}</button></div>
-    <div class="bd-inline">${select("ab-recruit-key", recruits, null, { label: L("minionToRecruit") })}
-      <button type="button" class="secondary" data-act="ab-recruit">${esc(L("recruit"))}</button></div>
-    <div class="bd-items">${sells.join("")}${tsells.join("")}</div>
-    <h4>${esc(L("soulBinder"))}</h4>${text("soul-binder")}
-    <div class="bd-items">${souls.join("") || `<small>${esc(L("noMaladies"))}</small>`}</div>
-    <h4>${esc(L("tombRobber"))}</h4>${text("tomb-robber")}${tomb}
-    ${alchemy}
-    ${upgradesHtml(g)}`;
-}
-
-function scenarioStep(g, a) {
-  const next = a.next || {};
-  const part = (p, labelKey, extra = "") => `
-    <div class="bd-inline"><b>${esc(L(labelKey))}</b>
-      ${rollBtn("ab-roll-scn", ` data-part="${p}"`)}
-      ${select(`ab-next-${p}`, opts(p), next[p], { act: "ab-next", attrs: ` data-part="${p}"`, empty: L("none"), label: L(labelKey) })}${extra}</div>`;
-  const reroll = a.omenAgreed && next["dread-omens"] && canRerollOmen(g) && !a.omenRerolled
-    ? ` <button type="button" class="secondary" data-act="ab-roll-scn" data-part="dread-omens" data-reroll="1">${esc(L("rerollOmen"))}</button>` : "";
-  return `${stepText("scenario")}
-    ${part("environments", "environment")}
-    ${part("missions", "mission")}
-    <label class="bd-check"><input type="checkbox" data-act="ab-omen-agree"${a.omenAgreed ? " checked" : ""}> ${esc(L("bothAgree"))}</label>
-    ${a.omenAgreed ? part("dread-omens", "omen", reroll) : ""}
-    ${a.treasuresLeft > 0 ? `<p class="bd-warn-line">${a.treasuresLeft} ${esc(L("treasureRolls"))} — ${esc(L("rollsLost"))}</p>` : ""}
+    ${owed > 0 ? "" : `<p>${esc(L("noneOwed"))}</p>`}${pendingHtml(g)}
+    ${lost > 0 ? `<p class="bd-warn-line">${lost} ${esc(L("treasureRolls"))} — ${esc(L("rollsLost"))}</p>` : ""}
     ${deployNoteHtml(g)}
     <p><button type="button" class="primary" data-act="ab-finish" data-fid="ab-finish">${esc(L("finish"))}</button></p>`;
 }
+
+const STEPS = [battleStep, maladiesStep, rewardsStep, minorStep, ambitionsStep, totalStep];

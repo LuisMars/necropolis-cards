@@ -27,6 +27,7 @@ import {
 } from "./builder/campaign.js";
 import { maladiesOf } from "./builder/ledger.js";
 import { summary } from "./builder-picker.js";
+import { bazaarPanel, scenarioPanel } from "./builder-bazaar.js";
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
@@ -193,6 +194,8 @@ export function campaignHtml(g, ev) {
     noticeHtml(g),
     pendingHtml(g),
     fold("treasury", deploymentPanel(g, ev)),
+    fold("bazaar", bazaarPanel(g)),
+    fold("scenario", scenarioPanel(g), scenarioMeta(g)),
     fold("ambitions", ambitionsPanel(g)),
     fold("treasures", treasuresPanel(g)),
     fold("upgrades", upgradesPanel(g), `${g.lair.upgrades.length} ${L("ownedCount")}`),
@@ -200,6 +203,12 @@ export function campaignHtml(g, ev) {
     fold("history", historyPanel(g)),
     fold("log", battleLogPanel(g), `${g.history.length} ${L(g.history.length === 1 ? "battleCount1" : "battleCount")}`),
   ].join("");
+}
+
+/** Fold meta for "Next scenario": how many of its parts are picked. */
+function scenarioMeta(g) {
+  const n = Object.values(g.campaign.nextScenario || {}).filter(Boolean).length;
+  return n ? `${n} / 3` : "";
 }
 
 /* Sections fold so the view leads with what's used every game. Their open

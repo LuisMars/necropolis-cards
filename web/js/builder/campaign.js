@@ -409,7 +409,6 @@ export function startAfterBattle(g, battle) {
     done: {},
     obols: 0,
     treasuresLeft: 0,
-    alchemyBought: false,
   };
   return g.campaign.afterBattle;
 }
@@ -730,13 +729,13 @@ export function tombRobber(g, catalog, key, { pay: buy = true, to = null } = {})
   return true;
 }
 
-/** Alchemy Workshop: 1 potion or throwing pot per after-battle sequence. */
+/** Alchemy Workshop: 1 potion or throwing pot per after-battle sequence (finishing one resets it). */
 export const hasAlchemy = (g, catalog) =>
   (g.lair?.upgrades || []).some(k => catalog.row(k)?.modifiers?.shop === "alchemy");
 export function buyAlchemy(g, catalog, key, to = null) {
-  const a = ab(g);
-  if (a.alchemyBought || !hasAlchemy(g, catalog)) return false;
-  a.alchemyBought = true;
+  ensureCampaign(g, catalog);
+  if (g.campaign.alchemyBought || !hasAlchemy(g, catalog)) return false;
+  g.campaign.alchemyBought = true;
   const cost = price(catalog.row(key));
   pay(g, -cost);
   record(g, "alchemy", { item: key, uid: to, obols: -cost });
@@ -744,7 +743,7 @@ export function buyAlchemy(g, catalog, key, to = null) {
   return true;
 }
 
-/* Step 7: the next scenario. */
+/* The next scenario (picked in the Campaign view's "Next scenario" fold). */
 
 /** Has "Read the Omens" been completed (one omen reroll per scenario)? */
 export const canRerollOmen = (g) => (g.ambitions?.log || []).some(e => e.ambition === "ambitions/read-the-omens");
@@ -763,13 +762,17 @@ function takeTransactions(g) {
 }
 
 /** Finish: log the battle (its obols are already in the treasury). */
-export function finishAfterBattle(g, nextScenario = null) {
+export function finishAfterBattle(g) {
   const a = ab(g);
   g.history.push({
     date: a.battle.date, environment: a.battle.environment, mission: a.battle.mission,
     omen: a.battle.omen, result: a.battle.result, obols: a.obols, notes: a.battle.notes,
     transactions: takeTransactions(g),
   });
-  g.campaign.nextScenario = nextScenario;
+  // The scenario picked in the Campaign view was this battle's; the next one starts blank.
+  g.campaign.nextScenario = null;
+  g.campaign.omenAgreed = false;
+  g.campaign.omenRerolled = false;
+  g.campaign.alchemyBought = false;
   delete g.campaign.afterBattle;
 }
