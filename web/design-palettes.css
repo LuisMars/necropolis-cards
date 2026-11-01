@@ -59,7 +59,7 @@
   #bd-body .bd-amb.done .bd-prog,.bd-good{color:var(--nc-success)}
   #bd-body .bd-choice,.bd-item,.bd-tag{background:var(--nc-raised);border-color:var(--nc-line-soft);color:var(--nc-bone)}
   .lib-tile{background:var(--nc-surface);border-color:var(--nc-line-soft)}
-  .lib-tile:hover{background:var(--nc-raised);border-color:var(--nc-line)}
+  @media (hover:hover){.lib-tile:hover{background:var(--nc-raised);border-color:var(--nc-line)}}
   .lib-tile.has-printed{border-color:var(--nc-success)}
   .lib-tile .cat,.lib-tile .printed-ctl button{background:var(--nc-raised);color:var(--nc-secondary);border-color:var(--nc-line-soft)}
   .lib-tile .add,.bd-status{color:var(--nc-success)}

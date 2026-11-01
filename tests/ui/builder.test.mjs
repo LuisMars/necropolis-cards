@@ -249,26 +249,19 @@ test("adding the roster's cards to the queue leads to the queue", async () => {
   assert.ok(await page.isVisible("#queue-list .queue-item"));
 });
 
-test("the Print button names what it prints, or why it can't", async () => {
+test("the Print button names what it prints, and is absent when it can't", async () => {
   const { page } = await open();
   const btn = "#global-print-btn";
-  const reason = () => page.evaluate(() => {
-    const b = document.getElementById("global-print-btn");
-    return document.getElementById(b.getAttribute("aria-describedby")).textContent;
-  });
   // Cards, empty queue.
   assert.equal(await text(page, btn), "Print 0 cards");
-  assert.ok(await page.isDisabled(btn));
-  assert.match(await reason(), /queue is empty/);
-  assert.equal(await page.getAttribute(btn, "title"), await reason());
+  assert.ok(await page.isHidden(btn));
   // Gatherings with nothing open.
   await go(page, "gatherings");
   assert.equal(await text(page, btn), "Print roster");
-  assert.ok(await page.isDisabled(btn));
+  assert.ok(await page.isHidden(btn));
   await importLink(page);
   assert.equal(await text(page, btn), "Print roster");
-  assert.ok(await page.isEnabled(btn));
-  assert.equal(await reason(), "");
+  assert.ok(await page.isVisible(btn));
   await page.click('[data-act="view"][data-view="campaign"]');
   assert.equal(await text(page, btn), "Print roster");
   // Queue the cards, then Cards says how many.
@@ -278,7 +271,7 @@ test("the Print button names what it prints, or why it can't", async () => {
   const n = await page.textContent("#queue-count");
   await go(page, "cards");
   assert.equal(await text(page, btn), `Print ${n} cards`);
-  assert.ok(await page.isEnabled(btn));
+  assert.ok(await page.isVisible(btn));
   // Only one primary action in the header.
   assert.equal(await page.locator("header.app :is(.primary, .print-btn)").count(), 1);
   // Spanish.
@@ -809,24 +802,14 @@ test("closing Import with no gathering open keeps focus on Import", async () => 
   assert.equal(await page.evaluate(() => document.activeElement.dataset.act), "import");
 });
 
-test("the reason Print is unavailable can be reached and read", async () => {
+test("Print is absent while there is nothing to print, and appears when there is", async () => {
   const { page } = await open();
   await page.evaluate(() => { window.printed = 0; window.print = () => { window.printed++; }; });
-  const reason = page.locator("#print-reason");
-  assert.equal(await reason.evaluate(el => el.hidden), false);
-  assert.match(await reason.textContent(), /queue is empty/);
-  // The keyboard reaches it, it describes the button, and it does nothing.
-  await page.focus("#global-print-btn");
-  assert.equal(await page.evaluate(() => document.activeElement.id), "global-print-btn");
-  assert.equal(await page.getAttribute("#global-print-btn", "aria-disabled"), "true");
-  await page.keyboard.press("Enter");
-  await page.waitForTimeout(100);
-  assert.equal(await page.evaluate(() => window.printed), 0);
-  assert.equal(page.url().endsWith("#cards/queue"), false);
-  // With something to print the reason goes and the button works.
-  await importLink(page);
-  assert.equal(await reason.evaluate(el => el.hidden), true);
+  assert.equal(await page.isHidden("#global-print-btn"), true);
+  assert.equal(await page.isHidden("#print-reason"), true);
   assert.equal(await page.getAttribute("#global-print-btn", "aria-disabled"), null);
+  await importLink(page);
+  assert.equal(await page.isVisible("#global-print-btn"), true);
   await page.click("#global-print-btn");
   await page.waitForTimeout(200);
   assert.equal(await page.evaluate(() => window.printed), 1);

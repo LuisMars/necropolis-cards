@@ -179,14 +179,13 @@ function refreshHeader() {
   $printBtn.querySelector(".pb-rest").textContent = ` ${rest}`;
   // Phones show only the verb; the name still says what it prints.
   $printBtn.setAttribute("aria-label", `${verb} ${rest}`);
-  // Unavailable, it stays focusable (aria-disabled, not disabled) so the
-  // keyboard reaches it and hears why; the reason shows beside it
-  // (#print-reason: a tooltip on hover or focus, plain text on phones).
-  if (reason) $printBtn.setAttribute("aria-disabled", "true");
-  else $printBtn.removeAttribute("aria-disabled");
-  $printBtn.title = reason;
-  $printReason.textContent = reason;
-  $printReason.hidden = !reason;
+
+  // Nothing to print: the button and its reason line are not shown at all.
+  $printBtn.hidden = !!reason;
+  $printBtn.removeAttribute("aria-disabled");
+  $printBtn.title = "";
+  $printReason.textContent = "";
+  $printReason.hidden = true;
 }
 
 document.addEventListener("click", (e) => {
@@ -211,7 +210,7 @@ document.addEventListener("pointerdown", (e) => {
 // a snapshot of hidden tabs and print them as blank), then open the dialog
 // on the next frame: the roster on Gatherings, the card sheets on Cards.
 $printBtn.addEventListener("click", () => {
-  if ($printBtn.getAttribute("aria-disabled") === "true") return;
+  if ($printBtn.hidden) return;
   const roster = ROUTES[current]?.dest === "gatherings";
   navigate(roster ? (ROUTES[current].part === "cards" ? "gatherings/roster/cards" : "gatherings/roster") : "cards/queue");
   if (roster) document.body.classList.add("printing-warband");

@@ -196,7 +196,7 @@ textarea.json-in { resize: vertical; }
 }
 .lib-tile .tile-head { display: flex; align-items: center; gap: 8px; }
 .lib-tile .cat { margin-right: auto; }
-.lib-tile:hover .add { color: var(--text); }
+@media (hover: hover) { .lib-tile:hover .add { color: var(--text); } }
 .lib-tile .name { font-weight: 600; line-height: 1.25; color: var(--text); }
 .lib-tile .preview {
   line-height: 1.4;
@@ -213,7 +213,7 @@ textarea.json-in { resize: vertical; }
   line-height: 1; padding: 0; border: 1px solid;
   cursor: pointer; font: inherit; font-size: 14px;
 }
-.lib-tile .printed-ctl button:hover { background: var(--panel3); border-color: var(--accent); }
+@media (hover: hover) { .lib-tile .printed-ctl button:hover { background: var(--panel3); border-color: var(--accent); } }
 .lib-tile .printed-n {
   min-width: 16px; text-align: center; font-weight: 600; font-size: 13px;
 }

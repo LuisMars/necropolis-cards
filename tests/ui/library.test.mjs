@@ -1,0 +1,112 @@
+/**
+ * Cards > Library: the More menu and the per-card printed stepper.
+ * Run with `npm run test:ui`.
+ */
+import { test, before, after } from "node:test";
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { chromium } from "playwright";
+
+const ROOT = fileURLToPath(new URL("../..", import.meta.url));
+const PORT = 8767;
+const URL_ = `http://localhost:${PORT}/#cards`;
+
+let server, browser, page;
+
+before(async () => {
+  server = spawn("python3", ["web/serve.py", String(PORT)], { cwd: ROOT, stdio: "ignore" });
+  for (let i = 0; i < 50; i++) {
+    try { if ((await fetch(URL_)).ok) break; } catch {}
+    await new Promise(r => setTimeout(r, 100));
+  }
+  browser = await chromium.launch();
+  page = await (await browser.newContext({ viewport: { width: 390, height: 800 } })).newPage();
+  await page.goto(URL_);
+  await page.waitForFunction(() => document.querySelectorAll(".lib-tile").length > 1);
+});
+after(async () => { await browser?.close(); server?.kill(); });
+
+test("More menu holds the inventory actions, closes on acting, Escape and outside tap", async () => {
+  const open = () => page.evaluate(() => document.getElementById("lib-more").open);
+  assert.equal(await open(), false);
+  assert.equal(await page.isHidden("#inv-export-file"), true);
+  await page.click("#lib-more > summary");
+  assert.equal(await open(), true);
+  for (const id of ["lib-add-all", "inv-export-file", "inv-import-file", "inv-copy", "inv-paste-toggle"]) {
+    assert.equal(await page.isVisible("#" + id), true, id);
+    assert.ok((await page.locator("#" + id).boundingBox()).height >= 44, id);
+  }
+  // Acting closes it; the paste panel stays visible.
+  await page.click("#inv-paste-toggle");
+  assert.equal(await open(), false);
+  assert.equal(await page.isVisible("#inv-paste-panel"), true);
+  await page.click("#inv-paste-cancel");
+  // Escape.
+  await page.click("#lib-more > summary");
+  await page.keyboard.press("Escape");
+  assert.equal(await open(), false);
+  // Outside tap.
+  await page.click("#lib-more > summary");
+  await page.click("#lib-count");
+  assert.equal(await open(), false);
+  // Status stays visible after the menu closes.
+  await page.click("#lib-more > summary");
+  await page.click("#inv-export-file");
+  assert.equal(await open(), false);
+  assert.match(await page.textContent("#inv-status"), /Exported/);
+  assert.equal(await page.isVisible("#inv-status"), true);
+});
+
+test("a card's printed stepper opens on demand, one at a time, keeping focus", async () => {
+  const toggles = page.locator(".lib-tile .printed-toggle");
+  const stepperShown = (i) => page.locator(".lib-tile").nth(i).locator(".printed-ctl").isVisible();
+  assert.equal(await stepperShown(0), false);
+  assert.equal(await toggles.nth(0).getAttribute("aria-expanded"), "false");
+  assert.match(await toggles.nth(0).textContent(), /printed/);
+  const queueBefore = await page.locator(".lib-tile .in-queue").count();
+  await toggles.nth(0).click();
+  assert.equal(await stepperShown(0), true);
+  assert.equal(await toggles.nth(0).getAttribute("aria-expanded"), "true");
+  // Tapping the toggle did not add the card.
+  assert.equal(await page.locator(".lib-tile .in-queue").count(), queueBefore);
+  // Stepping survives the re-render and keeps focus on the same button.
+  await page.locator(".lib-tile").nth(0).locator(".inc").click();
+  assert.equal(await page.evaluate(() => document.activeElement.className), "inc");
+  assert.match(await toggles.nth(0).textContent(), /^1 printed/);
+  assert.equal(await stepperShown(0), true);
+  // Opening another closes the first.
+  await toggles.nth(1).click();
+  assert.equal(await stepperShown(1), true);
+  assert.equal(await stepperShown(0), false);
+  // Tapping again closes it.
+  await toggles.nth(1).click();
+  assert.equal(await stepperShown(1), false);
+  assert.equal(await page.evaluate(() => document.activeElement.className), "printed-toggle");
+  // "+ Add" adds once.
+  const n0 = await page.locator(".lib-tile .queue-ctl").count();
+  await page.locator(".lib-tile .add").nth(2).click();
+  assert.equal(await page.locator(".lib-tile .queue-ctl").count(), n0 + 1);
+  assert.equal((await page.locator(".lib-tile .queue-n").first().textContent()).trim(), "1");
+});
+
+test("a queued card gets a - / N / + control that unqueues down to + Add", async () => {
+  const tile = page.locator(".lib-tile").filter({ has: page.locator(".queue-ctl") }).first();
+  const name = await tile.locator(".name").textContent();
+  const nav = () => page.textContent("#queue-count");
+  const before = await nav();
+  await tile.locator(".qinc").click();
+  assert.equal((await tile.locator(".queue-n").textContent()).trim(), "2");
+  assert.equal(await page.evaluate(() => document.activeElement.className), "add qinc");
+  assert.notEqual(await nav(), before);
+  const less = tile.locator(".qdec");
+  assert.ok((await less.boundingBox()).height >= 44);
+  assert.match(await less.getAttribute("aria-label"), new RegExp(name.trim().slice(0, 6)));
+  await less.click();
+  assert.equal((await tile.locator(".queue-n").textContent()).trim(), "1");
+  assert.equal(await page.evaluate(() => document.activeElement.className), "qdec");
+  assert.equal(await nav(), before);
+  await less.click();
+  assert.equal(await page.locator(".lib-tile").filter({ hasText: name.trim() }).first().locator(".queue-ctl").count(), 0);
+  assert.equal(await page.locator(".lib-tile").filter({ hasText: name.trim() }).first().locator("button.add").isVisible(), true);
+});

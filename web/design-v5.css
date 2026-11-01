@@ -37,7 +37,8 @@
     min-height:44px;box-sizing:border-box;padding:0 12px;color:var(--nc-secondary);
     font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;
   }
-  .nav-settings > summary:hover,.nav-settings[open] > summary{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}
+  .nav-settings[open] > summary{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}
+  @media (hover:hover){.nav-settings > summary:hover{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}}
   .nav-settings .nav-chev{font-size:13px;line-height:1}
   .nav-settings-panel{
     border-width:1px;border-style:solid;border-radius:3px;
@@ -188,7 +189,6 @@
   .lib-tile .preview{font-size:14px;color:var(--nc-secondary)}
   .lib-tile .cat{font-family:'Alegreya SC',Georgia,serif}
   .lib-tile .in-queue{background:var(--nc-primary);color:var(--nc-on-primary)}
-  .lib-tile .printed-ctl button{min-width:var(--nc-target-sm);min-height:var(--nc-target-sm);border-radius:3px}
   .lib-tile .need{border-radius:3px}
   .queue-item .name:focus{outline-color:var(--nc-bone);background:var(--nc-raised)}
   .queue-item button{min-width:var(--nc-target-xs);min-height:var(--nc-target-xs)}
@@ -732,7 +732,7 @@
   .lib-more[open] > summary{background:var(--nc-hover);color:var(--nc-bone)}
   @media (hover:hover){.lib-more > summary:hover{background:var(--nc-hover);color:var(--nc-bone)}}
   .lib-more > summary:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
-  .lib-more .nav-chev{font-size:13px;line-height:1;transition:transform .12s ease}
+  .lib-more .nav-chev{display:inline-flex;font-size:13px;line-height:1;transition:transform .12s ease}
   .lib-more .nav-chev .nc-icon{width:15px;height:15px}
   .lib-more[open] .nav-chev{transform:rotate(180deg)}
   .lib-more-panel{
@@ -748,4 +748,30 @@
   p.inv-status{margin:0 0 10px;font-size:15px}
   p.inv-status:empty{display:none}
   p.inv-status.err{color:var(--nc-error)}
+}
+
+/* === Library tile: quiet "N printed" toggle, stepper on demand === */
+@media screen {
+  .lib-tile .queue-ctl{display:inline-flex;align-items:center;gap:2px}
+  .lib-tile .queue-ctl button{min-width:44px;min-height:44px;border-radius:3px;padding:0;font-size:18px;line-height:1}
+  .lib-tile .queue-ctl .queue-n{min-width:20px;text-align:center;font-size:15px;font-weight:700;padding:0 4px;border-radius:3px}
+  .lib-tile .queue-ctl button:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+  .lib-tile .add,.lib-tile .printed-toggle{
+    min-height:44px;min-width:44px;padding:0 6px;background:none;border:0;border-radius:3px;
+    font:inherit;cursor:pointer;
+  }
+  .lib-tile .add{font-size:15px;font-weight:700}
+  .lib-tile .printed-toggle{color:var(--nc-secondary);font-size:13px;text-decoration:underline;text-decoration-color:var(--nc-line);text-underline-offset:3px;margin-left:-6px}
+  .lib-tile .printed-toggle[aria-expanded="true"]{color:var(--nc-bone)}
+  .lib-tile .printed-ctl[hidden]{display:none}
+  .lib-tile .printed-ctl button{min-width:44px;min-height:44px;border-radius:3px}
+  .lib-tile :is(.add,.printed-toggle):focus-visible,.lib-tile .printed-ctl button:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+}
+
+/* === Print button: absent while there is nothing to print === */
+@media screen {
+  header.app button.print-btn[hidden]{display:none}
+  @media (max-width:720px){
+    header.app:has(> button.print-btn[hidden]){grid-template-areas:"brand settings" "nav nav"}
+  }
 }

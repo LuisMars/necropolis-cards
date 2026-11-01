@@ -43,6 +43,8 @@ let onChangeCb = null;
 // The set of cards currently shown by the active filter, so "Add all in
 // view" and the live re-render after a queue change stay in sync.
 let inView = [];
+// The card whose printed stepper is open (one at a time), by cardId.
+let openPrintedId = null;
 
 export function initLibrary({ onChange }) {
   onChangeCb = onChange;
@@ -134,7 +136,17 @@ function addToQueue(key, row) {
   state.queue.push({ key, row, override: null });
 }
 
+/** Remove one queued copy of (key, name): the latest, matched as queuedCount does. */
+function removeFromQueue(key, row) {
+  for (let i = state.queue.length - 1; i >= 0; i--) {
+    const q = state.queue[i];
+    if (q.key === key && (q.row?.name || "") === (row.name || "")) { state.queue.splice(i, 1); return; }
+  }
+}
+
 function renderGrid() {
+  // Keep keyboard focus on the same control across the rebuild below.
+  const fid = document.activeElement?.closest?.("#lib-grid") ? document.activeElement.dataset.fid : null;
   const q = $search.value.trim().toLowerCase();
   const catFilter = $cat.value;
   $grid.innerHTML = "";
@@ -154,6 +166,11 @@ function renderGrid() {
     (queuedInView ? ` · ${plural("libInQueue", queuedInView, lang())}` : "");
   $addAll.disabled = inView.length === 0;
   $addAll.innerHTML = `${icon("plus")} ${escapeHtml(plural("libAddAll", inView.length, lang()))}`;
+  if (fid) {
+    const find = (f) => [...$grid.querySelectorAll("[data-fid]")].find(el => el.dataset.fid === f);
+    // The - button vanishes at 0 queued; focus moves to that card's + Add.
+    (find(fid) || find(fid.replace(/:qdec$/, ":add")))?.focus();
+  }
 }
 
 function buildTile(key, cat, row) {
@@ -161,23 +178,30 @@ function buildTile(key, cat, row) {
   const printed = printedCount(key, row.name);
   const need    = Math.max(0, queued - printed);
   const preview = previewText(row);
+  const id      = cardId(key, row.name);
+  const open    = openPrintedId === id;
 
   const t = document.createElement("div");
   t.className = "lib-tile" + (printed ? " has-printed" : "");
   t.innerHTML = `
     <div class="tile-head">
       <span class="cat">${escapeHtml(catName(key, cat))}</span>
-      ${queued ? `<span class="in-queue">${escapeHtml(plural("libQueued", queued, lang()))}</span>` : ""}
-      <span class="add">${escapeHtml(L("libAdd"))}</span>
+      ${queued ? `<span class="queue-ctl" title="${escapeHtml(plural("libQueued", queued, lang()))}">
+        <button type="button" class="qdec" data-fid="${escapeHtml(id)}:qdec" aria-label="${escapeHtml(plural("libQueueLess", 1, lang(), { name: displayName(row) }))}">−</button>
+        <span class="in-queue queue-n" aria-live="polite">${queued}</span>
+        <button type="button" class="add qinc" data-fid="${escapeHtml(id)}:add" aria-label="${escapeHtml(plural("libQueueMore", 1, lang(), { name: displayName(row) }))}">+</button>
+      </span>`
+      : `<button type="button" class="add" data-fid="${escapeHtml(id)}:add">${escapeHtml(L("libAdd"))}</button>`}
     </div>
     <span class="name">${escapeHtml(displayName(row))}</span>
     ${preview ? `<span class="preview">${escapeHtml(preview)}</span>` : ""}
     <div class="tile-foot">
-      <span class="printed-ctl" title="${escapeHtml(L("libPrintedTitle"))}">
-        <button type="button" class="dec" aria-label="${escapeHtml(L("libPrintedLess"))}">−</button>
+      <button type="button" class="printed-toggle" data-fid="${escapeHtml(id)}:toggle" aria-expanded="${open}"
+        title="${escapeHtml(L("libPrintedTitle"))}">${escapeHtml(plural("libPrintedN", printed, lang()))}</button>
+      <span class="printed-ctl" ${open ? "" : "hidden"} title="${escapeHtml(L("libPrintedTitle"))}">
+        <button type="button" class="dec" data-fid="${escapeHtml(id)}:dec" aria-label="${escapeHtml(L("libPrintedLess"))}">−</button>
         <span class="printed-n">${printed}</span>
-        <button type="button" class="inc" aria-label="${escapeHtml(L("libPrintedMore"))}">+</button>
-        <span class="printed-lbl">${escapeHtml(L("libPrinted"))}</span>
+        <button type="button" class="inc" data-fid="${escapeHtml(id)}:inc" aria-label="${escapeHtml(L("libPrintedMore"))}">+</button>
       </span>
       ${queued
         ? (need > 0
@@ -186,15 +210,28 @@ function buildTile(key, cat, row) {
         : ""}
     </div>`;
 
-  // Whole tile adds to the queue; the stepper buttons must not bubble up.
+  // Whole tile adds to the queue (the "+ Add" button just bubbles up to it, so
+  // a tap or Enter adds once); the printed controls must not bubble up.
   t.addEventListener("click", () => {
     addToQueue(key, row);
     saveQueue();
     renderGrid();
     onChangeCb?.();
   });
+  t.querySelector(".qdec")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    removeFromQueue(key, row);
+    saveQueue();
+    renderGrid();
+    onChangeCb?.();
+  });
   const stepper = t.querySelector(".printed-ctl");
   stepper.addEventListener("click", (e) => e.stopPropagation());
+  t.querySelector(".printed-toggle").addEventListener("click", (e) => {
+    e.stopPropagation();
+    openPrintedId = openPrintedId === id ? null : id;
+    renderGrid();
+  });
   stepper.querySelector(".dec").addEventListener("click", () => bumpPrinted(key, row.name, -1));
   stepper.querySelector(".inc").addEventListener("click", () => bumpPrinted(key, row.name, +1));
 
