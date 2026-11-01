@@ -181,6 +181,17 @@ test("recruiting and hiring under a lock take the covenant keyword; a Ghast keep
   assert.equal(recruit(free, catalog, "minions/familiar").affinity, null);
 });
 
+test("hiring a sellsword under a locked covenant takes the forced keyword, paid or free", async () => {
+  const { newGathering } = await import("../web/js/builder/gathering.js");
+  const g = newGathering({ covenant: "covenants/cairn-born" });
+  g.campaign = { ...(g.campaign || {}), treasury: 100 };
+  assert.equal(hireSellsword(g, "sellswords/blightblade-beast-hunter", catalog).affinity, "bone");
+  assert.equal(hireSellsword(g, "sellswords/desperate-rabble", catalog, { free: true }).affinity, "bone");
+  const free = newGathering({ covenant: "covenants/recusant-maleficar" });
+  free.campaign = { ...(free.campaign || {}), treasury: 100 };
+  assert.equal(hireSellsword(free, "sellswords/desperate-rabble", catalog, { free: true }).affinity, null);
+});
+
 test("a completed ambition leaves the active list, repeats stack, undo restores it", () => {
   const g = example();
   startCampaign(g, catalog);
