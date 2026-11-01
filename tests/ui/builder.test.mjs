@@ -76,7 +76,7 @@ test("an imported link shows its models, cost and warnings", async () => {
   const side = await text(page, ".bd-ghead");
   assert.match(side, /345 of 300/);
   assert.match(side, /345 obols spent of the 300 for the first build/);
-  assert.match(await text(page, "#bd-model-m1 .bd-warn"), /Mana points split: 0 of 4/);
+  assert.ok(!(await text(page, "#bd-model-m1")).includes("Mana points split"));   // locked mana is prefilled
   assert.deepEqual(errors, []);
 });
 
@@ -1194,5 +1194,26 @@ test("finishing the after-battle sequence asks the same, in Spanish too", async 
   assert.equal(g.history.length, 1);
   assert.equal(g.treasury, 150);
   assert.deepEqual(g.history[0].transactions.map(t => t.type), ["hire", "deploy"]);
+  assert.deepEqual(errors, []);
+});
+
+test("a keyword the covenant forces is plain text, and changing type keeps it", async () => {
+  const { page, errors } = await open();
+  await importLink(page);           // Cairn-born: everything is Bone, a Ghast Plasm
+  assert.equal(await page.locator(".bd-affinity-control input[type=radio]").count(), 0);
+  assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Bone/);
+  assert.equal(await page.locator("#bd-model-m2 .bd-affinity-forced .aff-bone").count(), 1);
+  // The leader's mana starts in the locked keyword, and stays editable.
+  assert.equal(await page.inputValue('#bd-model-m1 [data-act="m-mana"][data-aff="bone"]'), "4");
+  await choose(page, '#bd-model-m1 [data-act="m-mana"][data-aff="bone"]', "2");
+  await choose(page, '#bd-model-m1 [data-act="m-mana"][data-aff="plasm"]', "2");
+  assert.equal(await page.inputValue('#bd-model-m1 [data-act="m-mana"][data-aff="bone"]'), "2");
+  assert.equal(await page.inputValue('#bd-model-m1 [data-act="m-mana"][data-aff="plasm"]'), "2");
+  // Changing a minion's type keeps the forced keyword; a Ghast Husk is Plasm.
+  await choose(page, '#bd-model-m2 [data-act="m-profile"]', "minions/skeletal-husk");
+  assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Bone/);
+  await choose(page, '#bd-model-m2 [data-act="m-profile"]', "minions/ghast-husk");
+  assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Plasm/);
+  assert.match(await text(page, "#bd-model-m2"), /only allows models with Bone/);
   assert.deepEqual(errors, []);
 });
