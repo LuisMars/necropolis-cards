@@ -121,18 +121,22 @@
     .nc-select-trigger, .nc-select-pop { border-color:CanvasText }
   }
 
-  /* Touch devices keep the native picker; it is only themed. */
-  select.nc-select-native {
-    -webkit-appearance:none; appearance:none; box-sizing:border-box;
-    min-height:44px; max-width:100%; padding:9px 49px 9px 13px;
-    color:var(--nc-bone); background-color:var(--nc-control-bg, var(--nc-raised));
-    background-image:
-      linear-gradient(45deg, transparent 50%, currentColor 50%),
-      linear-gradient(135deg, currentColor 50%, transparent 50%);
-    background-position:calc(100% - 22px) 50%, calc(100% - 17px) 50%;
-    background-size:5px 5px, 5px 5px; background-repeat:no-repeat;
-    border:1px solid var(--nc-control-line, var(--nc-line)); border-radius:3px;
-    font:16px/1.35 'Alegreya',Georgia,serif; font-variant-numeric:lining-nums tabular-nums;
-    text-overflow:ellipsis;
+  /* Phone: the popup is a bottom sheet over a backdrop (select.js sets
+     .nc-select-sheet; the keyboard lift is its inline `bottom`). */
+  .nc-select-backdrop {
+    position:fixed; inset:0; z-index:999; background:rgb(0 0 0 / .5);
+    touch-action:none; overscroll-behavior:contain;
   }
+  .nc-select-pop.nc-select-sheet {
+    left:0; right:0; top:auto; bottom:0; width:auto; min-width:0; max-width:none;
+    max-height:70vh; max-height:70dvh;
+    padding-bottom:env(safe-area-inset-bottom);
+    border-width:1px 0 0; border-radius:10px 10px 0 0;
+    overscroll-behavior:contain; animation:none;
+  }
+  .nc-select-sheet .nc-select-filter { touch-action:none }
+  .nc-select-sheet .nc-select-filter-input { font-size:16px }   /* iOS zooms below 16px */
+  .nc-select-sheet .nc-select-list { touch-action:pan-y; overscroll-behavior:contain; -webkit-overflow-scrolling:touch }
+  .nc-select-sheet .nc-select-option { min-height:44px; box-sizing:border-box; padding-top:10px; padding-bottom:10px }
+  .nc-select-sheet .nc-select-option[aria-selected="true"]::before { top:calc(10px + .68em - 6px) }
 }

@@ -16,8 +16,10 @@
  * carry `hidden`, which only the screen styles override, so print shows the
  * native select exactly as before.
  *
- * Coarse pointers (touch) keep the native picker, only restyled, unless
- * { force: true } is passed.
+ * Every pointer gets the themed select (touch included). At max-width 540px
+ * the popup is a bottom sheet over a backdrop instead of a dropdown: options
+ * act on a tap (click), never on a scroll drag, and a tap on the backdrop only
+ * closes it. The filter field is not focused there, so the keyboard stays down.
  *
  * Long lists (more than 12 options) get a filter field at the top of the
  * popup. Options may carry data-reason (or title): shown muted under the
@@ -43,7 +45,7 @@ const VALUE = Object.getOwnPropertyDescriptor(proto, "value");
 const INDEX = Object.getOwnPropertyDescriptor(proto, "selectedIndex");
 
 const optText = o => String(o.label || o.text || "").replace(/\s+/g, " ").trim();
-const isCoarse = () => typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+const isSheet = () => typeof matchMedia === "function" && matchMedia("(max-width: 540px)").matches;
 const el = (tag, cls, attrs = {}) => {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
@@ -54,8 +56,7 @@ const el = (tag, cls, attrs = {}) => {
 /**
  * Enhance every eligible <select> in `root` (or `root` itself).
  * @param {ParentNode|Element} [root=document]
- * @param {{force?: boolean, filterPlaceholder?: string, noMatches?: string}} [opts]
- *   force: enhance even on coarse pointers.
+ * @param {{filterPlaceholder?: string, noMatches?: string}} [opts]
  *   filterPlaceholder / noMatches: UI strings (per select: data-filter-placeholder,
  *   data-no-matches).
  * @returns {HTMLSelectElement[]} the selects enhanced by this call
@@ -65,10 +66,8 @@ export function enhanceSelects(root = document, opts = {}) {
   if (root instanceof HTMLSelectElement) found.push(root);
   root.querySelectorAll?.("select").forEach(s => found.push(s));
   const done = [];
-  const coarse = !opts.force && isCoarse();
   for (const s of found) {
     if (instances.has(s) || s.matches(SKIP)) continue;
-    if (coarse) { s.classList.add("nc-select-native"); continue; }
     enhance(s, opts);
     done.push(s);
   }
@@ -375,7 +374,16 @@ function open(inst, seed = "") {
   if (inst.filter) inst.filter.value = "";
   render(inst);
   // Inside a modal <dialog> everything outside it is inert: portal into it.
-  (inst.trigger.closest("dialog[open]") || document.body).append(inst.pop);
+  const host = inst.trigger.closest("dialog[open]") || document.body;
+  inst.sheet = isSheet();
+  inst.pop.classList.toggle("nc-select-sheet", inst.sheet);
+  if (inst.sheet) {
+    // The backdrop takes the outside tap: it closes, and nothing underneath is clicked.
+    inst.backdrop = el("div", "nc-select-backdrop", { "aria-hidden": "true" });
+    inst.backdrop.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); close(inst, true); });
+    host.append(inst.backdrop);
+  }
+  host.append(inst.pop);
   current = inst;
   // aria-controls only while the listbox is in the DOM.
   inst.trigger.setAttribute("aria-controls", inst.list.id);
@@ -387,16 +395,19 @@ function open(inst, seed = "") {
     const nav = navigable(inst);
     setActive(inst, nav.find(i => i.opt.selected) || nav[0] || null, true);
   }
-  if (inst.filter) inst.filter.focus({ preventScroll: true });
+  if (inst.filter && !inst.sheet) inst.filter.focus({ preventScroll: true });
   document.addEventListener("pointerdown", onOutside, true);
   window.addEventListener("scroll", onScroll, true);
   window.addEventListener("resize", onScroll);
+  window.visualViewport?.addEventListener("resize", onScroll);   // the on-screen keyboard
 }
 
 function close(inst, refocus) {
   if (current !== inst) return;
   current = null;
   inst.pop.remove();
+  inst.backdrop?.remove();
+  inst.backdrop = null;
   inst.active?.el.classList.remove("is-active");
   inst.active = null;
   inst.trigger.setAttribute("aria-expanded", "false");
@@ -407,11 +418,13 @@ function close(inst, refocus) {
   document.removeEventListener("pointerdown", onOutside, true);
   window.removeEventListener("scroll", onScroll, true);
   window.removeEventListener("resize", onScroll);
+  window.visualViewport?.removeEventListener("resize", onScroll);
   if (refocus && inst.trigger.isConnected) inst.trigger.focus({ preventScroll: true });
 }
 
 function onOutside(e) {
   const inst = current;
+  if (inst?.sheet) return;              // the backdrop handles it (no click-through)
   if (inst && !inst.wrap.contains(e.target) && !inst.pop.contains(e.target)) close(inst, false);
 }
 
@@ -422,6 +435,7 @@ function onScroll(e) {
   cancelAnimationFrame(raf);
   raf = requestAnimationFrame(() => {
     if (current !== inst) return;
+    if (inst.sheet) { place(inst); return; }
     const r = inst.trigger.getBoundingClientRect();
     if (!inst.trigger.isConnected || r.bottom < 0 || r.top > innerHeight) close(inst, false);
     else place(inst);
@@ -440,6 +454,18 @@ function leave(inst, e) {
 /** Position the fixed popup under (or above) the trigger, inside the viewport. */
 function place(inst) {
   const { pop, trigger } = inst;
+  if (inst.sheet) {
+    // Bottom sheet: full width, above the on-screen keyboard (visualViewport).
+    const vv = window.visualViewport, vh = vv ? vv.height : innerHeight;
+    const lift = vv ? Math.max(0, innerHeight - vv.height - vv.offsetTop) : 0;
+    for (const k of ["left", "top", "width", "minWidth", "maxWidth"]) pop.style[k] = "";
+    pop.style.bottom = `${Math.round(lift)}px`;
+    pop.style.maxHeight = `${Math.round(Math.min(vh * 0.7, vh - 16))}px`;
+    pop.dataset.placement = "sheet";
+    if (inst.active) reveal(inst.list, inst.active.el);
+    return;
+  }
+  pop.style.bottom = "";
   const r = trigger.getBoundingClientRect();
   const vw = document.documentElement.clientWidth, vh = window.innerHeight;
   const maxW = vw - 2 * MARGIN;

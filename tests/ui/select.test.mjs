@@ -34,7 +34,7 @@ async function open(ctx = {}, query = "") {
   page.on("pageerror", e => errors.push(e.message));
   page.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
   await page.goto(URL_ + query);
-  await page.waitForFunction(() => document.querySelector(".nc-select-trigger, .nc-select-native"));
+  await page.waitForFunction(() => document.querySelector(".nc-select-trigger"));
   return { page, errors };
 }
 const trig = id => `#${id} + .nc-select-trigger`;
@@ -245,16 +245,73 @@ test("the popup escapes overflow:hidden and flips above near the bottom", async 
   assert.deepEqual(errors, []);
 });
 
-test("coarse pointers keep the native picker (unless forced)", async () => {
-  const touch = { viewport: { width: 390, height: 800 }, hasTouch: true, isMobile: true };
-  const { page, errors } = await open(touch);
-  assert.equal(await page.locator(".nc-select-trigger").count(), 0);
-  assert.equal(await page.evaluate(() => document.querySelector("#short").classList.contains("nc-select-native")), true);
-  assert.equal(await page.isVisible("#short"), true);
-  await page.selectOption("#short", "draw");
-  assert.deepEqual(await changes(page), [{ id: "short", act: "result", value: "draw" }]);
+const TOUCH = { viewport: { width: 390, height: 520 }, hasTouch: true, isMobile: true };
+
+test("touch devices get the themed select too, as a bottom sheet with optgroup headings", async () => {
+  const { page, errors } = await open(TOUCH);
+  assert.ok(await page.locator(".nc-select-trigger").count() > 0);
+  assert.equal(await page.evaluate(() => document.querySelectorAll(".nc-select-native").length), 0);
+  await page.tap(trig("grouped"));
+  const pop = page.locator(".nc-select-pop.nc-select-sheet");
+  assert.equal(await pop.count(), 1);
+  assert.equal(await page.locator(".nc-select-backdrop").count(), 1);
+  const b = await pop.boundingBox();
+  assert.equal(Math.round(b.x), 0);
+  assert.equal(Math.round(b.width), 390);
+  assert.ok(Math.abs(b.y + b.height - 520) <= 1, "fixed to the bottom");
+  assert.ok(b.height <= 520 * 0.7 + 1, "about 70% of the viewport at most");
+  assert.ok(await page.locator(".nc-select-pop .nc-select-group").count() >= 2, "optgroup headings");
+  const opt = await page.locator(".nc-select-pop .nc-select-option:not([hidden])").first().boundingBox();
+  assert.ok(opt.height >= 44);
+  assert.equal(await page.evaluate(() => document.activeElement.classList.contains("nc-select-filter-input")), false, "no autofocus on phones");
   assert.deepEqual(errors, []);
-  const forced = await open(touch, "?force");
-  assert.ok(await forced.page.locator(".nc-select-trigger").count() > 0);
-  assert.deepEqual(forced.errors, []);
+});
+
+test("a tap on an option picks it and fires input + change once", async () => {
+  const { page, errors } = await open(TOUCH);
+  await page.tap(trig("short"));
+  await page.locator(".nc-select-pop .nc-select-option", { hasText: "Draw" }).tap();
+  assert.deepEqual(await changes(page), [{ id: "short", act: "result", value: "draw" }]);
+  assert.equal(await page.locator(".nc-select-pop").count(), 0);
+  assert.equal(await page.locator(".nc-select-backdrop").count(), 0);
+  assert.deepEqual(errors, []);
+});
+
+test("dragging the list scrolls it and picks nothing", async () => {
+  const { page } = await open(TOUCH);
+  await page.tap(trig("grouped"));
+  const list = page.locator(".nc-select-pop .nc-select-list");
+  const box = await list.boundingBox();
+  assert.ok(await list.evaluate(l => l.scrollHeight > l.clientHeight), "the list scrolls");
+  const cdp = await page.context().newCDPSession(page);
+  const x = box.x + 100, y0 = box.y + box.height - 20;
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: y0 }] });
+  for (let i = 1; i <= 8; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y0 - i * 20 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await page.waitForTimeout(150);
+  assert.deepEqual(await changes(page), []);
+  assert.equal(await page.locator(".nc-select-pop").count(), 1, "still open");
+  assert.ok(await list.evaluate(l => l.scrollTop) > 0, "scrolled");
+});
+
+test("a tap outside closes without a change and does not click through", async () => {
+  const { page } = await open(TOUCH);
+  await page.evaluate(() => {
+    window.__clicks = [];
+    document.addEventListener("click", e => { if (!e.target.closest?.(".nc-select-backdrop")) window.__clicks.push(e.target.id || e.target.tagName); }, true);
+  });
+  await page.tap(trig("short"));
+  const before = await page.evaluate(() => window.__clicks.length);
+  await page.touchscreen.tap(195, 20);            // on the backdrop, over the page
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator(".nc-select-pop").count(), 0);
+  assert.deepEqual(await changes(page), []);
+  assert.equal(await page.evaluate(() => window.__clicks.length), before, "nothing underneath was clicked");
+});
+
+test("wider layouts keep the dropdown, touch or not", async () => {
+  const { page } = await open({ viewport: { width: 820, height: 800 }, hasTouch: true });
+  await page.tap(trig("short"));
+  assert.equal(await page.locator(".nc-select-pop.nc-select-sheet").count(), 0);
+  assert.equal(await page.locator(".nc-select-backdrop").count(), 0);
 });
