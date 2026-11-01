@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
-const PORT = 8766;
+const PORT = Number(process.env.NC_TEST_PORT) || 8766;
 const URL_ = `http://localhost:${PORT}/`;
 const EXPORT = readFileSync(new URL("../fixtures/companion-export.json", import.meta.url), "utf8");
 
@@ -195,4 +195,49 @@ test("print queue: summary and a More menu; options are real checkboxes with sta
   await p.click("#clear-queue-btn-2");
   assert.equal(await p.textContent("#queue-count"), "0");
   await p.context().close();
+});
+
+test("a card's text is placed the same alone and in a mixed queue, for every template", async () => {
+  const r = await page.evaluate(async () => {
+    const { state } = await import("/js/state.js");
+    const { renderCardSvg } = await import("/js/templates.js");
+    const cats = state.bundle.categories;
+    const picks = [];
+    const seen = new Set();
+    for (const [key, cat] of Object.entries(cats)) {
+      if (!(cat.rows || []).length) continue;
+      // One card per template, and a few more: every sellsword, the first spell and weapon.
+      if (!seen.has(cat.template)) { seen.add(cat.template); picks.push({ key, row: cat.rows[0] }); }
+    }
+    for (const row of cats["sellswords"].rows) picks.push({ key: "sellswords", row });
+    picks.push({ key: "spells", row: cats["spells"].rows[0] }, { key: "melee-weapons", row: cats["melee-weapons"].rows[0] });
+    // Spell and weapon cards go first so a leak would reach the sellswords after them.
+    picks.sort((a, b) => (a.key === "sellswords") - (b.key === "sellswords"));
+    const measure = (host) => [...host.children].map(card =>
+      [...card.querySelectorAll("text, tspan")].map(t => {
+        const b = t.getBBox();
+        return [t.textContent.trim().slice(0, 24), Math.round(b.x * 100) / 100, Math.round(b.y * 100) / 100, Math.round(b.width * 100) / 100];
+      }));
+    const host = (cards) => {
+      const h = document.createElement("div");
+      h.style.cssText = "position:absolute;left:0;top:0;width:" + (cards.length === 1 ? "63mm" : "63mm");
+      h.innerHTML = cards.map(c => `<div style="width:63mm;height:88mm">${renderCardSvg({ ...c, override: {} })}</div>`).join("");
+      document.body.append(h);
+      return h;
+    };
+    await document.fonts.ready;
+    const mixedHost = host(picks);
+    const mixed = measure(mixedHost);
+    mixedHost.remove();
+    const diffs = [];
+    for (let i = 0; i < picks.length; i++) {
+      const h = host([picks[i]]);
+      const alone = measure(h)[0];
+      h.remove();
+      if (JSON.stringify(alone) !== JSON.stringify(mixed[i])) diffs.push(picks[i].key + ":" + (picks[i].row.name || i));
+    }
+    return { n: picks.length, templates: [...seen].length, diffs };
+  });
+  assert.ok(r.templates >= 8, `${r.templates} templates`);
+  assert.deepEqual(r.diffs, []);
 });
