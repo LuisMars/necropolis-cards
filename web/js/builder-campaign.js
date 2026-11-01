@@ -321,10 +321,8 @@ function completedAmbitionsHtml(g) {
     const r = catalog().row(key) || {};
     const lines = [...list].reverse().map(e => {
       const to = e.to ? g.models.find(m => m.uid === e.to) : null;
-      const target = to ? modelTitle(to)
-        : e.applied?.models?.length > 1 ? L("allModels")
-        : e.applied?.deployment ? `+${e.applied.deployment} ${L("deployment")}`
-        : e.applied?.bonus_traits ? L("bonusTrait") : "";
+      // Who got it; a gathering-wide reward (deployment, trait) is already in the reward line.
+      const target = to ? modelTitle(to) : e.applied?.models?.length > 1 ? L("allModels") : "";
       const when = [e.date, e.battle ? `${L("battle")} ${e.battle}` : ""].filter(Boolean).join(" · ");
       return `<li><span>${esc([target, when].filter(Boolean).join(" · "))}</span>
         ${e.id ? `<button type="button" class="secondary" data-act="amb-undo" data-id="${esc(e.id)}">${esc(L("undo"))}</button>` : ""}</li>`;
