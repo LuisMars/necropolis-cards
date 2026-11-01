@@ -1624,3 +1624,24 @@ test("picker: a limit every row would repeat is said once above the list; row re
   assert.ok((await page.locator(".bd-picker-row .bd-pk-why").count()) >= 1);
   assert.deepEqual(errors, []);
 });
+
+test("campaign: no sideways overflow at 390, and sections keep their panel surface at 1280", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await page.waitForSelector("details.bd-fold");
+  const wide = await page.locator("details.bd-fold").first().evaluate(el => {
+    const s = getComputedStyle(el);
+    return { display: s.display, bg: s.backgroundColor, border: s.borderTopWidth };
+  });
+  assert.equal(wide.display, "block");
+  assert.notEqual(wide.bg, "rgba(0, 0, 0, 0)");
+  assert.notEqual(wide.border, "0px");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(100);
+  await page.evaluate(() => document.querySelectorAll("details.bd-fold").forEach(d => { d.open = true; }));
+  const w = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }));
+  assert.equal(w.s, w.c, "page does not scroll sideways");
+  assert.deepEqual(errors, []);
+});

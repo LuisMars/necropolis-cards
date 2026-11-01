@@ -1052,14 +1052,14 @@
  * hidden, so aria-controls always points at something. Screen only. */
 @media screen {
   .bd-model [hidden]{display:none !important}
-  .bd-fold{
+  button.bd-fold{
     display:inline-flex;align-items:center;gap:8px;min-height:var(--nc-target);min-width:var(--nc-target);
     box-sizing:border-box;padding:0 8px;margin:0;cursor:pointer;text-align:left;
     background:transparent;color:var(--nc-secondary);border:1px solid transparent;border-radius:3px;font:inherit;
   }
-  .bd-fold .nc-icon{width:20px;height:20px;margin:0;flex:none}
-  @media (hover:hover){.bd-fold:hover{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}}
-  .bd-fold:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+  button.bd-fold .nc-icon{width:20px;height:20px;margin:0;flex:none}
+  @media (hover:hover){button.bd-fold:hover{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}}
+  button.bd-fold:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
   .bd-model-fold{align-self:flex-start;flex:none;padding:0;justify-content:center}
   .bd-model-fold .bd-fold-text:empty{display:none}
   .bd-model-fold.folded{flex:1 1 auto;justify-content:flex-start;min-width:0;flex-wrap:wrap;gap:4px 12px;padding:0 8px 0 0;color:var(--nc-bone)}
