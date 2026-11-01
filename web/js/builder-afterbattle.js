@@ -86,7 +86,7 @@ export function afterBattleClick(act, el, g) {
   if (!a) return false;
   const { uid, list, i, key, part } = el.dataset;
   switch (act) {
-    case "ab-step":
+    case "ab-step":    a.step = Math.max(0, Math.min(7, a.step + Number(el.dataset.by))); return true;
     case "ab-goto":    a.step = Number(el.dataset.step); return true;
     case "ab-discard": if (confirm(L("confirmDiscard"))) delete g.campaign.afterBattle; return true;
     // 1 Maladies

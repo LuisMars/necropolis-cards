@@ -357,9 +357,10 @@ test("each list has its own Add button, and the picker explains what breaks a ru
   assert.ok(await page.isVisible("dialog.bd-picker[open]"));
   // A second suit of armour breaks a rule: the row says why, and still adds.
   await page.fill(".bd-picker-search", "");
-  const why = page.locator('.bd-picker-row[data-value="armour|armours/light-armour"] .bd-pk-why');
-  assert.equal(await why.getAttribute("data-reason"), "Only one suit of armour.");
-  assert.equal(await page.locator('.bd-picker-row[data-value="armour|armours/shield"] .bd-pk-why').count(), 0);
+  // Said once above the list; the suits keep a mark, the shield has none.
+  assert.equal((await text(page, ".bd-picker-limit")), "Only one suit of armour.");
+  assert.equal(await page.locator('.bd-picker-row[data-value="armour|armours/light-armour"] .bd-pk-mark').count(), 1);
+  assert.equal(await page.locator('.bd-picker-row[data-value="armour|armours/shield"] .bd-pk-mark').count(), 0);
   await page.keyboard.press("Escape");
   assert.equal(await page.isVisible("dialog.bd-picker[open]"), false);
   assert.equal(await page.evaluate(() => document.activeElement.dataset.fid), "m3-add-armour");   // focus back
@@ -1388,7 +1389,9 @@ test("types the covenant rules out are disabled with a reason, and the current t
   // The themed popup shows the reason and marks the option unavailable.
   await page.click(`${add} + .nc-select-trigger`);
   const row = page.locator('.nc-select-option[aria-disabled="true"]', { hasText: "Corpse Husk" });
-  assert.match(await row.textContent(), /only allows Bone models/);
+  assert.equal(await row.count(), 1);                      // still listed, still dimmed
+  assert.match(await page.locator(".nc-select-note").textContent(), /only allows Bone models/);   // said once
+  assert.equal(await page.locator(".nc-select-pop .nc-select-reason").count(), 0);
   await page.keyboard.press("Escape");
   // A model's own type select: same rule, but its current type is never disabled.
   const uid = (await working(page)).models.find(m => m.profile === "minions/skeletal-husk").uid;
@@ -1615,11 +1618,12 @@ test("picker: a limit every row would repeat is said once above the list; row re
   await page.fill(".bd-picker-search", "zzzz");
   assert.equal(await page.locator(".bd-picker-limit").count(), 0);
   await page.click('dialog.bd-picker [data-pk="close"].primary');
-  // A reason only some rows have stays on those rows (second suit of armour).
+  // A reason only some rows share (second suit of armour) is said once too; those rows keep a mark.
   await pick(page, "m3", "armour", "armour|armours/heavy-armour");
   await page.click('[data-act="m-pick"][data-uid="m3"][data-list="armour"]');
-  assert.equal(await page.locator(".bd-picker-limit").count(), 0);
-  assert.ok((await page.locator(".bd-picker-row .bd-pk-why").count()) >= 1);
+  assert.equal(await page.locator(".bd-picker-limit").count(), 1);
+  assert.equal(await page.locator(".bd-picker-row .bd-pk-why").count(), 0);
+  assert.ok((await page.locator(".bd-picker-row .bd-pk-mark").count()) >= 2);
   assert.deepEqual(errors, []);
 });
 
