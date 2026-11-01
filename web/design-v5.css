@@ -1036,7 +1036,8 @@
   #bd-body .bd-items .bd-item.bd-tr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 10px;width:100%;box-sizing:border-box;padding:4px 4px 4px 2px}
   .bd-tr-head{min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:0 6px}
   .bd-tr-toggle{display:inline-flex;align-items:center;gap:4px;min-height:var(--nc-target-xs);padding:0 6px 0 2px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;text-wrap:balance}
-  .bd-tr-toggle .nc-icon{width:18px;height:18px;margin:0;vertical-align:baseline;color:var(--nc-secondary)}
+  #bd-body .bd-tr .bd-tr-toggle{font-size:16px;color:var(--nc-bone)}
+  #bd-body .bd-tr .bd-tr-toggle .nc-icon{width:18px;height:18px;margin:0;vertical-align:baseline;color:var(--nc-secondary)}
   .bd-tr-toggle span{min-width:0;overflow-wrap:anywhere}
   .bd-tr-act{display:grid;grid-template-columns:240px 44px;gap:6px;align-items:center;justify-content:end}
   .bd-tr-act.bd-tr-gear{grid-template-columns:240px 88px 44px}
