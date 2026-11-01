@@ -254,8 +254,6 @@ after_battle:
   - { key: minor,         name: Minor Ambitions,         name_es: Ambiciones Menores }
   - { key: ambitions,     name: Ambitions,               name_es: Ambiciones }
   - { key: total,         name: Total Ambitions,         name_es: Total de Ambiciones }
-  - { key: bazaar,        name: The Bazaar,              name_es: El Bazar }
-  - { key: scenario,      name: Roll New Scenario,       name_es: Tirar un Nuevo Escenario }
 
 # p.66: when the leader was Shattered, roll a D10. `stat_by`: who picks the
 # stat (Move, Violence or Ranged) that gets worse. Spanish from Necropolis

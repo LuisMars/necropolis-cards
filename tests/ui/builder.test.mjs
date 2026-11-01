@@ -154,20 +154,20 @@ test("after-battle sequence: rewards and the log entry", async () => {
   await page.click('[data-act="ab-apply-rewards"]');
   await page.waitForTimeout(100);
   assert.match(await text(page, ".bd-step"), /\+27 obols added \(20 \+ 3 \+ 4\)/);
-  // Every step of the seven: its crumb is current and it has something to do.
+  // Every step: its crumb is current and it has something to do.
   const crumbs = await page.locator(".bd-crumbs li button").allTextContents();
-  assert.equal(crumbs.length, 8);                              // Battle + the seven steps (p.65)
-  for (let step = 3; step <= 7; step++) {
+  assert.equal(crumbs.length, 6);                              // Battle + five steps; the Bazaar and the next scenario are Campaign folds
+  for (let step = 3; step <= 5; step++) {
     await page.click('[data-act="ab-step"][data-by="1"]');
     assert.equal(await text(page, '.bd-crumbs [aria-current="step"]'), crumbs[step].trim());
     assert.ok((await text(page, ".bd-step")).length > 10, `step ${step} is empty`);
   }
   assert.ok(await page.isVisible('[data-act="ab-finish"]'));   // the last step finishes
-  for (let step = 7; step > 0; step--) {                        // and Back walks them all again
+  for (let step = 5; step > 0; step--) {                        // and Back walks them all again
     await page.click('[data-act="ab-step"][data-by="-1"]');
     assert.equal(await text(page, '.bd-crumbs [aria-current="step"]'), crumbs[step - 1].trim());
   }
-  for (let step = 0; step < 7; step++) await page.click('[data-act="ab-step"][data-by="1"]');
+  for (let step = 0; step < 5; step++) await page.click('[data-act="ab-step"][data-by="1"]');
   await page.click('[data-act="ab-finish"]');
   await page.waitForTimeout(100);
   assert.equal(await page.isVisible(".bd-wizard"), false);
@@ -515,9 +515,9 @@ test("the app's own interface uses icons, not emoji", async () => {
   await page.click('[data-act="view"][data-view="campaign"]');
   assert.deepEqual(await scan(), []);
   await page.click('[data-act="ab-open"]');
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i <= 5; i++) {
     assert.deepEqual(await scan(), [], `after-battle step ${i}`);
-    await page.click('[data-act="ab-step"][data-by="1"]');
+    if (i < 5) await page.click('[data-act="ab-step"][data-by="1"]');
   }
   await go(page, "cards");
   assert.deepEqual(await scan(), []);
@@ -548,6 +548,20 @@ async function afterBattle(page, n = 0) {
   await page.click('[data-act="view"][data-view="campaign"]');
   await page.click('[data-act="ab-open"]');
   for (let i = 0; i < n; i++) await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+}
+
+/** Open a Campaign view fold (it starts closed unless the player opened it). */
+async function openFold(page, id) {
+  const open = await page.getAttribute(`details[data-fold="${id}"]`, "open");
+  if (open === null) await page.click(`details[data-fold="${id}"] > summary`);
+}
+/** Into the Campaign view with no sequence open, the Bazaar and Next scenario folds open. */
+async function campaignView(page) {
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  await openFold(page, "bazaar");
+  await openFold(page, "scenario");
 }
 
 test("focus stays on a model's up button when it moves", async () => {
@@ -594,7 +608,7 @@ test("focus stays near a control that goes away", async () => {
 
 test("focus survives a redraw on campaign and after-battle controls", async () => {
   const { page, errors } = await open();
-  await afterBattle(page, 7);
+  await campaignView(page);
   // A roll button, then a themed dropdown found again by its id.
   await page.focus('[data-act="ab-roll-scn"][data-part="missions"]');
   await page.keyboard.press("Enter");
@@ -605,6 +619,9 @@ test("focus survives a redraw on campaign and after-battle controls", async () =
   await page.waitForTimeout(150);
   assert.equal(await page.evaluate(() => document.activeElement.closest(".nc-select")?.querySelector("select")?.id), "ab-next-environments");
   // The step buttons keep it too.
+  await page.click('[data-act="ab-open"]');
+  await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+  await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
   await page.focus('.bd-wizard-nav [data-act="ab-step"][data-by="-1"]');
   await page.keyboard.press("Enter");
   await page.waitForTimeout(150);
@@ -724,32 +741,32 @@ test("a malady that asks for a stat can't be applied without one", async () => {
 
 test("withdrawing agreement on the omen withdraws the omen", async () => {
   const { page, errors } = await open();
-  await afterBattle(page, 7);
+  await campaignView(page);
   await page.check('[data-act="ab-omen-agree"]');
   await page.waitForTimeout(100);
   await page.click('[data-act="ab-roll-scn"][data-part="dread-omens"]');
   await page.waitForTimeout(100);
-  assert.ok((await working(page)).campaign.afterBattle.next["dread-omens"]);
+  assert.ok((await working(page)).campaign.nextScenario.omen);
   await page.uncheck('[data-act="ab-omen-agree"]');
   await page.waitForTimeout(100);
-  assert.equal((await working(page)).campaign.afterBattle.next["dread-omens"], null);
-  await page.click('[data-act="ab-finish"]');
-  await page.waitForTimeout(100);
   assert.equal((await working(page)).campaign.nextScenario.omen, null);
+  await page.click('[data-act="ab-open"]');
+  assert.equal(await page.inputValue("#ab-omen"), "");           // nothing carried into the battle
   assert.deepEqual(errors, []);
 });
 
 test("an agreed omen still carries over", async () => {
   const { page, errors } = await open();
-  await afterBattle(page, 7);
+  await campaignView(page);
   await page.check('[data-act="ab-omen-agree"]');
   await page.waitForTimeout(100);
   await page.click('[data-act="ab-roll-scn"][data-part="dread-omens"]');
   await page.waitForTimeout(100);
-  const omen = (await working(page)).campaign.afterBattle.next["dread-omens"];
-  await page.click('[data-act="ab-finish"]');
-  await page.waitForTimeout(100);
-  assert.equal((await working(page)).campaign.nextScenario.omen, omen);
+  const omen = (await working(page)).campaign.nextScenario.omen;
+  assert.ok(omen);
+  await page.click('[data-act="ab-open"]');
+  await page.click('[data-act="ab-step"][data-by="1"]');         // writes the sequence
+  assert.equal((await working(page)).campaign.afterBattle.battle.omen, omen);
   assert.deepEqual(errors, []);
 });
 
@@ -930,17 +947,19 @@ test("every after-battle and campaign field has a name", async () => {
   assert.deepEqual(await unnamed(), []);
   await page.click('[data-act="t-cancel"]');
   await page.waitForTimeout(100);
+  // The Bazaar and Next scenario folds: the Tomb Robber's second dropdown, the omen's.
+  await page.click('[data-act="ab-tomb-roll"]');
+  await page.waitForTimeout(100);
+  await page.check('[data-act="ab-omen-agree"]');
+  await page.waitForTimeout(100);
+  assert.deepEqual(await unnamed(), []);
   await page.click('[data-act="ab-open"]');
   await page.check('[data-field="leaderShattered"]');
-  for (let step = 0; step < 8; step++) {
+  for (let step = 0; step <= 5; step++) {
     assert.deepEqual(await unnamed(), [], `step ${step}`);
-    if (step === 7) break;
+    if (step === 5) break;
     await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
     await page.waitForTimeout(50);
-    if (step === 5) {    // the Bazaar: the Tomb Robber's second dropdown
-      await page.click('[data-act="ab-tomb-roll"]');
-      await page.waitForTimeout(100);
-    }
   }
   assert.deepEqual(errors, []);
 });
@@ -963,9 +982,9 @@ test("one primary action per area", async () => {
   await page.click('[data-act="start-built"]');
   await page.click('[data-act="view"][data-view="campaign"]');
   await page.click('[data-act="ab-open"]');
-  for (let step = 0; step <= 7; step++) {
+  for (let step = 0; step <= 5; step++) {
     assert.equal(await page.locator(".bd-wizard .primary").count(), 1, `step ${step}`);
-    if (step < 7) await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+    if (step < 5) await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
   }
 });
 
@@ -997,14 +1016,14 @@ test("the step line says where you are, and moves between steps", async () => {
   assert.ok(await page.isDisabled(prev));
   await page.locator(next).click();
   await page.waitForTimeout(100);
-  assert.equal(await now(), "Step 1 of 7: Reconstitution Maladies");
-  for (let i = 0; i < 6; i++) { await page.locator(next).click(); await page.waitForTimeout(50); }
-  assert.match(await now(), /^Step 7 of 7: /);
+  assert.equal(await now(), "Step 1 of 5: Reconstitution Maladies");
+  for (let i = 0; i < 4; i++) { await page.locator(next).click(); await page.waitForTimeout(50); }
+  assert.match(await now(), /^Step 5 of 5: /);
   assert.equal(await page.locator(next).count(), 0);   // the last step has no Next
   await page.locator(prev).click();
   await page.waitForTimeout(100);
-  assert.match(await now(), /^Step 6 of 7: /);
-  assert.equal(await page.locator(".bd-crumbs li button").count(), 8);  // the full list is still there
+  assert.match(await now(), /^Step 4 of 5: /);
+  assert.equal(await page.locator(".bd-crumbs li button").count(), 6);  // the full list is still there
   assert.deepEqual(errors, []);
 });
 
@@ -1093,8 +1112,7 @@ test("a new beast starts with Claws and Fangs, keeps them, and swaps them when i
 test("in a campaign a recruited beast pays for its weapon and can't sell or stash it", async () => {
   const { page, errors } = await open();
   await inCampaign(page);
-  await page.click('[data-act="ab-open"]');
-  await page.click('[data-act="ab-goto"][data-step="6"]');
+  await openFold(page, "bazaar");                                // no sequence open
   assert.match(await text(page, '#ab-recruit-key option[value="minions/small-beast"]'), /· 65$/);
   assert.match(await text(page, '#ab-recruit-key option[value="minions/corpse-husk"]'), /· 50$/);
   await choose(page, "#ab-recruit-key", "minions/small-beast");
@@ -1234,7 +1252,7 @@ test("finishing the after-battle sequence asks the same, in Spanish too", async 
   await fieldSellsword(page);
   await page.click('[data-act="ab-open"]');
   assert.match(await text(page, ".bd-step .bd-deploy-note"), /20 óbolos por desplegar/);
-  await page.click('[data-act="ab-goto"][data-step="7"]');
+  await page.click('[data-act="ab-goto"][data-step="5"]');
   assert.match(await text(page, ".bd-step .bd-deploy-note"), /20 óbolos por desplegar/);
   await page.click('[data-act="ab-finish"]');
   assert.match(await text(page, '[data-pk="choice"][data-how="pay"]'), /Pagar 20 óbolos por desplegar/);
@@ -1812,4 +1830,56 @@ test("every visible select on Gatherings, Cards and Settings is the themed stand
     assert.deepEqual(where.filter(([, b]) => b.length), [], `bare selects at ${width}px`);
     assert.deepEqual(errors, []);
   }
+});
+
+test("the Bazaar buys and sells with no after-battle sequence, and the next scenario prefills the next battle", async () => {
+  const { page, errors } = await open();
+  await inCampaign(page);
+  await openFold(page, "bazaar");
+  await openFold(page, "scenario");
+  assert.equal(await page.locator(".bd-wizard").count(), 0);
+  assert.equal((await working(page)).campaign.afterBattle, undefined);
+  // Recruit, then sell a treasure-free piece of gear back.
+  await choose(page, "#ab-recruit-key", "minions/corpse-husk");
+  await page.click('[data-act="ab-recruit"]');
+  await page.waitForTimeout(150);
+  let g = await working(page);
+  assert.equal(g.treasury, 150);
+  assert.equal(g.campaign.afterBattle, undefined);               // still no sequence
+  const uid = g.models.at(-1).uid;
+  assert.deepEqual(g.campaign.transactions.map(t => t.type), ["recruit"]);
+  assert.ok(await page.locator("[data-act='ab-sell']").count() > 0);
+  // A scenario picked here is kept on the campaign and fills the next battle.
+  await page.click('[data-act="ab-roll-scn"][data-part="missions"]');
+  await page.waitForTimeout(150);
+  g = await working(page);
+  const mission = g.campaign.nextScenario.mission;
+  assert.match(mission, /^missions\//);
+  await page.click('[data-act="ab-open"]');
+  await page.waitForTimeout(100);
+  assert.equal(await page.inputValue("#ab-mission"), mission);
+  await page.click('[data-act="ab-goto"][data-step="5"]');
+  await page.click('[data-act="ab-finish"]');
+  await page.waitForTimeout(150);
+  g = await working(page);
+  assert.equal(g.history.at(-1).mission, mission);
+  assert.deepEqual(g.history.at(-1).transactions.map(t => t.type).slice(0, 1), ["recruit"]);   // the purchase went with the battle
+  assert.equal(g.campaign.nextScenario, null);                   // consumed
+  assert.ok(uid);
+  assert.deepEqual(errors, []);
+});
+
+test("a saved sequence left on a step that no longer exists opens on the last one", async () => {
+  const { page, errors } = await open();
+  await afterBattle(page, 1);
+  await page.evaluate(() => {
+    const k = "necropolis-builder-drafts-v1", d = JSON.parse(localStorage.getItem(k) || "{}");
+    for (const g of Object.values(d)) if (g.campaign?.afterBattle) g.campaign.afterBattle.step = 7;
+    localStorage.setItem(k, JSON.stringify(d));
+  });
+  await page.reload();
+  await page.waitForTimeout(500);
+  await page.click('[data-act="view"][data-view="campaign"]');
+  assert.match(await text(page, ".bd-stepper-now"), /^Step 5 of 5: /);
+  assert.deepEqual(errors, []);
 });

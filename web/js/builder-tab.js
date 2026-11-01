@@ -41,6 +41,7 @@ import {
 import { isFolded, setFolded, forgetFolds } from "./builder-fold.js";
 import { initPicker, openPicker, openRemove, openChoice, refreshPicker, stashable } from "./builder-picker.js";
 import { campaignHtml, campaignChange, campaignClick, setFold, toggleTreasure, setNotice, failText } from "./builder-campaign.js";
+import { bazaarChange, bazaarClick } from "./builder-bazaar.js";
 import { afterBattleHtml, afterBattleChange, afterBattleClick, syncRequired } from "./builder-afterbattle.js";
 
 const $pick   = $("bd-pick");
@@ -298,7 +299,7 @@ function onChange_(e) {
   if (act === "roster-skip") { hooks.setRosterSkip?.(el.checked); return; }
   edit(g => {
     if (act.startsWith("ab-")) { abBegin(g); abPreview = null; }
-    if (afterBattleChange(act, el, g) || campaignChange(act, el, g)) return;
+    if (afterBattleChange(act, el, g) || bazaarChange(act, el, g) || campaignChange(act, el, g)) return;
     const m = uid ? findModel(g, uid) : null;
     switch (act) {
       case "name":       g.name = v.trim(); break;
@@ -331,7 +332,7 @@ function campaignAct(act, el, g, before = null) {
   try {
     if (act.startsWith("ab-") && act !== "ab-open") abBegin(clone);
     before?.(clone);
-    handled = !!clone && (afterBattleClick(act, el, clone) || campaignClick(act, el, clone));
+    handled = !!clone && (afterBattleClick(act, el, clone) || bazaarClick(act, el, clone) || campaignClick(act, el, clone));
   } catch (err) {
     setNotice(g, failText(act, err));
     redraw();

@@ -47,11 +47,13 @@ disabled, with the reason, when there's nothing to print.
    has started, buying gear or minions anywhere in the Builder charges the
    treasury at Bazaar prices and removing weapons or armour sells them for
    half (p.72); every purchase and sale is listed until the next battle is
-   logged, then kept in that battle's entry. **After the
-   battle…** runs the rulebook's 7-step after-battle sequence as a wizard
+   logged, then kept in that battle's entry. **The Bazaar**
+   (Markets, Soul Binder, Tomb Robber, the Alchemy Workshop) and **Next
+   scenario** are folds of the Campaign view, open any time, so buying and
+   selling needs no after-battle sequence. **After the
+   battle…** runs the rest of the rulebook's sequence as a wizard
    (maladies, victory rewards with lair income and Purloiner, ambitions,
-   the greater treasure every 5, the Bazaar with the Alchemy Workshop, and
-   the next scenario), every roll with a Roll button or a typed die; it can
+   the greater treasure every 5), every roll with a Roll button or a typed die; it can
    be left and resumed, and finishing it writes the battle-log entry.
 3. **Gatherings → Roster** — the gathering open in the Builder (its unsaved
    draft included) as a roster sheet, rendered from the same Companion App
