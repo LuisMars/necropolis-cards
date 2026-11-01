@@ -3,7 +3,7 @@
  *
  * One shared modal <dialog> (showModal: the browser traps focus, Escape
  * closes it) lists what a model can add to one of its lists: a search field
- * (accent- and case-blind, over name, kind and rules text), filter chips by
+ * (accent- and case-blind, by name and kind; only when none match, by rules text), filter chips by
  * kind where the list has them, and the rows, grouped as on the cards. Each
  * row shows its cost, a short summary from the card row and, if adding it
  * would break a rule, why (the Builder warns, it never blocks).
@@ -239,13 +239,13 @@ function drawList() {
   const groups = addGroups(ctx.list, isLeader(m));
   const groupOf = new Map(groups.flatMap(gr => gr.rows.map(([k]) => [k, gr])));
   const q = norm(ctx.query);
-  const keep = (key, r) => {
-    const gr = groupOf.get(key);
-    if (ctx.chip && gr?.id !== ctx.chip) return false;
-    if (!q) return true;
-    const [line, rules] = summary(key, r);
-    return norm([pickField(r, "name", lang()), r.name, gr?.title, line, rules].join(" ")).includes(q);
-  };
+  const inChip = (key) => !ctx.chip || groupOf.get(key)?.id === ctx.chip;
+  const byName = (key, r) => norm([pickField(r, "name", lang()), r.name, groupOf.get(key)?.title].join(" ")).includes(q);
+  const byRules = (key, r) => norm(summary(key, r).join(" ")).includes(q);
+  // Name and kind matches win; only when none match do rules texts count.
+  const everyRow = [...groups.flatMap(gr => gr.rows), ...(campaignStarted(g) ? (g.gearStash || []).filter(e => e.list === ctx.list).map(e => [e.key, catalog().row(e.key) || {}]) : [])];
+  const nameHits = !!q && everyRow.some(([k, r]) => inChip(k) && byName(k, r));
+  const keep = (key, r) => inChip(key) && (!q || (nameHits ? byName(key, r) : byRules(key, r)));
   const campaign = campaignStarted(g);
   // From the stash first (campaign only), then the catalogue.
   const stash = campaign ? (g.gearStash || []).map((e, i) => [e, i])

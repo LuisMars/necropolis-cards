@@ -372,6 +372,34 @@ test("each list has its own Add button, and the picker explains what breaks a ru
   const names = await page.locator(".bd-picker-row .bd-pk-name").allTextContents();
   assert.deepEqual(names, ["Sling", "Bow", "Crossbow"]);
   await page.click('dialog.bd-picker [data-pk="close"].primary');
+
+  // Search: name and kind win over rules text; rules-only words still find spells.
+  await page.click('[data-act="m-pick"][data-uid="m1"][data-list="spells"]');
+  const rowNames = () => page.locator(".bd-picker-row .bd-pk-name").allTextContents();
+  const total = (await rowNames()).length;
+  await page.click(".bd-picker-search");
+  await page.keyboard.type("With");
+  assert.deepEqual(await rowNames(), ["Wither"]);
+  await page.keyboard.type("e");                      // one more character, narrowed per keystroke
+  assert.deepEqual(await rowNames(), ["Wither"]);
+  await page.keyboard.type("x");                      // no name hit: falls back to rules, finds none
+  assert.equal(await page.locator(".bd-picker-row").count(), 0);
+  await page.fill(".bd-picker-search", "within");     // rules-only word
+  assert.ok((await rowNames()).length > 1);
+  await page.fill(".bd-picker-search", "");
+  assert.equal((await rowNames()).length, total);
+  // Android composition: filtering fires per keystroke and keeps every character.
+  await page.evaluate(() => {
+    const i = document.querySelector(".bd-picker-search");
+    i.dispatchEvent(new CompositionEvent("compositionstart"));
+    for (const v of ["W", "Wi", "Wit", "With"]) {
+      i.value = v;
+      i.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: true, data: v }));
+    }
+  });
+  assert.deepEqual(await rowNames(), ["Wither"]);
+  assert.equal(await page.inputValue(".bd-picker-search"), "With");
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
   assert.deepEqual(errors, []);
 });
 
@@ -914,9 +942,10 @@ test("one primary action per area", async () => {
   // Print leads in the header; the gathering's own buttons are secondary.
   assert.equal(await page.locator('[data-act="roster"].primary').count(), 0);
   assert.equal(await page.locator('[data-act="roster"].secondary').count(), 1);
-  // Add cards to queue is the one primary there; Save takes over with a draft.
-  assert.equal(await page.locator(".bd-actions .primary").count(), 1);
-  assert.equal(await page.locator('.bd-actions [data-act="cards"].primary').count(), 1);
+  // Add cards to queue is always secondary: Print is the one primary on screen.
+  assert.equal(await page.locator(".bd-actions .primary").count(), 0);
+  assert.equal(await page.locator('.bd-actions [data-act="cards"].secondary').count(), 1);
+  assert.equal(await page.locator("header.app :is(.primary, .print-btn):visible").count(), 1);
   // An unsaved draft has Save as the header card's one primary.
   await page.fill(".bd-gname", "Changed");
   await page.press(".bd-gname", "Tab");
@@ -931,6 +960,24 @@ test("one primary action per area", async () => {
     assert.equal(await page.locator(".bd-wizard .primary").count(), 1, `step ${step}`);
     if (step < 7) await page.click('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
   }
+});
+
+test("the roster sheet is scaled to the column on a phone and printed at full size", async () => {
+  const { page } = await open();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await importLink(page);
+  await page.click('[data-act="roster"]');
+  await page.waitForTimeout(500);
+  const m = await page.evaluate(() => {
+    const wrap = document.getElementById("wb-pages"), p = wrap.querySelector(".wb-page");
+    return { wrap: wrap.clientWidth, page: p.getBoundingClientRect().width, zoom: getComputedStyle(p).zoom,
+      doc: document.documentElement.scrollWidth - innerWidth };
+  });
+  assert.ok(m.page <= m.wrap + 1, `sheet ${m.page} fits ${m.wrap}`);
+  assert.ok(Number(m.zoom) < 1);
+  assert.equal(m.doc, 0);
+  await page.emulateMedia({ media: "print" });
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".wb-page")).zoom), "1");
 });
 
 test("the step line says where you are, and moves between steps", async () => {

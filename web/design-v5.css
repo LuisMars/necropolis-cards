@@ -356,7 +356,7 @@
 @media screen and (max-width:900px){
   /* The A4 roster keeps its size; on a phone it scrolls inside its tab
      instead of pushing the whole page sideways. */
-  section.tab.active[data-tab="warband"]{overflow-x:auto}
+  section.tab.active[data-tab="warband"]{overflow-x:clip}
 }
 @media screen and (max-width:540px){
   .bd-choice{width:100%;box-sizing:border-box;flex-wrap:wrap;gap:6px 8px;padding:6px 6px 6px 10px}
@@ -822,6 +822,97 @@
     .bd-stats:has(> :nth-child(6)){grid-template-columns:repeat(4,minmax(0,1fr))}
     .bd-stats dt{white-space:nowrap}
   }
+}
+
+/* === Design review 2 fixes === */
+@media screen {
+  /* Roster sheet: scaled to its column like the print preview (print.js sets --sheet-zoom). */
+  .wb-pages .wb-page{zoom:var(--sheet-zoom,1)}
+}
+
+/* Select skin: one chevron (--nc-chevron) on the themed trigger and on the
+   native fallback that touch devices keep (select.js skips them on a coarse
+   pointer), so a select looks the same at every width and language. */
+@media screen {
+  html :is(select.nc-select-native,#bd-body select:not(.nc-select-src),.bd-toolbar select,.lib-toolbar select,
+    header.app .lang-picker select:not(.nc-select-src),.print-toolbar select,.nc-theme-picker select:not(.nc-select-src)){
+    background-image:var(--nc-chevron);background-repeat:no-repeat;
+    background-size:16px 16px;background-position:right 14px center;
+  }
+  html .nc-select .nc-select-chevron::before{
+    width:16px;height:16px;border:0;transform:none;
+    background:var(--nc-chevron) center/16px 16px no-repeat;
+  }
+  html .nc-select.is-open .nc-select-chevron::before{transform:rotate(180deg)}
+}
+
+/* Library: search + category stay on screen under the header while the 195 tiles
+   scroll. Wide: the whole toolbar (filter, count, More) is the sticky bar. Phone:
+   the toolbar dissolves and only the filter row sticks, so it costs one row; More
+   and the count scroll away. More's panel is a z-index 20 child, never clipped.
+   Tiles skip rendering off screen. */
+@media screen {
+  .lib-toolbar{
+    position:sticky;top:var(--nc-header-h,0px);z-index:5;
+    background:var(--nc-bg);padding:8px 0 12px;margin-bottom:0;
+  }
+  .lib-filter{display:flex;align-items:center;gap:10px}
+  .lib-filter input[type="text"]{min-width:280px}
+  .lib-tile,.lib-tile button{scroll-margin-top:calc(var(--nc-header-h,0px) + var(--lib-filter-h,60px) + 8px)}
+  .lib-tile{content-visibility:auto;contain-intrinsic-size:auto 150px}
+}
+@media screen and (max-width:540px){
+  section.tab[data-tab="library"]{display:flex;flex-wrap:wrap;align-items:center;gap:0 10px}
+  section.tab[data-tab="library"] > *{flex:0 0 100%;min-width:0}
+  section.tab[data-tab="library"] > .lib-toolbar{display:contents}
+  .lib-filter{
+    position:sticky;top:var(--nc-header-h,0px);z-index:5;box-sizing:border-box;
+    background:var(--nc-bg);padding:8px 0 12px;
+  }
+  #lib-count{flex:0 0 auto;margin:0 0 8px}
+  .lib-toolbar > .lib-more{margin:0 0 8px auto}
+  .lib-filter input[type="text"]{flex:1 1 0;min-width:0}
+  /* "Todas las categorías" must fit beside the search at 390. */
+  .lib-filter select,.lib-filter .nc-select{flex:0 1 188px;min-width:0}
+  html .lib-filter :is(.nc-select-trigger,input[type="text"],select){padding-left:10px}
+  html .lib-filter :is(.nc-select-trigger,select){padding-right:38px}
+}
+
+/* Low: the printed stepper's number is the same chip as the queue number;
+   queue row name and category share a left edge; empty Gatherings centred. */
+@media screen {
+  .lib-tile .printed-ctl .printed-n{
+    min-width:20px;box-sizing:border-box;text-align:center;font-size:15px;font-weight:700;line-height:1.4;
+    padding:0 4px;border-radius:3px;background:var(--nc-primary);color:var(--nc-on-primary);
+  }
+  .queue-item .cat{padding-left:4px}
+}
+@media screen and (min-width:901px){
+  .bd-empty{margin-inline:auto;text-align:center}
+}
+
+/* Touch targets on a phone: 44px hit areas; visuals stay where a bigger box
+   would look wrong (the count chip and checkboxes draw inside a larger target). */
+@media screen and (max-width:540px){
+  nav.tabs a.nav-dest{min-height:44px}
+  nav.tabs a.nav-count{
+    position:relative;min-width:44px;min-height:44px;margin:0 0 0 -8px;padding:0;
+    background:none;border-color:transparent;
+  }
+  nav.tabs a.nav-count::before{
+    content:"";position:absolute;inset:9px 6px;background:var(--nc-bg);
+    border:1px solid var(--nc-line-soft);border-radius:inherit;
+  }
+  nav.tabs a.nav-count:hover{border-color:transparent}
+  nav.tabs a.nav-count:hover::before{border-color:var(--nc-line)}
+  nav.tabs a.nav-count > span{position:relative}
+  .bd-views button{min-height:44px}
+  .queue-item button{min-width:44px;min-height:44px}
+  .print-toolbar label{min-height:44px}
+  .bd-draft button.link,.bd-lair-tools > button.link,.bd-share summary{min-height:44px}
+  .bd-draft button.link{padding:4px 8px}
+  .bd-ghead .bd-lair-tools > button.link{padding:0 8px}
+  .lib-tile .add,.lib-tile .printed-toggle{min-height:44px;min-width:44px}
 }
 
 @media screen {

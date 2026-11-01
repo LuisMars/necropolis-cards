@@ -451,10 +451,10 @@ function queueStatus(g) {
   return { cards, missing, all: cards.length > 0 && !missing.length };
 }
 
-/** The "Add / Remove cards to queue" button; `primary` only while some are missing. */
-function queueButtonHtml(g, primary) {
+/** The "Add / Remove cards to queue" button: always secondary (Print leads). */
+function queueButtonHtml(g) {
   const all = queueStatus(g).all;
-  return `<button type="button" class="${primary && !all ? "primary" : "secondary"}" data-act="cards">${esc(L(all ? "removeCards" : "addCards"))}</button>`;
+  return `<button type="button" class="secondary" data-act="cards">${esc(L(all ? "removeCards" : "addCards"))}</button>`;
 }
 
 function queueCards(g) {
@@ -641,7 +641,7 @@ function rosterBarHtml(g) {
       <div class="bd-roster-actions">
         <div class="bd-views nav-local" role="group" aria-label="${esc(L("rosterPart"))}">${b("sheet", "gatherings/roster", "rosterSheet")}${b("cards", "gatherings/roster/cards", "rosterCards")}</div>
         ${cards}
-        ${queueButtonHtml(g, false)}
+        ${queueButtonHtml(g)}
         ${status ? `<div class="bd-status" role="status">${status}</div>` : ""}
       </div>
     </div>`;
@@ -741,7 +741,7 @@ function gatheringHeadHtml(g, ev) {
       ${warnings}
       <div class="bd-actions">
         ${view === "roster" ? "" : `<button type="button" class="secondary" data-act="roster">${esc(L("viewRoster"))}</button>
-        ${queueButtonHtml(g, !dirty(g))}`}
+        ${queueButtonHtml(g)}`}
         <details class="bd-share">
           <summary>${esc(L("shareExport"))} ${icon("chevron-down")}</summary>
           <div class="bd-share-menu">
