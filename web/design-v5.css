@@ -135,6 +135,14 @@
     color:var(--nc-muted);font:700 13px 'Alegreya SC',Georgia,serif;
   }
   .bd-affinity-control .bd-affinity-option{position:relative;display:inline-flex}
+  /* A keyword the covenant forces: a label like the legend, the value as plain text. */
+  .bd-affinity-control.bd-affinity-forced{gap:0 9px}
+  .bd-affinity-forced .bd-affinity-label{color:var(--nc-muted);font:700 13px 'Alegreya SC',Georgia,serif}
+  .bd-affinity-forced .bd-affinity-option{display:inline}
+  .bd-affinity-control.bd-affinity-forced .bd-affinity-option span{
+    display:inline;min-height:0;min-width:0;padding:0;margin:0;background:none;border:0;border-radius:0;cursor:default;
+    color:var(--nc-bone);font:700 15px 'Alegreya SC',Georgia,serif;
+  }
   .bd-affinity-option input{
     position:absolute;opacity:0;width:1px;height:1px;overflow:hidden;
   }
@@ -213,7 +221,7 @@
   .lib-tile .printed-lbl,.lib-tile .need {font-size:13px}
   /* Stat block uses actual semantic dl/dt/dd markup from builder-tab.js. */
   .bd-stats {
-    display:flex;flex-wrap:wrap;gap:8px 20px;margin:12px 0;padding:0;
+    display:flex;flex-wrap:wrap;gap:8px 14px;margin:12px 0;padding:0;
   }
   .bd-stats .bd-stat {margin:0;padding:0;background:none;border:0;min-width:0}
   .bd-stats dt {

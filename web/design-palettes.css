@@ -50,11 +50,12 @@
     box-shadow:none;
   }
   #bd-body .bd-model.leader{border-color:var(--nc-line)}
-  #bd-body .bd-stats .bd-stat{background:var(--nc-raised);border-color:var(--nc-line-soft)}
+  #bd-body .bd-stats .bd-stat{background:none;border-color:transparent}
   #bd-body .bd-stats dt{color:var(--nc-secondary)}
   #bd-body .bd-stats dd{color:var(--nc-bone)}
   #bd-body .bd-list,#bd-body .bd-step{border-color:var(--nc-line-soft)}
   #bd-body .bd-affinity-option span{background:var(--nc-raised);border-color:var(--nc-line-soft);color:var(--nc-secondary)}
+  #bd-body .bd-affinity-forced .bd-affinity-option span{background:none;border:0;color:var(--nc-bone)}
   #bd-body .bd-affinity-option input:checked+span{background:var(--nc-primary);color:var(--nc-on-primary);border-color:var(--nc-bone)}
   #bd-body .bd-amb.done .bd-prog,.bd-good{color:var(--nc-success)}
   #bd-body .bd-choice,.bd-item,.bd-tag{background:var(--nc-raised);border-color:var(--nc-line-soft);color:var(--nc-bone)}

@@ -919,7 +919,9 @@ test("one primary action per area", async () => {
   // Print leads in the header; the gathering's own buttons are secondary.
   assert.equal(await page.locator('[data-act="roster"].primary').count(), 0);
   assert.equal(await page.locator('[data-act="roster"].secondary').count(), 1);
-  assert.equal(await page.locator(".bd-actions .primary").count(), 0);
+  // Add cards to queue is the one primary there; Save takes over with a draft.
+  assert.equal(await page.locator(".bd-actions .primary").count(), 1);
+  assert.equal(await page.locator('.bd-actions [data-act="cards"].primary').count(), 1);
   // An unsaved draft has Save as the header card's one primary.
   await page.fill(".bd-gname", "Changed");
   await page.press(".bd-gname", "Tab");
@@ -1223,5 +1225,36 @@ test("a keyword the covenant forces is plain text, and changing type keeps it", 
   await choose(page, '#bd-model-m2 [data-act="m-profile"]', "minions/ghast-husk");
   assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Plasm/);
   assert.match(await text(page, "#bd-model-m2"), /only allows models with Bone/);
+  assert.deepEqual(errors, []);
+});
+
+test("cards queue once, unqueue, and leave other queue rows alone", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  const count = () => page.evaluate(() => JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => /queue/.test(k)))).length);
+  const btn = '.bd-ghead [data-act="cards"]';
+  assert.equal(await text(page, btn), "Add cards to queue");
+  await page.click(btn);
+  await page.waitForTimeout(200);
+  const n = await count();
+  assert.ok(n > 0);
+  // All queued: the button removes, and is secondary.
+  assert.equal(await text(page, btn), "Remove cards from queue");
+  assert.equal(await page.locator(`${btn}.primary`).count(), 0);
+  // Tapping twice never duplicates: a second add (state changed by hand) adds only the gap.
+  await page.evaluate(() => { const k = Object.keys(localStorage).find(x => /queue/.test(x)); const q = JSON.parse(localStorage.getItem(k)); q.pop(); localStorage.setItem(k, JSON.stringify(q)); });
+  await page.reload(); await ready(page);
+  await page.click(btn);
+  await page.waitForTimeout(200);
+  assert.equal(await count(), n);
+  // A card also queued by hand keeps its other copy; unrelated rows stay.
+  await page.evaluate(() => { const k = Object.keys(localStorage).find(x => /queue/.test(x)); const q = JSON.parse(localStorage.getItem(k));
+    q.push({ ...q[0] }, { key: "x/unrelated", row: { name: "Unrelated" } }); localStorage.setItem(k, JSON.stringify(q)); });
+  await page.reload(); await ready(page);
+  assert.equal(await text(page, btn), "Remove cards from queue");
+  await page.click(btn);
+  await page.waitForTimeout(200);
+  assert.equal(await count(), 2);
+  assert.match(await text(page, ".bd-ghead .bd-status"), /cards removed/);
   assert.deepEqual(errors, []);
 });

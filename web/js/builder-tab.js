@@ -22,11 +22,11 @@
  */
 
 import { icon } from "./lucide.js";
-import { state } from "./state.js";
+import { state, saveQueue } from "./state.js";
 import { $, escapeHtml, whenPointerFree } from "./util.js";
 import { pickField } from "./i18n.js";
 import { store, drafts } from "./gatherings.js";
-import { applyPayload } from "./import.js";
+import { applyPayload, payloadCards } from "./import.js";
 import { evaluate, campaignStarted, AFFINITIES, allowedAffinities as allowedFor, forcedAffinity, applyForcedAffinities, lockMana } from "./builder/rules.js";
 import { newGathering, newModel } from "./builder/gathering.js";
 import { toAppJson } from "./builder/appjson.js";
@@ -416,11 +416,47 @@ function lairName(roll) {
 
 /* ---- hand-off --------------------------------------------------------------- */
 
+/** A queue entry as a multiset key: the card and the row it prints. */
+const queueKey = (e) => `${e.key}|${e.row?.name ?? ""}`;
+
+/** The gathering's generated cards against the queue: which copies are
+ *  missing from it (add only these), and whether all of them are queued. */
+function queueStatus(g) {
+  const cards = payloadCards(toAppJson(g, catalog()));
+  const have = new Map();
+  for (const e of state.queue) have.set(queueKey(e), (have.get(queueKey(e)) || 0) + 1);
+  const missing = [];
+  for (const c of cards) {
+    const k = queueKey(c), n = have.get(k) || 0;
+    if (n) have.set(k, n - 1); else missing.push(c);
+  }
+  return { cards, missing, all: cards.length > 0 && !missing.length };
+}
+
+/** The "Add / Remove cards to queue" button; `primary` only while some are missing. */
+function queueButtonHtml(g, primary) {
+  const all = queueStatus(g).all;
+  return `<button type="button" class="${primary && !all ? "primary" : "secondary"}" data-act="cards">${esc(L(all ? "removeCards" : "addCards"))}</button>`;
+}
+
 function queueCards(g) {
-  const matches = applyPayload(toAppJson(g, catalog()), { queue: true });
-  const n = matches.filter(m => m.target.kind !== "unmatched").length;
-  hooks.onChange?.();
-  status = queuedHtml(n);
+  const q = queueStatus(g);
+  applyPayload(toAppJson(g, catalog()), { queue: false });   // the roster follows this gathering
+  if (q.all) {
+    // One matching copy per generated card; other queue entries stay.
+    for (const c of q.cards) {
+      const i = state.queue.findIndex(e => queueKey(e) === queueKey(c));
+      if (i >= 0) state.queue.splice(i, 1);
+    }
+    saveQueue();
+    hooks.onChange?.();
+    status = `${esc(plural("cardsRemovedN", q.cards.length, lang()))} <button type="button" class="link" data-act="open-queue">${esc(L("openQueue"))}</button>`;
+  } else {
+    state.queue.push(...q.missing);
+    saveQueue();
+    hooks.onChange?.();
+    status = queuedHtml(q.missing.length);
+  }
   renderBuilder();
 }
 
@@ -586,7 +622,7 @@ function rosterBarHtml(g) {
       <div class="bd-roster-actions">
         <div class="bd-views nav-local" role="group" aria-label="${esc(L("rosterPart"))}">${b("sheet", "gatherings/roster", "rosterSheet")}${b("cards", "gatherings/roster/cards", "rosterCards")}</div>
         ${cards}
-        <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>
+        ${queueButtonHtml(g, false)}
         ${status ? `<div class="bd-status" role="status">${status}</div>` : ""}
       </div>
     </div>`;
@@ -605,6 +641,10 @@ function draftHtml(g) {
 const warnList = (ws, cls = "") => ws.length
   ? `<ul class="bd-warn${cls}" aria-label="${esc(L("ruleWarnings"))}">${ws.map(w => `<li>${icon("triangle-alert")}<span>${esc(describe(w, catalog(), lang()))}</span></li>`).join("")}</ul>`
   : "";
+
+/** A model named like its type ("Lich" the Lich) has no name of its own:
+ *  the type is shown as the placeholder, and the stored name is untouched. */
+const sameAsType = (name, type) => !!name && name.trim().toLowerCase() === String(type).trim().toLowerCase();
 
 /** The field a model warning is about: shown inside that list or control. */
 const WARN_FIELD = {
@@ -683,7 +723,7 @@ function gatheringHeadHtml(g, ev) {
       ${warnings}
       <div class="bd-actions">
         ${view === "roster" ? "" : `<button type="button" class="secondary" data-act="roster">${esc(L("viewRoster"))}</button>
-        <button type="button" class="secondary" data-act="cards">${esc(L("addCards"))}</button>`}
+        ${queueButtonHtml(g, !dirty(g))}`}
         <details class="bd-share">
           <summary>${esc(L("shareExport"))} ${icon("chevron-down")}</summary>
           <div class="bd-share-menu">
@@ -709,7 +749,7 @@ function modelsNavHtml(g, ev) {
     const w = e.warnings.length;
     return `<li><button type="button" class="bd-nav-model${e.isLeader ? " leader" : ""}" data-act="goto" data-uid="${esc(m.uid)}">
         <span class="bd-nav-name">${esc(m.name || type)}</span>
-        ${m.name ? `<span class="bd-nav-type">${esc(type)}</span>` : ""}
+        ${m.name && !sameAsType(m.name, type) ? `<span class="bd-nav-type">${esc(type)}</span>` : ""}
         <span class="bd-nav-cost">${e.cost}</span>
         ${w ? `<span class="bd-nav-warn" title="${esc(`${w} ${L(w === 1 ? "warning" : "warnings")}`)}">${icon("triangle-alert")}<span class="bd-nav-n">${w}</span>` +
               `<span class="visually-hidden"> ${esc(L(w === 1 ? "warning" : "warnings"))}</span></span>` : ""}
@@ -859,7 +899,7 @@ function modelHtml(g, m, e, idx) {
       <header class="bd-model-head">
         <div class="bd-model-title">
           <input type="text" class="bd-model-name" data-act="m-name" data-uid="${uid}" data-fid="${uid}-name"
-                 value="${esc(m.name || "")}" placeholder="${esc(typeName)}" aria-label="${esc(L("modelName"))}">
+                 value="${esc(sameAsType(m.name, typeName) ? "" : m.name || "")}" placeholder="${esc(typeName)}" aria-label="${esc(L("modelName"))}">
           <div class="bd-model-type">
             ${sw ? `<span class="bd-type">${esc(typeName)}, ${esc(L("sellsword").toLowerCase())}</span>`
                  : `<select data-act="m-profile" data-uid="${uid}" data-fid="${uid}-profile" aria-label="${esc(L("modelType"))}">
