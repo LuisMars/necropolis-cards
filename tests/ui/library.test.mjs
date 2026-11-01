@@ -33,15 +33,44 @@ test("More menu holds the inventory actions, closes on acting, Escape and outsid
   assert.equal(await page.isHidden("#inv-export-file"), true);
   await page.click("#lib-more > summary");
   assert.equal(await open(), true);
-  for (const id of ["lib-add-all", "inv-export-file", "inv-import-file", "inv-copy", "inv-paste-toggle"]) {
+  for (const id of ["lib-add-all", "inv-export-file", "inv-import-file", "inv-copy"]) {
     assert.equal(await page.isVisible("#" + id), true, id);
     assert.ok((await page.locator("#" + id).boundingBox()).height >= 44, id);
   }
-  // Acting closes it; the paste panel stays visible.
-  await page.click("#inv-paste-toggle");
+  // No jargon in the labels, and no separate paste button.
+  const labels = await page.locator("#lib-more .lib-more-panel button").allTextContents();
+  assert.deepEqual(labels.map(t => t.trim()).slice(1), ["Export backup", "Import backup", "Copy backup"]);
+  assert.ok(!labels.some(t => /json/i.test(t)));
+  assert.equal(await page.locator("#inv-paste-toggle").count(), 0);
+  // Import backup closes the menu and offers a file or pasted text.
+  await page.click("#inv-import-file");
   assert.equal(await open(), false);
   assert.equal(await page.isVisible("#inv-paste-panel"), true);
-  await page.click("#inv-paste-cancel");
+  assert.equal(await page.isVisible("#inv-pick-file"), true);
+  assert.equal(await page.isVisible("#inv-paste-area"), true);
+  await page.fill("#inv-paste-area", JSON.stringify({ printed: [{ key: "spell", name: "Zz Test", printed: 2 }] }));
+  await page.click("#inv-paste-apply");
+  assert.match(await page.textContent("#inv-status"), /Imported 1 card/);
+  assert.equal(await page.isHidden("#inv-paste-panel"), true);
+  // Bad pasted text names no format.
+  await page.click("#lib-more > summary");
+  await page.click("#inv-import-file");
+  await page.fill("#inv-paste-area", "nonsense");
+  await page.click("#inv-paste-apply");
+  assert.ok(!/json/i.test(await page.textContent("#inv-status")));
+  assert.match(await page.getAttribute("#inv-status", "class"), /err/);
+  // A file also imports.
+  await page.click("#lib-more > summary");
+  await page.click("#inv-import-file");
+  await page.setInputFiles("#inv-file-input", { name: "b.json", mimeType: "application/json", buffer: Buffer.from('{"printed":[]}') });
+  await page.waitForFunction(() => /Imported 0/.test(document.getElementById("inv-status").textContent));
+  assert.equal(await page.isHidden("#inv-paste-panel"), true);
+  // At 390 the menu button shares the count's row.
+  const dc = await page.evaluate(() => {
+    const c = document.getElementById("lib-count").getBoundingClientRect(), m = document.querySelector("#lib-more > summary").getBoundingClientRect();
+    return Math.abs((c.top + c.height / 2) - (m.top + m.height / 2));
+  });
+  assert.ok(dc < 12, `More shares the count row (${dc})`);
   // Escape.
   await page.click("#lib-more > summary");
   await page.keyboard.press("Escape");

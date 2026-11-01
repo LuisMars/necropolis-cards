@@ -32,7 +32,7 @@ const $invExportFile = $("inv-export-file");
 const $invCopy       = $("inv-copy");
 const $invImportFile = $("inv-import-file");
 const $invFileInput  = $("inv-file-input");
-const $invPasteTog   = $("inv-paste-toggle");
+const $invPick       = $("inv-pick-file");
 const $invPastePanel = $("inv-paste-panel");
 const $invPasteArea  = $("inv-paste-area");
 const $invPasteApply = $("inv-paste-apply");
@@ -69,9 +69,10 @@ export function initLibrary({ onChange }) {
 
   $invExportFile.addEventListener("click", exportToFile);
   $invCopy.addEventListener("click", copyToClipboard);
-  $invImportFile.addEventListener("click", () => $invFileInput.click());
+  // Import opens one panel offering a file or pasted text.
+  $invImportFile.addEventListener("click", () => togglePastePanel(true));
+  $invPick.addEventListener("click", () => $invFileInput.click());
   $invFileInput.addEventListener("change", importFromFile);
-  $invPasteTog.addEventListener("click", () => togglePastePanel(true));
   $invPasteCancel.addEventListener("click", () => togglePastePanel(false));
   $invPasteApply.addEventListener("click", applyPaste);
 }
@@ -308,7 +309,7 @@ function importFromFile(e) {
   const file = e.target.files?.[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => applyImportText(String(reader.result));
+  reader.onload = () => { applyImportText(String(reader.result)); togglePastePanel(false); };
   reader.onerror = () => status(L("invReadFailed"), false);
   reader.readAsText(file);
   e.target.value = "";  // allow re-importing the same file

@@ -173,17 +173,17 @@
         <div class="lib-more-panel">
           <button class="secondary" id="lib-add-all"><span data-icon="plus"></span> Add all in view</button>
           <span class="inv-label" data-i18n="invLabel">Printed inventory:</span>
-          <button class="secondary" id="inv-export-file" data-i18n="invExportFile"><span data-icon="download"></span> Export file</button>
-          <button class="secondary" id="inv-import-file" data-i18n="invImportFile"><span data-icon="upload"></span> Import file</button>
-          <button class="secondary" id="inv-copy" data-i18n="invCopy"><span data-icon="copy"></span> Copy JSON</button>
-          <button class="secondary" id="inv-paste-toggle" data-i18n="invPaste"><span data-icon="clipboard"></span> Paste JSON…</button>
+          <button class="secondary" id="inv-export-file" data-i18n="invExportFile"><span data-icon="download"></span> Export backup</button>
+          <button class="secondary" id="inv-import-file" data-i18n="invImportFile"><span data-icon="upload"></span> Import backup</button>
+          <button class="secondary" id="inv-copy" data-i18n="invCopy"><span data-icon="copy"></span> Copy backup</button>
         </div>
       </details>
     </div>
     <input type="file" id="inv-file-input" accept="application/json,.json" hidden>
     <p class="inv-status muted" id="inv-status" role="status" aria-live="polite"></p>
     <div class="lib-inv-paste" id="inv-paste-panel" hidden>
-      <textarea id="inv-paste-area" data-i18n-placeholder="invPastePh" placeholder="Paste an exported inventory here, then choose Apply…"></textarea>
+      <button class="secondary" id="inv-pick-file" data-i18n="invPickFile"><span data-icon="upload"></span> Choose a backup file…</button>
+      <textarea id="inv-paste-area" data-i18n-placeholder="invPastePh" placeholder="Or paste a backup here, then choose Apply…"></textarea>
       <div class="inv-paste-actions">
         <button class="secondary" id="inv-paste-apply" data-i18n="apply">Apply</button>
         <button class="secondary" id="inv-paste-cancel" data-i18n="cancel">Cancel</button>

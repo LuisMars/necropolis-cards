@@ -743,6 +743,7 @@
     margin-top:6px;padding:6px 8px 2px;border-top:1px solid var(--nc-line-soft);
     font-family:'Alegreya SC',Georgia,serif;font-size:15px;color:var(--nc-secondary);
   }
+  .lib-inv-paste #inv-pick-file{min-height:44px;margin-bottom:8px}
   p.inv-status{margin:0 0 10px;font-size:15px}
   p.inv-status:empty{display:none}
   p.inv-status.err{color:var(--nc-error)}
@@ -870,7 +871,7 @@
     background:var(--nc-bg);padding:8px 0 12px;
   }
   #lib-count{flex:0 0 auto;margin:0 0 8px}
-  .lib-toolbar > .lib-more{margin:0 0 8px auto}
+  .lib-toolbar > .lib-more{margin:0 0 8px auto;flex:0 0 auto}
   .lib-filter input[type="text"]{flex:1 1 0;min-width:0}
   /* "Todas las categorías" must fit beside the search at 390. */
   .lib-filter select,.lib-filter .nc-select{flex:0 1 188px;min-width:0}
