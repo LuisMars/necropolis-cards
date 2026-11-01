@@ -437,11 +437,21 @@ function onClick(e) {
       remove();
       break;
     }
-    case "m-remove":   edit(g => {
-                         const m = findModel(g, uid);
-                         if (campaignStarted(g)) record(g, "dismiss", { item: m.profile, uid });
-                         g.models = g.models.filter(x => x.uid !== uid);
-                       }); forgetFolds(uid); break;
+    case "m-remove": {
+      const m = g && findModel(g, uid);
+      if (!m) break;
+      const who = m.name || itemName(catalog(), m.profile, lang());
+      confirmDialog(fill(L("confirmRemoveModel"), { name: who }), { okLabel: L("removeModel"), danger: true }).then((ok) => {
+        if (!ok || working()?.id !== g.id || !findModel(working(), uid)) return;
+        edit(g => {
+          const m = findModel(g, uid);
+          if (campaignStarted(g)) record(g, "dismiss", { item: m.profile, uid });
+          g.models = g.models.filter(x => x.uid !== uid);
+        });
+        forgetFolds(uid);
+      });
+      break;
+    }
     case "m-up":
     case "m-down":     edit(g => {
                          const k = g.models.findIndex(m => m.uid === uid);
@@ -701,9 +711,9 @@ function summaryBarHtml(g, ev) {
   return `
     <section class="bd-bar" aria-label="${esc(L("summary"))}">
       <span class="bd-bar-cost${over ? " over" : ""}">${cost}${over ? ` <strong class="bd-bar-over">${esc(L("overShort"))}</strong>` : ""}</span>
-      <span class="bd-bar-models"><b>${g.models.length}</b> <span class="bd-bar-lbl">${esc(L("modelsLabel"))}</span></span>
+      <span class="bd-bar-models"><b>${g.models.length}</b> <span class="bd-bar-lbl">${esc(plural("modelsBar", g.models.length, lang()))}</span></span>
       ${n
-        ? `<button type="button" class="bd-bar-warn" data-act="bar-warn" aria-label="${esc(`${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("goFirstWarning")}`)}">${icon("triangle-alert")}<b>${n}</b></button>`
+        ? `<button type="button" class="bd-bar-warn" data-act="bar-warn" aria-label="${esc(plural("warningsGo", n, lang()))}">${icon("triangle-alert")}<b>${n}</b></button>`
         : `<span class="bd-bar-ok">${icon("check")}<span class="visually-hidden">${esc(L("noWarnings"))}</span></span>`}
     </section>`;
 }
@@ -806,7 +816,7 @@ function gatheringHeadHtml(g, ev) {
       <div class="bd-ledger-warn">
         ${full ? warnList(own) : ""}
         ${hiddenWarnings(ev) ? `<button type="button" class="link bd-warn-toggle" data-act="summary" aria-expanded="${summaryOpen}">
-          ${icon("triangle-alert")}<span>${esc(summaryOpen ? L("hideWarnings") : `${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("showAll")}`)}</span></button>` : ""}
+          ${icon("triangle-alert")}<span>${esc(summaryOpen ? L("hideWarnings") : plural("warningsAll", n, lang()))}</span></button>` : ""}
       </div>` : `<p class="bd-good">${icon("check")} ${esc(L("noWarnings"))}</p>`;
 
   return `

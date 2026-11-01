@@ -61,6 +61,8 @@ export function initImport({ onChange, onImported, openQueue, onPanel }) {
     renderMatches(matches, notes);
     showQueued(0);
     if (matches.length) {
+      showPanel(false);
+      onPanel?.();
       onImported?.();
       // The open panel is taller than most screens: bring the gathering into view.
       requestAnimationFrame(() => document.getElementById("bd-body")?.scrollIntoView({ block: "start" }));

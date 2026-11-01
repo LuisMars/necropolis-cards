@@ -57,6 +57,7 @@ const go = (page, dest) => page.click(`nav.tabs a[data-dest="${dest}"]`);
 async function openImport(page) {
   await go(page, "gatherings");
   if (await page.isHidden("#bd-import-panel")) {
+    if (await page.isVisible("#bd-more") && await page.isHidden("#bd-import")) await page.click("#bd-more > summary");
     await page.locator('#bd-import:visible, #bd-body [data-act="import"]').first().click();
   }
 }
@@ -92,7 +93,6 @@ test("importing the same warband again opens it instead of copying it", async ()
   await importLink(page);
   assert.equal(await page.evaluate(() =>
     JSON.parse(localStorage.getItem("necropolis-builder-gatherings-v1")).order.length), 1);
-  assert.ok(await page.isVisible("#bd-import-panel"));
   assert.match(await text(page, "#match-list"), /Already saved as/);
 });
 
@@ -599,6 +599,7 @@ test("focus stays near a control that goes away", async () => {
   // A removed model: focus moves to a neighbouring card, not the page top.
   await page.focus('[data-act="m-remove"][data-uid="m5"]');
   await page.keyboard.press("Enter");
+  await confirmOk(page);
   await page.waitForTimeout(150);
   const after = await page.evaluate(() => document.activeElement.closest(".bd-model")?.id);
   assert.match(after, /^bd-model-m/);
@@ -634,6 +635,8 @@ test("a click isn't lost to the redraw a blur causes", async () => {
   await importLink(page);
   await page.fill('[data-act="m-name"][data-uid="m4"]', "Bob");  // still focused
   await slowPress(page, '[data-act="m-remove"][data-uid="m5"]');
+  await confirmOk(page);
+  await page.waitForTimeout(150);
   const g = await working(page);
   assert.equal(g.models.some(m => m.uid === "m5"), false, "the Remove click landed");
   assert.equal(g.models.find(m => m.uid === "m4").name, "Bob");
@@ -785,6 +788,7 @@ test("a reward's pick stops counting when the model is gone", async () => {
   assert.ok(await page.isEnabled(complete));
   await page.click('[data-act="view"][data-view="gathering"]');
   await page.click('[data-act="m-remove"][data-uid="m2"]');
+  await confirmOk(page);
   await page.waitForTimeout(100);
   await page.click('[data-act="view"][data-view="campaign"]');
   assert.ok(await page.isDisabled(complete));
@@ -1881,5 +1885,57 @@ test("a saved sequence left on a step that no longer exists opens on the last on
   await page.waitForTimeout(500);
   await page.click('[data-act="view"][data-view="campaign"]');
   assert.match(await text(page, ".bd-stepper-now"), /^Step 5 of 5: /);
+  assert.deepEqual(errors, []);
+});
+
+test("a good load closes the Import panel; a bad one leaves it open", async () => {
+  const { page, errors } = await open();
+  await openImport(page);
+  await page.fill("#json-in", "not json at all");
+  await page.click("#load-warband-btn");
+  await page.waitForTimeout(200);
+  if (await page.isVisible("dialog.nc-dialog[open]")) await confirmOk(page);
+  assert.ok(await page.isVisible("#bd-import-panel"), "a failed load keeps the panel");
+  await page.fill("#json-in", LINK);
+  await page.click("#load-warband-btn");
+  await page.waitForTimeout(300);
+  assert.equal(await page.isHidden("#bd-import-panel"), true, "a good load closes it");
+  assert.deepEqual(errors, []);
+});
+
+test("Remove asks first, names the model, and Cancel keeps it", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  const count = async () => (await working(page)).models.length;
+  const n = await count();
+  await page.click('[data-act="m-remove"][data-uid="m5"]');
+  assert.match(await page.textContent("dialog.nc-dialog[open] p"), /^Remove .+ from this gathering\?$/);
+  assert.equal(await page.textContent('dialog.nc-dialog[open] [data-nd="ok"]'), "Remove");
+  await page.click('dialog.nc-dialog[open] [data-nd="cancel"]');
+  await page.waitForTimeout(100);
+  assert.equal(await count(), n);
+  await page.click('[data-act="m-remove"][data-uid="m5"]');
+  await confirmOk(page);
+  await page.waitForTimeout(150);
+  assert.equal(await count(), n - 1);
+  assert.deepEqual(nativeDialogs, []);
+  assert.deepEqual(errors, []);
+});
+
+test("counts of one read in the singular, in both languages", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  while ((await working(page)).models.length > 1) {
+    const uid = (await working(page)).models.at(-1).uid;
+    await page.locator(`[data-act="m-remove"][data-uid="${uid}"]`).dispatchEvent("click");
+    await confirmOk(page);
+    await page.waitForTimeout(100);
+  }
+  assert.match(await text(page, ".bd-bar-models"), /^1\s+Model$/);
+  await page.click("#nav-settings");
+  await page.selectOption("#lang-select", "es");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+  assert.match(await text(page, ".bd-bar-models"), /^1\s+Miniatura$/);
   assert.deepEqual(errors, []);
 });
