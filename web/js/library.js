@@ -1,7 +1,7 @@
 /**
  * Library tab — filterable list of every card in the bundle.
  *
- * Each tile can be added to the print queue, shows a 2-line text preview,
+ * Each tile can be added to the print queue, shows a full text preview,
  * how many copies are queued, and a "printed" stepper that records how many
  * you've already printed (the inventory used by the Print tab's
  * "only what I still need" mode). The inventory can be exported/imported as
@@ -106,13 +106,14 @@ const PREVIEW_FIELDS = [
   "armaments", "restrictions", "flavor",
 ];
 
-/** Short single-line description of a card for the library tile, in the
+/** Full-text description of a card for the library tile, in the
  *  currently-selected card language (falls back to English per field). */
 function previewText(row) {
   for (const f of PREVIEW_FIELDS) {
     const v = pickField(row, f, state.lang);
     if (typeof v === "string" && v.trim()) {
-      return v.replace(/\s+/g, " ").trim();
+      // Whole text, never cut; blank-line paragraph breaks survive.
+      return v.split(/\n\s*\n/).map(p => p.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n\n");
     }
   }
   return "";

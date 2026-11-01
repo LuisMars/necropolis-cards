@@ -372,6 +372,34 @@ test("each list has its own Add button, and the picker explains what breaks a ru
   const names = await page.locator(".bd-picker-row .bd-pk-name").allTextContents();
   assert.deepEqual(names, ["Sling", "Bow", "Crossbow"]);
   await page.click('dialog.bd-picker [data-pk="close"].primary');
+
+  // Search: name and kind win over rules text; rules-only words still find spells.
+  await page.click('[data-act="m-pick"][data-uid="m1"][data-list="spells"]');
+  const rowNames = () => page.locator(".bd-picker-row .bd-pk-name").allTextContents();
+  const total = (await rowNames()).length;
+  await page.click(".bd-picker-search");
+  await page.keyboard.type("With");
+  assert.deepEqual(await rowNames(), ["Wither"]);
+  await page.keyboard.type("e");                      // one more character, narrowed per keystroke
+  assert.deepEqual(await rowNames(), ["Wither"]);
+  await page.keyboard.type("x");                      // no name hit: falls back to rules, finds none
+  assert.equal(await page.locator(".bd-picker-row").count(), 0);
+  await page.fill(".bd-picker-search", "within");     // rules-only word
+  assert.ok((await rowNames()).length > 1);
+  await page.fill(".bd-picker-search", "");
+  assert.equal((await rowNames()).length, total);
+  // Android composition: filtering fires per keystroke and keeps every character.
+  await page.evaluate(() => {
+    const i = document.querySelector(".bd-picker-search");
+    i.dispatchEvent(new CompositionEvent("compositionstart"));
+    for (const v of ["W", "Wi", "Wit", "With"]) {
+      i.value = v;
+      i.dispatchEvent(new InputEvent("input", { bubbles: true, isComposing: true, data: v }));
+    }
+  });
+  assert.deepEqual(await rowNames(), ["Wither"]);
+  assert.equal(await page.inputValue(".bd-picker-search"), "With");
+  await page.click('dialog.bd-picker [data-pk="close"].primary');
   assert.deepEqual(errors, []);
 });
 
@@ -1371,4 +1399,100 @@ test("types the covenant rules out are disabled with a reason, and the current t
   assert.equal(await opt(sel, "minions/corpse-husk").isDisabled(), true);
   assert.equal(await opt(sel, "minions/skeletal-husk").isDisabled(), false);
   assert.deepEqual(errors, []);
+});
+const FOLD_KEY = "necropolis-builder-fold-v1";
+const stored = (page, key) => page.evaluate(k => localStorage.getItem(k), key);
+
+test("a model card and a list fold and unfold; the state survives an edit and a reload; no draft, nothing in the data", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  const card = page.locator("#bd-model-m1");
+  const toggle = card.locator('[data-act="fold"][data-sec="model"]');
+  assert.equal(await toggle.getAttribute("aria-expanded"), "true");
+  assert.ok((await toggle.boundingBox()).height >= 43.5, "44px target");
+
+  // A list: fold Traits.
+  const sec = card.locator('[data-act="fold"][data-sec="traits"]');
+  const count = await card.locator('#bd-sec-m1-traits .bd-item').count();
+  assert.match(await sec.getAttribute("aria-label"), /^Collapse Traits of /);
+  await sec.click();
+  assert.equal(await sec.getAttribute("aria-expanded"), "false");
+  assert.equal(await card.locator("#bd-sec-m1-traits").isHidden(), true);
+  assert.match(await text(page, '#bd-model-m1 [data-sec="traits"]'), new RegExp(`Traits\\W*${count}`));
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.fid), "m1-fold-traits", "focus stays on the toggle");
+
+  // Fold the card: one row with the name, obols and the toggle; the name input is not inside it.
+  await toggle.click();
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false");
+  assert.match(await toggle.getAttribute("aria-label"), /^Expand /);
+  assert.equal(await card.locator("#bd-mbody-m1").isHidden(), true);
+  assert.equal(await card.locator(".bd-model-name").isHidden(), true);
+  assert.equal(await toggle.locator("input, select, button").count(), 0);
+  assert.match(await toggle.textContent(), /obols/);
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.fid), "m1-fold-model");
+
+  // Folding makes no draft and writes nothing into the gathering or the drafts.
+  assert.equal(await page.isVisible(".bd-draft"), false);
+  assert.equal(await stored(page, "necropolis-builder-drafts-v1") || "{}", "{}");
+  assert.ok(!(await stored(page, "necropolis-builder-gatherings-v1")).includes("fold"));
+  assert.ok((await stored(page, FOLD_KEY)).includes("m1"));
+
+  // An edit elsewhere keeps both folds; so does a reload.
+  await pick(page, "m3", "armour", "armour|armours/heavy-armour");
+  assert.equal(await toggle.getAttribute("aria-expanded"), "false");
+  await page.reload();
+  await ready(page);
+  await go(page, "gatherings");
+  assert.equal(await page.locator('#bd-model-m1 [data-sec="model"]').getAttribute("aria-expanded"), "false");
+  await page.click('[data-act="fold"][data-uid="m1"][data-sec="model"]');
+  assert.equal(await page.locator('#bd-model-m1 [data-sec="traits"]').getAttribute("aria-expanded"), "false");
+  await page.click('[data-act="fold"][data-uid="m1"][data-sec="traits"]');
+  assert.equal(await stored(page, FOLD_KEY), null, "empty entries are cleaned up");
+
+  // Export and backup have no fold data (folds are set again first).
+  await page.click('[data-act="fold"][data-uid="m1"][data-sec="model"]');
+  const fs = await import("node:fs/promises");
+  for (const act of ["export", "backup"]) {
+    await page.evaluate(() => { document.querySelector(".bd-share").open = true; });
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.click(`[data-act="${act}"]`)]);
+    assert.ok(!/fold|collaps/i.test(await fs.readFile(await dl.path(), "utf8")), act);
+  }
+  assert.deepEqual(errors, []);
+});
+
+test("a folded card and list still show their warnings; a list jump unfolds the card; adding unfolds the list", async () => {
+  const { page } = await open();
+  await page.setViewportSize({ width: 390, height: 800 });
+  await importLink(page);
+  // Two armours break a rule on m3; the models list shows the count on it.
+  await pick(page, "m3", "armour", "armour|armours/heavy-armour");
+  await pick(page, "m3", "armour", "armour|armours/heavy-armour");
+  const nav = page.locator(".bd-nav-model:has(.bd-nav-warn)").first();
+  const uid = await nav.getAttribute("data-uid");
+  const n = (await text(page, `.bd-nav-model[data-uid="${uid}"] .bd-nav-n`));
+  await page.click(`[data-act="fold"][data-uid="${uid}"][data-sec="model"]`);
+  const t = page.locator(`#bd-model-${uid} [data-sec="model"]`);
+  assert.equal(await t.locator(".bd-fold-warn .nc-icon").count(), 1);
+  assert.equal(await text(page, `#bd-model-${uid} .bd-fold-warn .bd-nav-n`), n);
+
+  // Tapping it in the models list unfolds it and scrolls to it.
+  await nav.click();
+  assert.equal(await t.getAttribute("aria-expanded"), "true");
+  assert.equal(await page.locator(`#bd-model-${uid} .bd-model-body`).isVisible(), true);
+
+  // A list with a warning shows its count when folded.
+  const warnSec = await page.locator(`#bd-model-${uid} .bd-list:has(.bd-warn-inline) [data-act="fold"]`).first();
+  if (await warnSec.count()) {
+    await warnSec.click();
+    assert.equal(await page.locator(`#bd-model-${uid} .bd-list.folded .bd-fold-warn`).count(), 1);
+    await warnSec.click();
+  }
+
+  // Adding to a folded list opens it.
+  await page.click(`[data-act="fold"][data-uid="m3"][data-sec="armour"]`);
+  assert.equal(await page.locator("#bd-sec-m3-armour").isHidden(), true);
+  assert.equal(await page.locator("#bd-model-m3 .bd-list.folded .bd-fold-warn").count(), 1, "folded list keeps its warning");
+  await page.evaluate(() => document.getElementById("bd-sec-m3-armour").hidden = false);   // the picker button lives in the body
+  await pick(page, "m3", "armour", "armour|armours/heavy-armour");
+  assert.equal(await page.locator('#bd-model-m3 [data-sec="armour"]').getAttribute("aria-expanded"), "true");
 });

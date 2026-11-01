@@ -186,13 +186,12 @@ textarea.json-in { resize: vertical; }
 .lib-tile .name { font-weight: 600; line-height: 1.25; color: var(--text); }
 .lib-tile .preview {
   line-height: 1.4;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
-  overflow: hidden;
+  white-space: pre-line; overflow-wrap: anywhere;   /* full text, paragraph breaks kept */
 }
 
 /* tile footer: printed stepper + need badge */
 .lib-tile .tile-foot {
-  display: flex; align-items: center; gap: 8px; margin-top: 2px;
+  display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 2px;  /* footers line up along each grid row */
 }
 .lib-tile .printed-ctl { display: inline-flex; align-items: center; gap: 4px; }
 .lib-tile .printed-ctl button {

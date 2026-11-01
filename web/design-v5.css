@@ -502,7 +502,7 @@
   .bd-pk-name{font-weight:600}
   .bd-pk-cost{color:var(--nc-secondary);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
   .bd-pk-sum,.bd-pk-why{grid-column:1 / -1;font-size:14px;line-height:1.35}
-  .bd-pk-sum{color:var(--nc-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .bd-pk-sum{color:var(--nc-secondary);overflow-wrap:anywhere}
   .bd-pk-sum b{font-weight:600;color:var(--nc-bone)}
   .bd-pk-why{color:var(--nc-muted);font-style:italic}
   .bd-picker-empty{color:var(--nc-muted);font-style:italic;margin:14px 0}
@@ -859,7 +859,7 @@
   .lib-filter{display:flex;align-items:center;gap:10px}
   .lib-filter input[type="text"]{min-width:280px}
   .lib-tile,.lib-tile button{scroll-margin-top:calc(var(--nc-header-h,0px) + var(--lib-filter-h,60px) + 8px)}
-  .lib-tile{content-visibility:auto;contain-intrinsic-size:auto 150px}
+  .lib-tile{content-visibility:auto;contain-intrinsic-size:auto 260px}
 }
 @media screen and (max-width:540px){
   section.tab[data-tab="library"]{display:flex;flex-wrap:wrap;align-items:center;gap:0 10px}
@@ -1029,3 +1029,36 @@
   }
 }
 @media print{.bd-bar{display:none !important}}
+/* ==== Folding model cards and lists (own block) ===================================
+ * A model card folds to one row; each list folds under its heading. The toggles
+ * are real buttons (aria-expanded, aria-controls) with a chevron, 44px on every
+ * width; the name input is never inside one. Folded bodies stay in the page,
+ * hidden, so aria-controls always points at something. Screen only. */
+@media screen {
+  .bd-model [hidden]{display:none !important}
+  .bd-fold{
+    display:inline-flex;align-items:center;gap:8px;min-height:var(--nc-target);min-width:var(--nc-target);
+    box-sizing:border-box;padding:0 8px;margin:0;cursor:pointer;text-align:left;
+    background:transparent;color:var(--nc-secondary);border:1px solid transparent;border-radius:3px;font:inherit;
+  }
+  .bd-fold .nc-icon{width:20px;height:20px;margin:0;flex:none}
+  @media (hover:hover){.bd-fold:hover{background:var(--nc-hover);border-color:var(--nc-line-soft);color:var(--nc-bone)}}
+  .bd-fold:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+  .bd-model-fold{align-self:flex-start;flex:none;padding:0;justify-content:center}
+  .bd-model-fold .bd-fold-text:empty{display:none}
+  .bd-model-fold.folded{flex:1 1 auto;justify-content:flex-start;min-width:0;flex-wrap:wrap;gap:4px 12px;padding:0 8px 0 0;color:var(--nc-bone)}
+  .bd-model-fold.folded .bd-fold-text{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;min-width:0}
+  .bd-fold-name{font-family:var(--gothic);font-size:24px;font-weight:400;line-height:1.15;overflow-wrap:anywhere}
+  .bd-fold-type{font-family:'Alegreya SC',Georgia,serif;font-size:15px;color:var(--nc-secondary)}
+  .bd-fold-cost{font-size:15px;color:var(--nc-secondary);white-space:nowrap}
+  .bd-fold-cost b{font-size:20px;color:var(--nc-bone);font-variant-numeric:lining-nums tabular-nums}
+  .bd-fold-warn{display:inline-flex;align-items:center;gap:3px;font-size:15px;color:var(--nc-warning);white-space:nowrap}
+  .bd-fold-warn .nc-icon{width:16px;height:16px}
+  .bd-fold-warn .bd-nav-n{color:var(--nc-bone)}
+  .bd-fold-n{font-size:15px;color:var(--nc-secondary);font-variant-numeric:tabular-nums}
+  .bd-fold-n::before{content:"\00b7\00a0"}
+  /* A list heading is a full-width toggle. */
+  #bd-body .bd-model .bd-list h4{display:block}
+  #bd-body .bd-list h4 .bd-fold{width:100%;justify-content:flex-start;padding:0 4px;color:inherit;letter-spacing:inherit}
+  .bd-list-body{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-width:0}
+}
