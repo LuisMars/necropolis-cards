@@ -55,8 +55,17 @@ export function initPwa({ lang = () => "en" } = {}) {
 
   function render() {
     const note = $("nc-update");
+    const sheetOpen = !!$("settings-sheet")?.open;
+    const waiting = !!waitingWorker();
+    // The modal Settings sheet covers the floating notice, so while it is open
+    // the same action lives in its App section instead: one notice at a time.
+    if ($("pwa-ready")) {
+      $("pwa-ready").hidden = !(waiting && sheetOpen);
+      $("pwa-ready-text").textContent = L("pwaNewVersion");
+      $("pwa-update-btn").textContent = L("pwaUpdate");
+    }
     if (note) {
-      note.hidden = !waitingWorker();
+      note.hidden = !waiting || sheetOpen;
       $("nc-update-text").textContent = L("pwaNewVersion");
       $("nc-update-btn").textContent = L("pwaUpdate");
     }
@@ -159,6 +168,11 @@ export function initPwa({ lang = () => "en" } = {}) {
   }
 
   $("nc-update-btn")?.addEventListener("click", applyUpdate);
+  $("pwa-update-btn")?.addEventListener("click", applyUpdate);
+  const sheet = $("settings-sheet");
+  if (sheet && typeof MutationObserver !== "undefined") {
+    new MutationObserver(() => render()).observe(sheet, { attributes: true, attributeFilter: ["open"] });
+  }
   $("pwa-check")?.addEventListener("click", check);
   installListeners.add(render);
   $("pwa-install-btn")?.addEventListener("click", async () => {

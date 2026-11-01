@@ -169,7 +169,13 @@ test("an update waits behind a notice, keeps typed data, and Update reloads once
       Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "visible" });
       document.dispatchEvent(new Event("visibilitychange"));
     });
+    // The sheet is open: its App section offers Update, and the floating notice stays away (no double notice).
+    await page.waitForSelector("#pwa-update-btn", { state: "visible" });
+    assert.equal(await page.locator("#nc-update").isHidden(), true);
+    assert.equal((await page.textContent("#pwa-ready-text")).trim(), "A new version is available.");
+    await page.evaluate(() => document.getElementById("settings-sheet").close());
     await page.waitForSelector("#nc-update:not([hidden])");
+    await openSettings(page);
     assert.equal(await page.getAttribute("#nc-update", "role"), "status");
     assert.equal((await page.textContent("#nc-update-text")).trim(), "A new version is available.");
     await sleep(1000);
@@ -184,7 +190,7 @@ test("an update waits behind a notice, keeps typed data, and Update reloads once
     await other.close();
 
     const before = navs;
-    await page.keyboard.press("Escape");                   // the notice sits behind the open sheet
+    await page.keyboard.press("Escape");
     await page.click("#nc-update-btn");
     await page.waitForFunction(() => !window.__marker);    // reloaded
     await page.waitForFunction(() => document.querySelector("#bd-body > *"));
@@ -269,7 +275,14 @@ test("Settings > Check for updates reports checking, up to date, available and o
     bundleSw(dir);
     await page.click("#pwa-check");
     await page.waitForFunction(() => /new version is available/.test(document.getElementById("pwa-status").textContent));
+    // The open sheet covers the floating notice: the action moves into the App section.
+    assert.ok(await page.locator("#nc-update").isHidden());
+    assert.ok(await page.locator("#pwa-update-btn").isVisible());
+    assert.equal(await page.locator("#pwa-update-btn").evaluate((b) => b.getBoundingClientRect().height >= 44), true);
+    await page.evaluate(() => document.getElementById("settings-sheet").close());
     assert.ok(await page.locator("#nc-update").isVisible());
+    assert.ok(await page.locator("#pwa-ready").isHidden());
+    await openSettings(page);
 
     await ctx.setOffline(true);
     await page.click("#pwa-check");

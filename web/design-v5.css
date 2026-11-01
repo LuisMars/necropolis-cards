@@ -993,10 +993,13 @@
   .settings-h,.settings-body .nc-sync h2{margin:0;font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;color:var(--nc-secondary)}
   .settings-body .nc-sync{max-width:none;border-top:1px solid var(--nc-line-soft);padding-top:16px;gap:12px}
   .settings-body label{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+  /* Every field label in the sheet (Language, Theme, Email, Password) looks the same. */
+  .settings-body label > span:first-child{font:700 14px 'Alegreya SC',Georgia,serif;color:var(--nc-secondary)}
   .settings-body :is(input,select,.nc-select){width:100%;max-width:none;box-sizing:border-box}
-  .settings-body .nc-sync-actions button,.settings-body .nc-pwa-install button{min-height:44px}
+  .settings-body .nc-sync-actions button,.settings-body .nc-pwa-install button,.settings-body .nc-pwa-ready button{min-height:44px}
   @media (max-width:540px){.settings-body .nc-sync-actions button,.settings-body .nc-pwa-install button{flex:1 1 100%}}
-  .nc-pwa-install,.nc-pwa-updates{display:flex;flex-direction:column;gap:10px}
+  .nc-pwa-install,.nc-pwa-updates,.nc-pwa-ready{display:flex;flex-direction:column;gap:10px}
+  .nc-pwa-ready[hidden]{display:none}
   .nc-pwa-install[hidden],.nc-pwa-updates[hidden],.nc-pwa-install [hidden]{display:none}
   @media (min-width:541px){
     dialog.settings-sheet{inset:0 0 0 auto;width:420px;max-width:100vw;border-left:1px solid var(--nc-line)}
