@@ -1567,3 +1567,35 @@ test("treasure rows: rules open on the name, survive an edit, make no draft", as
   assert.equal(await page.locator(".bd-tr-rules:visible").count(), 2);
   assert.deepEqual(errors, []);
 });
+
+test("a no-op change on a gathering that needs a keyword correction makes no draft", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  // Store it as an old save would have it: Cairn-born (keyword locked to Bone) with a model's keyword unset.
+  await page.evaluate(() => {
+    const k = "necropolis-builder-gatherings-v1";
+    const d = JSON.parse(localStorage.getItem(k));
+    const g = d.gatherings[d.current];
+    g.covenant = "covenants/cairn-born";
+    for (const m of g.models) if (m.affinity) m.affinity = null;
+    localStorage.setItem(k, JSON.stringify(d));
+    localStorage.removeItem("necropolis-builder-drafts-v1");
+  });
+  await page.reload();
+  await ready(page);
+  const draftOf = () => page.evaluate(() => localStorage.getItem("necropolis-builder-drafts-v1"));
+  // The player sees the corrected keyword already, and no Unsaved marker.
+  assert.ok((await page.locator(".bd-affinity-forced").count()) > 0);
+  assert.equal(await page.isVisible(".bd-draft"), false);
+  // A change event that changes nothing: the name field re-committed as it is.
+  await page.locator(".bd-model-name").first().dispatchEvent("change");
+  await page.waitForTimeout(200);
+  assert.equal(await page.isVisible(".bd-draft"), false);
+  assert.ok(!(await draftOf()) || (await draftOf()) === "{}", `draft written: ${await draftOf()}`);
+  // A real edit still makes one.
+  await page.fill(".bd-model-name >> nth=0", "Renamed");
+  await page.press(".bd-model-name >> nth=0", "Tab");
+  await page.waitForTimeout(200);
+  assert.equal(await page.isVisible(".bd-draft"), true);
+  assert.deepEqual(errors, []);
+});

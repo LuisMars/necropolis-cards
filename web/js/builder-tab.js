@@ -34,7 +34,7 @@ import { linkUrl, defaultWeapon } from "./builder/codec.js";
 import { categoryOf, slug } from "./builder/catalog.js";
 import { describe, covenantReason, label, itemName, plural, fill } from "./builder/messages.js";
 import {
-  buyGear, sellGear, discardGear, recruitPrice, recruit, record, stashGear, takeGear, channelBonuses, startingWeapon,
+  ensureCampaign, buyGear, sellGear, discardGear, recruitPrice, recruit, record, stashGear, takeGear, channelBonuses, startingWeapon,
   weaponLocked, buyPrice, deployCosts, payDeployment,
 } from "./builder/campaign.js";
 import { isFolded, setFolded, forgetFolds } from "./builder-fold.js";
@@ -77,6 +77,8 @@ function working() {
   return g;
 }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+/** Equal once both are in the current save format (an edit upgrades old saves as it goes). */
+const sameForPlayer = (a, b) => same(ensureCampaign(structuredClone(a), catalog()), ensureCampaign(structuredClone(b), catalog()));
 /** Does this gathering have changes that aren't saved? */
 const dirty = (g) => !!g && !!drafts.get(g.id) && !same(drafts.get(g.id), store.get(g.id));
 
@@ -184,6 +186,10 @@ function edit(fn, act = "") {
     return;
   }
   setNotice(null);
+  // Nothing the player sees changed (a change event with the same value): no draft.
+  // `cur` already shows the forced keywords, so a stored copy that needs correcting
+  // doesn't turn into a draft by itself.
+  if (sameForPlayer(g, cur)) { redraw(); return; }
   keep(g);
   redraw();
 }
