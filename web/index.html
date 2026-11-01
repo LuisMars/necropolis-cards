@@ -197,14 +197,21 @@
     <div class="print-toolbar nav-local-row">
       <div class="bd-views nav-local" role="group" data-local="cards"></div>
     </div>
-    <div class="print-toolbar">
-      <label data-i18n="gapToggle"><input type="checkbox" id="bleed-toggle"> Add gap between cards</label>
-      <label data-i18n="backsToggle"><input type="checkbox" id="backs-toggle"> Print card backs</label>
-      <label data-i18n="needToggle" data-i18n-title="needToggleTitle" title="Skip cards you've already printed enough of (queued minus printed)"><input type="checkbox" id="need-toggle"> Only what I still need</label>
+    <div class="print-toolbar print-bar">
       <span id="sheet-count"></span>
+      <span id="print-opts-on" class="print-opts-on"></span>
       <span class="spacer" style="flex:1;"></span>
-      <button class="secondary" id="mark-printed-btn" data-i18n="markPrinted" data-i18n-title="markPrintedTitle" title="Add this run's cards to your printed inventory"><span data-icon="check"></span> Mark this run as printed</button>
-      <button class="secondary" id="clear-queue-btn-2" data-i18n="clearQueue">Clear queue</button>
+      <details class="lib-more print-more" id="print-more">
+        <summary><span data-i18n="libMore">More</span><span class="nav-chev" data-icon="chevron-down"></span></summary>
+        <div class="lib-more-panel">
+          <button class="secondary" id="mark-printed-btn" data-i18n="markPrinted" data-i18n-title="markPrintedTitle" title="Add this run's cards to your printed inventory"><span data-icon="check"></span> Mark this run as printed</button>
+          <button class="secondary danger" id="clear-queue-btn-2" data-i18n="clearQueue">Clear queue</button>
+          <span class="inv-label" data-i18n="printOptions">Options:</span>
+          <label data-i18n="gapToggle"><input type="checkbox" id="bleed-toggle"> Add gap between cards</label>
+          <label data-i18n="backsToggle"><input type="checkbox" id="backs-toggle"> Print card backs</label>
+          <label data-i18n="needToggle" data-i18n-title="needToggleTitle" title="Skip cards you've already printed enough of (queued minus printed)"><input type="checkbox" id="need-toggle"> Only what I still need</label>
+        </div>
+      </details>
     </div>
     <div class="queue-panel">
       <div class="queue-list" id="queue-list"></div>

@@ -744,6 +744,13 @@
     font-family:'Alegreya SC',Georgia,serif;font-size:15px;color:var(--nc-secondary);
   }
   .lib-inv-paste #inv-pick-file{min-height:44px;margin-bottom:8px}
+  /* Print queue: summary + options in force on the left, the menu on the right. */
+  .print-bar{align-items:center}
+  .print-bar .print-opts-on{color:var(--nc-secondary);font-size:15px}
+  .print-bar .print-opts-on:empty{display:none}
+  .print-more .lib-more-panel{min-width:260px}
+  .print-more .lib-more-panel label{min-height:44px;padding:0 8px;box-sizing:border-box;white-space:normal;color:var(--nc-bone)}
+  .lib-more-panel button.danger{color:var(--nc-error)}
   p.inv-status{margin:0 0 10px;font-size:15px}
   p.inv-status:empty{display:none}
   p.inv-status.err{color:var(--nc-error)}

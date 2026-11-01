@@ -24,6 +24,8 @@ const $backs       = $("backs-toggle");
 const $needToggle  = $("need-toggle");
 const $markPrinted = $("mark-printed-btn");
 const $clearBtn    = $("clear-queue-btn-2");
+const $printMore   = $("print-more");
+const $optsOn      = $("print-opts-on");
 
 const CARDS_PER_SHEET = 9;
 
@@ -35,6 +37,18 @@ export function initPrint({ onChange } = {}) {
   $backs.addEventListener("change", renderPrint);
   $needToggle.addEventListener("change", renderPrint);
   $markPrinted.addEventListener("click", markRunPrinted);
+  // More menu: closes on acting on a button (not on ticking an option), Escape and an outside tap.
+  $printMore.querySelector(".lib-more-panel").addEventListener("click", (e) => {
+    if (e.target.closest("button")) $printMore.open = false;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !$printMore.open) return;
+    $printMore.open = false;
+    $printMore.querySelector("summary").focus();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if ($printMore.open && !$printMore.contains(e.target)) $printMore.open = false;
+  });
   $clearBtn.addEventListener("click", () => {
     if (!state.queue.length) return;
     if (!confirm(plural("confirmClear", state.queue.length, lang()))) return;
@@ -260,6 +274,9 @@ function remove(i) {
 
 function renderSheets() {
   $sheetsWrap.innerHTML = "";
+  // Options that are on stay visible beside the summary while the menu is closed.
+  $optsOn.textContent = [[$bleed, "optGap"], [$backs, "optBacks"], [$needToggle, "optNeed"]]
+    .filter(([el]) => el.checked).map(([, k]) => L(k)).join(" · ");
   const list = printList();
   const needMode = $needToggle.checked;
   $markPrinted.disabled = list.length === 0;

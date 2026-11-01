@@ -21,8 +21,8 @@ const EXPORT = readFileSync(new URL("../fixtures/companion-export.json", import.
 
 // English interface strings that must not survive the switch (whole words).
 const ENGLISH = [
-  "Filter by name", "All categories", "Add all in view", "Printed inventory", "Export file",
-  "Copy JSON", "Import file", "Paste JSON", "Paste an exported", "queued", "printed", "Add",
+  "Filter by name", "All categories", "Add all in view", "Printed inventory", "Export backup",
+  "Copy backup", "Import backup", "Choose a backup file", "Or paste a backup", "queued", "printed", "Add",
   "need", "cards", "in the queue", "Library", "Print queue",
   "Paste a JSON", "Load gathering", "Load warband", "Load and add", "Load sample", "Close",
   "share link", "BUILDER", "SUMMARY", "matched", "fuzzy", "unmatched", "Show each card",

@@ -154,3 +154,45 @@ test("printed sheets and the roster are identical in every palette", async () =>
   assert.ok(same(base.cards, light.cards) && same(base.roster, light.roster), "prints differ with a light device setting");
   await p.context().close();
 });
+
+test("print queue: summary and a More menu; options are real checkboxes with state shown beside the summary", async () => {
+  const p = await withGathering();
+  await p.click('.bd-roster-bar [data-act="cards"], .bd-ghead [data-act="cards"]');
+  await p.goto(`${URL_}#cards/queue`);
+  await p.waitForTimeout(700);
+  const open = () => p.evaluate(() => document.getElementById("print-more").open);
+  const ids = ["mark-printed-btn", "clear-queue-btn-2", "bleed-toggle", "backs-toggle", "need-toggle"];
+  assert.ok((await p.textContent("#sheet-count")).trim().length > 0, "summary shown");
+  assert.equal(await open(), false);
+  for (const id of ids) assert.equal(await p.isHidden("#" + id), true, `${id} hidden while the menu is closed`);
+  assert.equal(await p.isVisible("#print-opts-on"), false, "nothing to show with every option off");
+  await p.click("#print-more > summary");
+  for (const id of ids) assert.equal(await p.isVisible("#" + id), true, id);
+  assert.equal(await p.getAttribute("#backs-toggle", "type"), "checkbox");
+  // Ticking an option keeps the menu open and shows the state next to the summary.
+  await p.click("#backs-toggle");
+  assert.equal(await open(), true);
+  assert.equal(await p.isChecked("#backs-toggle"), true);
+  assert.match(await p.textContent("#print-opts-on"), /Card backs/);
+  await p.click("#bleed-toggle");
+  assert.match(await p.textContent("#print-opts-on"), /Gap between cards . Card backs/);
+  await p.keyboard.press("Escape");
+  assert.equal(await open(), false);
+  assert.equal(await p.isVisible("#print-opts-on"), true, "state stays visible with the menu closed");
+  // Clear queue still asks first.
+  const queued = await p.textContent("#queue-count");
+  p.removeAllListeners("dialog");
+  let asked = 0;
+  p.on("dialog", d => { asked++; d.dismiss(); });
+  await p.click("#print-more > summary");
+  await p.click("#clear-queue-btn-2");
+  assert.equal(asked, 1);
+  assert.equal(await open(), false);
+  assert.equal(await p.textContent("#queue-count"), queued, "dismissed: queue kept");
+  p.removeAllListeners("dialog");
+  p.on("dialog", d => d.accept());
+  await p.click("#print-more > summary");
+  await p.click("#clear-queue-btn-2");
+  assert.equal(await p.textContent("#queue-count"), "0");
+  await p.context().close();
+});
