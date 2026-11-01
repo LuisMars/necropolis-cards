@@ -1440,3 +1440,54 @@ test("a folded card and list still show their warnings; a list jump unfolds the 
   await pick(page, "m3", "armour", "armour|armours/heavy-armour");
   assert.equal(await page.locator('#bd-model-m3 [data-sec="armour"]').getAttribute("aria-expanded"), "true");
 });
+
+/* ---- treasure rows: equal selects, rules inline ------------------------- */
+
+async function treasuresOpen(page) {
+  await importLink(page);
+  await page.click('[data-act="start-built"]');
+  await page.click('[data-act="view"][data-view="campaign"]');
+  for (const k of ["minor-treasures/mana-bottle", "greater-treasures/sigils-of-abnegation", "minor-treasures/mana-bottle"]) {
+    await page.selectOption('[data-act="t-add"]', k);
+    await page.waitForTimeout(100);
+  }
+}
+
+test("treasure rows: every Move to menu has the same width at 390", async () => {
+  const { page, errors } = await open();
+  await page.setViewportSize({ width: 390, height: 900 });
+  await treasuresOpen(page);
+  const boxes = await page.$$eval('details[data-fold="treasures"] .bd-tr-act > :is(select:not(.nc-select-src),.nc-select)',
+    els => els.map(e => Math.round(e.getBoundingClientRect().width)));
+  assert.ok(boxes.length >= 3, `${boxes}`);
+  assert.equal(new Set(boxes).size, 1, `widths ${boxes}`);
+  const add = await page.$$eval('.bd-tr-add > :is(.nc-select,select:not(.nc-select-src),button)', els => els.map(e => Math.round(e.getBoundingClientRect().width)));
+  assert.equal(new Set(add).size, 1, `add widths ${add}`);
+  assert.deepEqual(errors, []);
+});
+
+test("treasure rows: rules open on the name, survive an edit, make no draft", async () => {
+  const { page, errors } = await open();
+  await page.setViewportSize({ width: 390, height: 900 });
+  await treasuresOpen(page);
+  const tog = page.locator('details[data-fold="treasures"] .bd-tr-toggle');
+  assert.equal(await tog.first().getAttribute("aria-expanded"), "false");
+  assert.equal(await page.locator(".bd-tr-rules:visible").count(), 0);
+  const draftOf = () => page.evaluate(() => localStorage.getItem("necropolis-builder-drafts-v1"));
+  const before = await draftOf();
+  await tog.nth(1).click();                                   // the greater treasure
+  assert.equal(await tog.nth(1).getAttribute("aria-expanded"), "true");
+  assert.ok((await page.locator(".bd-tr-rules:visible").first().innerText()).length > 20);
+  assert.equal(await page.locator(".bd-tr-rules:visible").count(), 1);
+  assert.equal(await draftOf(), before);               // expanding wrote nothing
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.fid?.startsWith("tr-")), true);
+  // The two identical treasures open on their own.
+  await tog.first().click();
+  assert.equal(await page.locator(".bd-tr-rules:visible").count(), 2);
+  assert.equal(await tog.nth(2).getAttribute("aria-expanded"), "false");
+  // An edit elsewhere (adding another) keeps them open.
+  await page.selectOption('[data-act="t-add"]', "minor-treasures/binding-pact");
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator(".bd-tr-rules:visible").count(), 2);
+  assert.deepEqual(errors, []);
+});

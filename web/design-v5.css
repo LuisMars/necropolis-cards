@@ -522,7 +522,7 @@
   /* Lucide icons (web/js/lucide.js): sized to the text, in currentColor. */
   .nc-icon{width:1.1em;height:1.1em;vertical-align:-0.18em;flex:none}
   [data-icon]{display:inline-flex}
-  button > .nc-icon:first-child:not(:only-child),[data-icon]:first-child{margin-right:.3em}
+  :not(button) > [data-icon]:first-child{margin-right:.3em}
   #bd-body .bd-add-btn{display:inline-flex;align-items:center;gap:5px}
   #bd-body .bd-add-btn .nc-icon{margin:0;width:1em;height:1em}
   .bd-item button .nc-icon{width:14px;height:14px;vertical-align:-2px}
@@ -785,7 +785,7 @@
 
   /* Icon + text in a button: centred on one line, wherever the button is. */
   :where(button:has(> .nc-icon:first-child,> [data-icon]:first-child)){
-    display:inline-flex;align-items:center;justify-content:center;
+    display:inline-flex;align-items:center;justify-content:center;gap:.3em;
   }
 
   /* A link has no icon margin: flex drops the space between icon and text. */
@@ -1027,4 +1027,33 @@
   #bd-body .bd-model .bd-list h4{display:block}
   #bd-body .bd-list h4 .bd-fold{width:100%;justify-content:flex-start;padding:0 4px;color:inherit;letter-spacing:inherit}
   .bd-list-body{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-width:0}
+}
+
+/* Treasures and gear stash rows: name and tag, then Move to + remove, then the
+ * rules when open. Phones stack the two lines; wider screens put them on one
+ * line with the select in a fixed column. */
+@media screen {
+  #bd-body .bd-items .bd-item.bd-tr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 10px;width:100%;box-sizing:border-box;padding:4px 4px 4px 2px}
+  .bd-tr-head{min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:0 6px}
+  .bd-tr-toggle{display:inline-flex;align-items:center;gap:4px;min-height:var(--nc-target-xs);padding:0 6px 0 2px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;text-wrap:balance}
+  .bd-tr-toggle .nc-icon{width:18px;height:18px;margin:0;vertical-align:baseline;color:var(--nc-secondary)}
+  .bd-tr-toggle span{min-width:0;overflow-wrap:anywhere}
+  .bd-tr-act{display:grid;grid-template-columns:240px 44px;gap:6px;align-items:center;justify-content:end}
+  .bd-tr-act.bd-tr-gear{grid-template-columns:240px 88px 44px}
+  .bd-tr-act > :is(select:not(.nc-select-src),.nc-select){width:100%;min-width:0;margin:0}
+  .bd-tr-act > button{min-width:44px;min-height:44px;margin:0;padding:0 6px}
+  .bd-tr-act .bd-sell{text-align:center;white-space:nowrap}
+  .bd-tr-rules{grid-column:1 / -1;margin:0 0 4px 24px;padding-left:10px;border-left:2px solid var(--nc-line-soft)}
+  .bd-tr-rules p{margin:2px 0;font-size:15px;line-height:1.4;white-space:pre-line;color:var(--nc-bone)}
+  .bd-tr-rules .bd-tr-line{color:var(--nc-secondary)}
+  .bd-tr-rules[hidden]{display:none}
+  @media (max-width:540px){
+    #bd-body .bd-items .bd-item.bd-tr{grid-template-columns:minmax(0,1fr)}
+    .bd-tr-act,.bd-tr-act.bd-tr-gear{grid-template-columns:minmax(0,1fr) 44px;width:100%}
+    .bd-tr-act.bd-tr-gear{grid-template-columns:minmax(0,1fr) 84px 44px}
+    .bd-tr-toggle{min-height:var(--nc-target)}
+    .bd-tr-rules{margin-left:12px}
+    .bd-tr-add{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+    .bd-tr-add > :is(select:not(.nc-select-src),.nc-select,button){width:100%;min-width:0;box-sizing:border-box;margin:0}
+  }
 }
