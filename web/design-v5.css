@@ -816,6 +816,14 @@
     display:inline-flex;align-items:center;justify-content:center;
   }
 
+  /* A link has no icon margin: flex drops the space between icon and text. */
+  :where(button.link:has(> .nc-icon:first-child,> [data-icon]:first-child)){gap:6px}
+
+  /* Queue rows: the name has the full width, category and buttons under it. */
+  .queue-item{flex-wrap:wrap;align-items:center}
+  .queue-item .name{order:-1;flex:1 1 100%}
+  .queue-item .cat{flex:1 1 0;width:auto;min-width:0}
+
   /* Print preview: the A4 page is scaled to the column (see print.js). */
   .sheets-wrap .sheet{zoom:var(--sheet-zoom,1)}
 
@@ -841,9 +849,5 @@
     .bd-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px 6px}
     .bd-stats:has(> :nth-child(6)){grid-template-columns:repeat(4,minmax(0,1fr))}
     .bd-stats dt{white-space:nowrap}
-    /* Queue rows: the name has the full width, category and buttons under it. */
-    .queue-item{flex-wrap:wrap;align-items:center}
-    .queue-item .name{order:-1;flex:1 1 100%}
-    .queue-item .cat{flex:1 1 0;width:auto;min-width:0}
   }
 }
