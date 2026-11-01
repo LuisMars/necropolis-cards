@@ -37,6 +37,7 @@ import {
   buyGear, sellGear, discardGear, recruitPrice, recruit, record, stashGear, takeGear, channelBonuses, startingWeapon,
   weaponLocked, buyPrice, deployCosts, payDeployment,
 } from "./builder/campaign.js";
+import { isFolded, setFolded, forgetFolds } from "./builder-fold.js";
 import { initPicker, openPicker, openRemove, openChoice, refreshPicker, stashable } from "./builder-picker.js";
 import { campaignHtml, campaignChange, campaignClick, setFold, setNotice, failText } from "./builder-campaign.js";
 import { afterBattleHtml, afterBattleChange, afterBattleClick, syncRequired } from "./builder-afterbattle.js";
@@ -147,7 +148,7 @@ export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRoste
   initPicker({
     working,
     reasons: addReasons,
-    add: (uid, value) => edit(g => pickerAdd(g, uid, value)),
+    add: (uid, value) => { setFolded(uid, value.split("|")[0], false); edit(g => pickerAdd(g, uid, value)); },
     remove: (uid, list, i, how) => edit(g => {
       if (how === "sell") sellGear(g, catalog(), uid, list, i);
       else if (how === "stash") stashGear(g, catalog(), uid, list, i);
@@ -340,6 +341,7 @@ function onClick(e) {
   switch (act) {
     case "new":     $newBtn.click(); return;
     case "view":    goView(el.dataset.view); return;
+    case "fold":    setFolded(uid, el.dataset.sec, el.getAttribute("aria-expanded") === "true"); renderBuilder(); return;
     case "import":  $importBtn.click(); return;
     case "open-queue": hooks.navigate?.("cards/queue"); return;
     case "save":    store.save(drafts.get(g.id)); drafts.remove(g.id); status = esc(L("saved")); renderBuilder(); return;
@@ -398,7 +400,7 @@ function onClick(e) {
                          const m = findModel(g, uid);
                          if (campaignStarted(g)) record(g, "dismiss", { item: m.profile, uid });
                          g.models = g.models.filter(x => x.uid !== uid);
-                       }); break;
+                       }); forgetFolds(uid); break;
     case "m-up":
     case "m-down":     edit(g => {
                          const k = g.models.findIndex(m => m.uid === uid);
@@ -841,6 +843,7 @@ function gotoModel(uid) {
   if (view !== "gathering") { goView("gathering"); renderBuilder(); }
   const card = document.getElementById(`bd-model-${uid}`);
   if (!card) return;
+  if (isFolded(uid, "model")) { setFolded(uid, "model", false); renderBuilder(); return gotoModel(uid); }
   const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
   card.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
   card.focus({ preventScroll: true });
@@ -899,21 +902,40 @@ function modelHtml(g, m, e, idx) {
   // What it carries: every list the model can have, in the card's order,
   // each with its own add menu under its chips. Sellswords come armed.
   const swRow = sw ? catalog().row(m.profile) || {} : null;
-  const list = (title, body, extra = "") =>
-    `<div class="bd-list"><h4>${esc(title)}</h4><div class="bd-items">${body}</div>${extra}</div>`;
+  const name = m.name && !sameAsType(m.name, typeName) ? m.name : typeName;
+  // A list folds under its heading, which then shows how many it holds and
+  // how many rule warnings are inside; the body stays in the page, hidden.
+  const list = (sec, title, body, extra = "", count = "") => {
+    const folded = isFolded(m.uid, sec);
+    const warns = e.warnings.filter(w => warnField(m, w) === sec).length;
+    return `<div class="bd-list${folded ? " folded" : ""}"><h4>` +
+      foldButton({ uid, sec, folded, label: fill(L(folded ? "expandList" : "collapseList"), { section: title, name }),
+        text: esc(title), summary: folded ? `<span class="bd-fold-n">${esc(count)}</span>${warnBadge(warns)}` : "" }) + `</h4>` +
+      `<div class="bd-list-body" id="bd-sec-${uid}-${sec}"${folded ? " hidden" : ""}><div class="bd-items">${body}</div>${extra}</div></div>`;
+  };
   let lists;
   if (sw) {
-    lists = [list(L("armaments"), `<span class="bd-prose">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</span>`)];
+    lists = [`<div class="bd-list"><h4>${esc(L("armaments"))}</h4><div class="bd-items"><span class="bd-prose">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</span></div></div>`];
   } else {
     lists = ADD_LISTS.filter(l => leader || !l.leader).map(l => l.list === "mana"
-      ? list(L("mana"), manaHtml(m, e.mana), inline("mana"))
-      : list(L(l.list), chipsHtml(m, l.list, g), inline(l.list) + addButtonHtml(m, l)));
+      ? list("mana", L("mana"), manaHtml(m, e.mana), inline("mana"),
+          fill(L("countOf"), { n: AFFINITIES.reduce((n, a) => n + (Number(m.mana?.[a]) || 0), 0), total: e.mana }))
+      : list(l.list, L(l.list), chipsHtml(m, l.list, g), inline(l.list) + addButtonHtml(m, l), String((m[l.list] || []).length)));
   }
+  const folded = isFolded(m.uid, "model");
+  const wn = e.warnings.length;
+  const modelToggle = foldButton({
+    uid, sec: "model", folded, cls: "bd-model-fold",
+    label: fill(L(folded ? "expandModel" : "collapseModel"), { name }),
+    text: folded ? `<span class="bd-fold-name">${esc(name)}</span>${name !== typeName ? `<span class="bd-fold-type">${esc(typeName)}</span>` : ""}` : "",
+    summary: folded ? `<span class="bd-fold-cost"><b>${e.cost}</b> ${esc(L("obols"))}</span>${warnBadge(wn)}` : "",
+  });
 
   return `
     <section class="bd-model${leader ? " leader" : ""}${m.affinity ? ` aff-${m.affinity}` : ""}" id="bd-model-${uid}" tabindex="-1" aria-label="${esc(m.name || typeName)}">
       <header class="bd-model-head">
-        <div class="bd-model-title">
+        ${modelToggle}
+        <div class="bd-model-title"${folded ? " hidden" : ""}>
           <input type="text" class="bd-model-name" data-act="m-name" data-uid="${uid}" data-fid="${uid}-name"
                  value="${esc(sameAsType(m.name, typeName) ? "" : m.name || "")}" placeholder="${esc(typeName)}" aria-label="${esc(L("modelName"))}">
           <div class="bd-model-type">
@@ -925,9 +947,10 @@ function modelHtml(g, m, e, idx) {
             ${affinityHtml}
           </div>
         </div>
-        <div class="bd-model-cost"><b>${e.cost}</b> ${esc(L("obols"))}${sw
+        <div class="bd-model-cost"${folded ? " hidden" : ""}><b>${e.cost}</b> ${esc(L("obols"))}${sw
           ? `<small>${esc(L("deployCost"))} ${Number(swRow.deploy_obols) || 0}</small>` : ""}</div>
       </header>
+      <div class="bd-model-body" id="bd-mbody-${uid}"${folded ? " hidden" : ""}>
       ${affinityWarn}
       <dl class="bd-stats">${stats}</dl>
       ${warnList(e.warnings.filter(w => !shown.has(warnField(m, w))))}
@@ -938,7 +961,24 @@ function modelHtml(g, m, e, idx) {
         <button type="button" class="secondary" data-act="m-down" data-uid="${uid}" aria-label="${esc(L("moveDown"))}" title="${esc(L("moveDown"))}"${idx === g.models.length - 1 ? " disabled" : ""}>${icon("arrow-down")}</button>
         <button type="button" class="secondary danger" data-act="m-remove" data-uid="${uid}">${esc(L("removeModel"))}</button>
       </footer>
+      </div>
     </section>`;
+}
+
+/** "N warnings" with the triangle: shown on a folded card or list, so a
+ *  rule problem never disappears with the fold. Nothing when there are none. */
+const warnBadge = (n) => n
+  ? `<span class="bd-fold-warn">${icon("triangle-alert")}<span class="bd-nav-n">${n}</span>` +
+    `<span class="visually-hidden"> ${esc(L(n === 1 ? "warning" : "warnings"))}</span></span>`
+  : "";
+
+/** The toggle on a model card or a list heading: a real button with a chevron.
+ *  Its data-fid lets a redraw put focus back on it. `uid` is already escaped. */
+function foldButton({ uid, sec, folded, label, text, summary = "", cls = "" }) {
+  const controls = sec === "model" ? `bd-mbody-${uid}` : `bd-sec-${uid}-${sec}`;
+  return `<button type="button" class="bd-fold ${cls}${folded ? " folded" : ""}" data-act="fold" data-uid="${uid}" data-sec="${sec}" ` +
+    `data-fid="${uid}-fold-${sec}" aria-expanded="${!folded}" aria-controls="${controls}" aria-label="${esc(label)}">` +
+    `${icon(folded ? "chevron-right" : "chevron-down")}<span class="bd-fold-text">${text}</span>${summary}</button>`;
 }
 
 function chipsHtml(m, list, g) {

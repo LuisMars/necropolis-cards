@@ -15,6 +15,7 @@ export const KEYS = {
   "necropolis-ui-palette-v56":          { sync: "prefs" },
   "necropolis-ui-roster-skip-v1":       { sync: "prefs" },
   "necropolis-ui-route-v1":             { sync: false, note: "which tab this device last showed" },
+  "necropolis-builder-fold-v1":         { sync: false, note: "which model cards and lists are folded: interface state of this device, per model uid; never in a gathering, export or link" },
   "necropolis-sync-v1":                 { sync: false, note: "sync's own bookkeeping (user name, revisions)" },
   "necropolis-sync-backups-v1":         { sync: false, note: "local copies of data a sync replaced" },
 };
@@ -28,6 +29,7 @@ export const LS = {
   lang: "necropolis-card-printer-lang-v1",
   palette: "necropolis-ui-palette-v56",
   rosterSkip: "necropolis-ui-roster-skip-v1",
+  fold: "necropolis-builder-fold-v1",
   meta: "necropolis-sync-v1",
   backups: "necropolis-sync-backups-v1",
 };

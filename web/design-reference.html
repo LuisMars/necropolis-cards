@@ -259,7 +259,7 @@
 
   <section class="ds-section" id="builder">
     <h2>05 · Gathering view</h2>
-    <p class="ds-description">The gathering's header sits above every view; in the Gathering view the model cards are beside a sticky models list (a wrapping row of chips on narrow screens). Classes and structure mirror <code>web/js/builder-tab.js</code>. The data is illustrative; costs, stats and warnings come from <code>evaluate(g, catalog())</code> in the app.</p>
+    <p class="ds-description">Model cards and their lists fold (<code>builder-fold.js</code>): a real <code>&lt;button aria-expanded aria-controls&gt;</code> with a chevron in the card header and in each list heading, 44px on every width, never wrapping the name input. Folded, a card is one row (name in blackletter, the type if the model has its own name, obols, and the warning count with its triangle); a list shows its heading, item count ("4 of 4" for Mana) and its warning count. Folded bodies stay in the page, <code>hidden</code>. State is per model, on this device only (<code>necropolis-builder-fold-v1</code>), never in a gathering, export or link; everything starts open. Jumping to a model from the models list or the warning summary unfolds it; adding to a list unfolds the list. The second specimen below is a folded card. The gathering's header sits above every view; in the Gathering view the model cards are beside a sticky models list (a wrapping row of chips on narrow screens). Classes and structure mirror <code>web/js/builder-tab.js</code>. The data is illustrative; costs, stats and warnings come from <code>evaluate(g, catalog())</code> in the app.</p>
     <section class="bd-ghead" aria-label="Gathering (specimen)">
       <input type="text" class="bd-gname" value="The Ashen Host" aria-label="Name">
       <div class="bd-fields">
@@ -286,12 +286,14 @@
       <div class="bd-main">
         <section class="bd-model leader">
           <header class="bd-model-head">
+            <button type="button" class="bd-fold bd-model-fold" aria-expanded="true" aria-controls="ds-mbody" aria-label="Collapse The Pale Regent"><span data-icon="chevron-down"></span><span class="bd-fold-text"></span></button>
             <div class="bd-model-title">
               <input type="text" class="bd-model-name" value="The Pale Regent" aria-label="Model name">
               <div class="bd-model-type"><select aria-label="Model type"><option>Lich</option><option>Ghast Husk</option></select></div>
             </div>
             <div class="bd-model-cost"><b>0</b> obols</div>
           </header>
+          <div class="bd-model-body" id="ds-mbody">
           <dl class="bd-stats">
             <div class="bd-stat"><dt>AP</dt><dd>2</dd></div><div class="bd-stat"><dt>Move</dt><dd>3</dd></div>
             <div class="bd-stat"><dt>Violence</dt><dd>6+</dd></div><div class="bd-stat"><dt>Ranged</dt><dd>7+</dd></div>
@@ -302,16 +304,23 @@
             <li><span data-icon="triangle-alert"></span><span>Only one suit of armour.</span></li>
           </ul>
           <div class="bd-lists">
-            <div class="bd-list"><h4>Spells</h4><div class="bd-items">
+            <div class="bd-list"><h4><button type="button" class="bd-fold" aria-expanded="true" aria-controls="ds-sec-spells" aria-label="Collapse Spells of The Pale Regent"><span data-icon="chevron-down"></span><span class="bd-fold-text">Spells</span></button></h4><div class="bd-list-body" id="ds-sec-spells"><div class="bd-items">
               <span class="bd-item">Summon<button type="button" aria-label="Remove Summon"><span data-icon="x"></span></button></span>
               <span class="bd-item">Wither<small class="bd-bonus">+1 channelling</small><button type="button" aria-label="Remove Wither"><span data-icon="x"></span></button></span></div>
-              <button type="button" class="secondary bd-add-btn" data-ds-picker="spells"><span data-icon="plus"></span>Add spell</button></div>
-            <div class="bd-list"><h4>Weapons</h4><div class="bd-items">
+              <button type="button" class="secondary bd-add-btn" data-ds-picker="spells"><span data-icon="plus"></span>Add spell</button></div></div>
+            <div class="bd-list"><h4><button type="button" class="bd-fold" aria-expanded="true" aria-controls="ds-sec-weapons" aria-label="Collapse Weapons of The Pale Regent"><span data-icon="chevron-down"></span><span class="bd-fold-text">Weapons</span></button></h4><div class="bd-list-body" id="ds-sec-weapons"><div class="bd-items">
               <span class="bd-item">Blade<small>10</small><button type="button" aria-label="Remove Blade"><span data-icon="x"></span></button></span></div>
-              <button type="button" class="secondary bd-add-btn" data-ds-picker="weapons"><span data-icon="plus"></span>Add weapon</button></div>
-            <div class="bd-list"><h4>Equipment</h4><div class="bd-items"><span class="bd-none">None yet</span></div>
-              <button type="button" class="secondary bd-add-btn" data-ds-picker="equipment"><span data-icon="plus"></span>Add equipment</button></div>
+              <button type="button" class="secondary bd-add-btn" data-ds-picker="weapons"><span data-icon="plus"></span>Add weapon</button></div></div>
+            <div class="bd-list"><h4><button type="button" class="bd-fold" aria-expanded="true" aria-controls="ds-sec-equipment" aria-label="Collapse Equipment of The Pale Regent"><span data-icon="chevron-down"></span><span class="bd-fold-text">Equipment</span></button></h4><div class="bd-list-body" id="ds-sec-equipment"><div class="bd-items"><span class="bd-none">None yet</span></div>
+              <button type="button" class="secondary bd-add-btn" data-ds-picker="equipment"><span data-icon="plus"></span>Add equipment</button></div></div>
           </div>
+          </div>
+        </section>
+        <section class="bd-model" aria-label="Familiar (folded specimen)">
+          <header class="bd-model-head">
+            <button type="button" class="bd-fold bd-model-fold folded" aria-expanded="false" aria-controls="ds-mbody2" aria-label="Expand Familiar" aria-describedby="ds-msum2"><span data-icon="chevron-right"></span><span class="bd-fold-text"><span class="bd-fold-name">Familiar</span></span><span id="ds-msum2"><span class="bd-fold-cost"><b>45</b> obols</span> <span class="bd-fold-warn"><span data-icon="triangle-alert"></span><span class="bd-nav-n">1</span><span class="visually-hidden"> warning</span></span></span></button>
+          </header>
+          <div class="bd-model-body" id="ds-mbody2" hidden></div>
         </section>
       </div>
       <aside class="bd-side">
