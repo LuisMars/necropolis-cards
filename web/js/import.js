@@ -31,6 +31,7 @@ import { FORMAT } from "./builder/gathering.js";
 import { store, drafts } from "./gatherings.js";
 import { label, plural, fill, categoryTitle } from "./builder/messages.js";
 import { pickField } from "./i18n.js";
+import { alertDialog } from "./dialog.js";
 
 const L = (k, vars) => fill(label(k, state.lang || "en"), vars);
 
@@ -95,16 +96,16 @@ function importJson(text, { queue = true } = {}) {
     // A link only names IDs: build the gathering, then the same JSON the
     // app would export for it (plus names and totals) for the roster.
     const { gathering, unknown } = decodeLink(text, state.catalog);
-    if (!gathering.models.length) { alert(L("linkNoModels")); return { matches: [], notes }; }
+    if (!gathering.models.length) { alertDialog(L("linkNoModels")); return { matches: [], notes }; }
     for (const id of unknown) notes.push(L("unknownAppId", { id }));
     data = toAppJson(gathering, state.catalog);
     keepGathering(gathering, notes);
   } else {
     try { data = JSON.parse(text); }
-    catch (e) { alert(L("badJson", { error: e.message })); return { matches: [], notes }; }
+    catch (e) { alertDialog(L("badJson", { error: e.message })); return { matches: [], notes }; }
     // Valid JSON that isn't an object (null, a number, a list) is no gathering.
     if (!data || typeof data !== "object" || Array.isArray(data)) {
-      alert(L("notAGathering"));
+      alertDialog(L("notAGathering"));
       return { matches: [], notes };
     }
     if (data.format === FORMAT) {

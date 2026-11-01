@@ -537,6 +537,8 @@ const UI = {
   orType:         ["or type the die", "o escribe el dado"],
   die:            ["Die", "Dado"],
   cancel:         ["Cancel", "Cancelar"],
+  ok:             ["OK", "Aceptar"],
+  clear:          ["Clear", "Vaciar"],
   logNew:         ["Log a battle", "Registrar una batalla"],
   apply:          ["Apply", "Aplicar"],
   applied:        ["Applied", "Aplicado"],

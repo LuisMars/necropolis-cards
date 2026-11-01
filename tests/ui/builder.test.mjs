@@ -20,6 +20,7 @@ const URL_ = `http://localhost:${PORT}/`;
 const LINK = "c1;pl0,a1,tc2,tb6,sn0,sn3,sn1,sb3,sb1;pm4,a1,ewm8;pm3,a1,ewm1;pm1,a1,ewm4,ea0;pm1,a1,ewm4,ea0;pm5,a1,twu8,ewm8";
 
 let server, browser, lastContext;
+const nativeDialogs = [];   // browser alert/confirm calls: the app should make none
 
 before(async () => {
   server = spawn("python3", ["web/serve.py", String(PORT)], { cwd: ROOT, stdio: "ignore" });
@@ -29,7 +30,10 @@ before(async () => {
   }
   browser = await chromium.launch();
 });
-after(async () => { await browser?.close(); server?.kill(); });
+after(async () => {
+  await browser?.close(); server?.kill();
+  assert.deepEqual(nativeDialogs, [], "the app fired a native alert/confirm");
+});
 
 /** A fresh page on the site; collects page errors, accepts confirm dialogs. */
 async function open() {
@@ -38,11 +42,13 @@ async function open() {
   const page = await lastContext.newPage();
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
-  page.on("dialog", d => d.accept());
+  page.on("dialog", d => { nativeDialogs.push(d.message()); d.accept(); });
   await page.goto(URL_);
   await ready(page);
   return { page, errors };
 }
+/** Accept the themed confirm (it replaced the browser's). */
+const confirmOk = (page) => page.click('dialog.nc-dialog[open] [data-nd="ok"]');
 /** The data is in and the Builder has drawn (it draws on every route). */
 const ready = (page) => page.waitForFunction(() => document.querySelector("#bd-body > *"));
 /** Follow a header destination link: "gatherings" or "cards". */
@@ -99,6 +105,7 @@ test("drafts: changes wait for Save, Discard puts them back", async () => {
   assert.ok(await page.isVisible(".bd-draft"));
   assert.match(await text(page, "#bd-model-m3 .bd-lists"), /Heavy Armour/);
   await page.click('[data-act="discard"]');
+  await confirmOk(page);
   await page.waitForTimeout(100);
   assert.doesNotMatch(await text(page, "#bd-model-m3 .bd-lists"), /Heavy Armour/);
 
@@ -230,6 +237,7 @@ test("the roster follows the unsaved draft", async () => {
   assert.ok(await page.isVisible(".bd-draft"));                     // still not saved
   assert.match(await text(page, "#wb-pages"), /Grimwald the Unsaved/);
   await page.click('[data-act="discard"]');
+  await confirmOk(page);
   await page.waitForTimeout(300);
   assert.doesNotMatch(await text(page, "#wb-pages"), /Grimwald the Unsaved/);
 });
@@ -816,9 +824,9 @@ test("the importer turns away JSON that isn't an object", async () => {
   await lastContext?.close();
   lastContext = await browser.newContext({ viewport: { width: 1360, height: 900 } });
   const page = await lastContext.newPage();
-  const errors = [], alerts = [];
+  const errors = [];
   page.on("pageerror", e => errors.push(e.message));
-  page.on("dialog", d => { alerts.push(d.message()); d.accept(); });
+  page.on("dialog", d => { nativeDialogs.push(d.message()); d.accept(); });
   await page.goto(URL_);
   await ready(page);
   await openImport(page);
@@ -826,9 +834,10 @@ test("the importer turns away JSON that isn't an object", async () => {
     await page.fill("#json-in", bad);
     await page.click("#load-warband-btn");
     await page.waitForTimeout(100);
+    assert.match(await page.textContent("dialog.nc-dialog[open] p"), /isn't a gathering/);
+    await page.click('dialog.nc-dialog[open] [data-nd="ok"]');
   }
-  assert.equal(alerts.length, 4);
-  assert.ok(alerts.every(a => /isn't a gathering/.test(a)));
+  assert.deepEqual(nativeDialogs, []);
   assert.deepEqual(errors, []);
 });
 
@@ -1337,6 +1346,7 @@ test("draft bar: sticky at 390px after scrolling, nav marker on and off, focus n
   assert.equal(await page.locator("nav.tabs .nav-dot").getAttribute("aria-label"), "Unsaved draft");
   await go(page, "gatherings");
   await page.click('[data-act="discard"]');
+  await confirmOk(page);
   await page.waitForTimeout(100);
   assert.equal(await page.locator("nav.tabs .nav-dot").count(), 0);
   assert.equal(await page.isVisible(".bd-draft"), false);
@@ -1680,7 +1690,7 @@ test("After the battle: opening it makes no draft, the first action in it does, 
   assert.ok(await page.isVisible(".bd-wizard"));
   assert.equal(await page.isVisible(".bd-draft"), false);
   assert.equal(await page.locator("nav.tabs .nav-dot").count(), 0);
-  await page.click('[data-act="ab-discard"]');
+  await page.click('[data-act="ab-discard"]');   // a preview, nothing stored: no question
   assert.equal(await page.isVisible(".bd-wizard"), false);
   assert.equal(await page.isVisible(".bd-draft"), false);
   await page.click('[data-act="ab-open"]');
@@ -1731,4 +1741,75 @@ test("the summary bar's warning button moves on through the warnings and wraps",
   assert.ok(seen[0] >= 0 && seen[1] === seen[0] + 1, `${seen}`);
   assert.equal(seen[Number(n)], seen[0], `wraps: ${seen}`);
   assert.deepEqual(errors, []);
+});
+
+const askOpen = (page) => page.isVisible("dialog.nc-dialog[open]");
+
+test("themed confirm: Delete cancels on Cancel, Esc and backdrop, deletes on the danger button", async () => {
+  const { page, errors } = await open();
+  await importLink(page);
+  const count = () => page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("necropolis-builder-gatherings-v1")).gatherings).length);
+  const before = await count();
+  await page.click("#bd-more > summary").catch(() => {});
+  await page.click("#bd-del");
+  assert.ok(await askOpen(page));
+  assert.equal(await page.textContent('dialog.nc-dialog[open] [data-nd="ok"]'), "Delete");
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.nd), "cancel", "destructive: Cancel has focus");
+  await page.click('[data-nd="cancel"]');
+  assert.equal(await count(), before);
+  await page.click("#bd-more > summary").catch(() => {});
+  await page.click("#bd-del");
+  await page.keyboard.press("Escape");
+  assert.equal(await askOpen(page), false);
+  assert.equal(await count(), before);
+  await page.click("#bd-more > summary").catch(() => {});
+  await page.click("#bd-del");
+  await page.mouse.click(2, 2);
+  assert.equal(await askOpen(page), false);
+  assert.equal(await count(), before);
+  await page.click("#bd-more > summary").catch(() => {});
+  await page.click("#bd-del");
+  await confirmOk(page);
+  assert.equal(await count(), before - 1);
+  assert.deepEqual(errors, []);
+});
+
+test("every visible select on Gatherings, Cards and Settings is the themed stand-in", async () => {
+  for (const width of [1360, 390]) {
+    const { page, errors } = await open();
+    await page.setViewportSize({ width, height: 900 });
+    await importLink(page);
+    await page.click('[data-act="start-built"]');
+    await page.click('.bd-draft [data-act="save"]');
+    const bare = () => page.$$eval("select", els => els.filter(e => e.offsetParent !== null
+      && !e.classList.contains("nc-select-src") && !e.classList.contains("nc-select") && getComputedStyle(e).visibility !== "hidden")
+      .map(e => e.id || e.name || e.outerHTML.slice(0, 80)));
+    const openFolds = async () => { for (let i = 0; i < 12; i++) {
+      const f = page.locator('[data-act="fold"][aria-expanded="false"]').first();
+      if (!(await f.count())) break;
+      await f.click();
+    } };
+    const where = [];
+    for (const view of ["gathering", "roster", "campaign"]) {
+      await page.click(`[data-act="view"][data-view="${view}"]`);
+      await openFolds();
+      where.push([view, await bare()]);
+    }
+    await page.click('[data-act="ab-open"]').catch(() => {});
+    for (let i = 0; i < 8; i++) {
+      where.push([`wizard ${i}`, await bare()]);
+      const next = page.locator('.bd-wizard-nav [data-act="ab-step"][data-by="1"]');
+      if (!(await next.count()) || await next.isDisabled()) break;
+      await next.click();
+    }
+    await go(page, "cards");
+    where.push(["cards", await bare()]);
+    await page.goto(URL_ + "#cards/queue");
+    await page.waitForTimeout(300);
+    where.push(["queue", await bare()]);
+    await page.click("#nav-settings");
+    where.push(["settings", await bare()]);
+    assert.deepEqual(where.filter(([, b]) => b.length), [], `bare selects at ${width}px`);
+    assert.deepEqual(errors, []);
+  }
 });

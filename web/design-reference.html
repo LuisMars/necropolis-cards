@@ -425,6 +425,17 @@
 
   </div>
 
+  <section class="ds-section" id="confirm">
+    <h2>Confirm and alert</h2>
+    <p class="ds-description">The browser's <code>confirm()</code> and <code>alert()</code> are replaced by one shared modal <code>&lt;dialog class="nc-dialog"&gt;</code> (<code>web/js/dialog.js</code>: <code>confirmDialog(message, {okLabel, danger})</code> returns a promise of true/false, <code>alertDialog(message)</code>). Esc or a click outside cancels, focus returns to the opener, and a destructive confirm names its action (Delete, Discard, Clear) and starts on Cancel.</p>
+    <div class="ds-specimen">
+      <dialog class="nc-dialog" open style="position:static;display:block;margin:0 auto">
+        <p>Delete this gathering?</p>
+        <div class="nc-dialog-actions"><button type="button" class="secondary">Cancel</button><button type="button" class="primary danger">Delete</button></div>
+      </dialog>
+    </div>
+  </section>
+
   <section class="ds-section" id="cards">
     <h2>06 · Original card rendering, unchanged</h2>
     <p class="ds-description">This specimen deliberately imports the real bundle loader and SVG renderer. When <code>web/data.json</code>, fonts, templates, and PDF-derived images have been built, it shows a genuine repository card. It never draws a substitute or modifies artwork.</p>

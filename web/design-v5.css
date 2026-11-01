@@ -1031,8 +1031,20 @@
   @media (min-width:541px){
     dialog.settings-sheet{inset:0 0 0 auto;width:420px;max-width:100vw;border-left:1px solid var(--nc-line)}
   }
+  /* Themed confirm / alert (js/dialog.js): the settings sheet's surface, centred. */
+  dialog.nc-dialog{
+    box-sizing:border-box;margin:auto;padding:20px;border:1px solid var(--nc-line);border-radius:3px;
+    color:var(--nc-bone);background:var(--nc-surface);width:min(420px,calc(100vw - 32px));
+  }
+  dialog.nc-dialog::backdrop{background:var(--nc-scrim)}
+  dialog.nc-dialog p{margin:0 0 20px;font-size:17px;line-height:1.4;white-space:pre-line}
+  .nc-dialog-actions{display:flex;justify-content:flex-end;gap:10px}
+  .nc-dialog-actions button{min-height:44px;min-width:44px}
+  .nc-dialog-actions button[hidden]{display:none}
+  @media (max-width:540px){.nc-dialog-actions button{flex:1}}
+  .nc-dialog-actions button.danger{color:var(--nc-error);border-color:var(--nc-error)}
 }
-@media print{dialog.settings-sheet{display:none !important}}
+@media print{dialog.settings-sheet,dialog.nc-dialog{display:none !important}}
 /* ==== Summary bar (own block) ====================================================
  * Sticks to the top of the viewport in the Gathering, Campaign and Roster views:
  * spend against budget (or treasury), model count, warning count. Wide: it sticks

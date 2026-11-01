@@ -88,7 +88,7 @@ export function afterBattleClick(act, el, g) {
   switch (act) {
     case "ab-step":    a.step = Math.max(0, Math.min(7, a.step + Number(el.dataset.by))); return true;
     case "ab-goto":    a.step = Number(el.dataset.step); return true;
-    case "ab-discard": if (confirm(L("confirmDiscard"))) delete g.campaign.afterBattle; return true;
+    case "ab-discard": delete g.campaign.afterBattle; return true;   // asked first, in builder-tab.js
     // 1 Maladies
     case "ab-roll-malady": a.maladyRoll = d(10); return true;
     case "ab-apply-malady": {

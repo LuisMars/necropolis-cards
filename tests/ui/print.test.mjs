@@ -181,18 +181,16 @@ test("print queue: summary and a More menu; options are real checkboxes with sta
   assert.equal(await p.isVisible("#print-opts-on"), true, "state stays visible with the menu closed");
   // Clear queue still asks first.
   const queued = await p.textContent("#queue-count");
-  p.removeAllListeners("dialog");
-  let asked = 0;
-  p.on("dialog", d => { asked++; d.dismiss(); });
   await p.click("#print-more > summary");
   await p.click("#clear-queue-btn-2");
-  assert.equal(asked, 1);
+  assert.ok(await p.isVisible("dialog.nc-dialog[open]"), "asks first, in the themed dialog");
+  assert.equal(await p.textContent('dialog.nc-dialog[open] [data-nd="ok"]'), "Clear");
+  await p.click('dialog.nc-dialog [data-nd="cancel"]');
   assert.equal(await open(), false);
-  assert.equal(await p.textContent("#queue-count"), queued, "dismissed: queue kept");
-  p.removeAllListeners("dialog");
-  p.on("dialog", d => d.accept());
+  assert.equal(await p.textContent("#queue-count"), queued, "cancelled: queue kept");
   await p.click("#print-more > summary");
   await p.click("#clear-queue-btn-2");
+  await p.click('dialog.nc-dialog[open] [data-nd="ok"]');
   assert.equal(await p.textContent("#queue-count"), "0");
   // Nothing queued: one message, no More menu, no list or preview panel.
   assert.equal(await p.isVisible("#queue-empty"), true);

@@ -25,6 +25,7 @@ import { icon } from "./lucide.js";
 import { state, saveQueue } from "./state.js";
 import { $, escapeHtml, whenPointerFree } from "./util.js";
 import { pickField } from "./i18n.js";
+import { confirmDialog } from "./dialog.js";
 import { store, drafts } from "./gatherings.js";
 import { applyPayload, payloadCards } from "./import.js";
 import { evaluate, campaignStarted, AFFINITIES, allowedAffinities as allowedFor, forcedAffinity, covenantAllows, applyForcedAffinities, lockMana } from "./builder/rules.js";
@@ -132,9 +133,9 @@ export function initBuilder({ onChange, navigate, onRender, rosterInfo, setRoste
     store.save({ ...structuredClone(g), id: newGathering().id, name: `${g.name || L("untitled")} ${L("copySuffix")}` });
     renderBuilder();
   });
-  $delBtn.addEventListener("click", () => {
+  $delBtn.addEventListener("click", async () => {
     const g = store.current();
-    if (g && confirm(L("confirmDelete"))) { drafts.remove(g.id); store.remove(g.id); status = ""; renderBuilder(); }
+    if (g && await confirmDialog(L("confirmDelete"), { okLabel: L("delete"), danger: true }) && store.current()?.id === g.id) { drafts.remove(g.id); store.remove(g.id); status = ""; renderBuilder(); }
   });
   // The ⋯ menu closes on a choice, on Escape and on a tap outside it.
   const $more = document.getElementById("bd-more");
@@ -371,7 +372,11 @@ function onClick(e) {
     case "import":  $importBtn.click(); return;
     case "open-queue": hooks.navigate?.("cards/queue"); return;
     case "save":    store.save(drafts.get(g.id)); drafts.remove(g.id); status = esc(L("saved")); renderBuilder(); return;
-    case "discard": if (confirm(L("confirmDiscardDraft"))) { drafts.remove(g.id); status = ""; renderBuilder(); } return;
+    case "discard":
+      confirmDialog(L("confirmDiscardDraft"), { okLabel: L("discard"), danger: true }).then((ok) => {
+        if (ok && working()?.id === g.id) { drafts.remove(g.id); status = ""; renderBuilder(); }
+      });
+      return;
   }
   // Logging a battle with a sellsword deployed asks whether to pay for it
   // first (p.74). Nothing is charged unless the player chooses to.
@@ -381,6 +386,13 @@ function onClick(e) {
   }
   if (act === "ab-open" && g) { abPreview = g.id; setNotice(null); redraw(); return; }
   if (act === "ab-discard" && abOpenIn(g)) { abPreview = null; redraw(); return; }
+  if (act === "ab-discard" && g) {   // ask first, then run the discard through the draft flow
+    confirmDialog(L("confirmDiscard"), { okLabel: L("discard"), danger: true }).then((ok) => {
+      const now = working();
+      if (ok && now?.id === g.id) campaignAct(act, el, now);
+    });
+    return;
+  }
   if (campaignAct(act, el, g)) return;
   switch (act) {
     case "m-pick":     openPicker(uid, list, el.dataset.fid); break;

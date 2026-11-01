@@ -12,6 +12,7 @@ import { $, escapeHtml, whenPointerFree } from "./util.js";
 import { renderCardSvg } from "./templates.js";
 import { label as msg, plural, categoryTitle } from "./builder/messages.js";
 import { pickField } from "./i18n.js";
+import { confirmDialog } from "./dialog.js";
 
 const lang = () => state.lang || "en";
 const L = (k) => msg(k, lang());
@@ -49,9 +50,10 @@ export function initPrint({ onChange } = {}) {
   document.addEventListener("pointerdown", (e) => {
     if ($printMore.open && !$printMore.contains(e.target)) $printMore.open = false;
   });
-  $clearBtn.addEventListener("click", () => {
+  $clearBtn.addEventListener("click", async () => {
     if (!state.queue.length) return;
-    if (!confirm(plural("confirmClear", state.queue.length, lang()))) return;
+    if (!await confirmDialog(plural("confirmClear", state.queue.length, lang()), { okLabel: L("clear"), danger: true })) return;
+    if (!state.queue.length) return;
     state.queue = [];
     saveQueue();
     renderPrint();
