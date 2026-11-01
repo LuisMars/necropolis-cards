@@ -63,6 +63,9 @@ const UI = {
   showAll:        ["show them all", "verlos todos"],
   shareExport:    ["Share or export", "Compartir o exportar"],
   lairPlaceholder:["Name it, roll it or pick one", "Escríbelo, tíralo o elige uno"],
+  summary:        ["Summary", "Resumen"],
+  overShort:      ["Over", "Excedido"],
+  goFirstWarning: ["go to the first one", "ir al primero"],
   modelType:      ["Model type", "Tipo de miniatura"],
   moveUp:         ["Move up", "Subir"],
   moveDown:       ["Move down", "Bajar"],
@@ -654,13 +657,14 @@ const list = (xs, lang) => xs.join(lang === "es" ? " o " : " or ");
 /** Why `covenantAllows` refused a type, as a short line for a disabled option. */
 export function covenantReason(code, cov, catalog, lang = "en") {
   const es = lang === "es";
-  const name = itemName(catalog, cov.key, lang);
+  const or = es ? " o " : " or ";
+  const all = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")}${or}${xs.at(-1)}` : xs[0]);
   if (code === "covenant-leader-type") {
-    const t = list((cov.leader_types || []).map(k => itemName(catalog, k, lang)), lang);
-    return es ? `${name}: el líder debe ser ${t}` : `${name} needs a ${t} leader`;
+    const t = all((cov.leader_types || []).map(k => itemName(catalog, k, lang)));
+    return es ? `Este pacto requiere un líder: ${t}` : `${itemName(catalog, cov.key, lang)} needs a ${t} leader`;
   }
-  const k = list((cov.keywords_any || []).map(x => keyword(x, lang)), lang);
-  return es ? `${name} solo admite miniaturas con ${k}` : `${name} only allows ${k} models`;
+  const k = all((cov.keywords_any || []).map(x => keyword(x, lang)));
+  return es ? `Este pacto solo admite miniaturas con ${k}` : `${itemName(catalog, cov.key, lang)} only allows ${k} models`;
 }
 
 /**

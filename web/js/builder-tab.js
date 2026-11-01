@@ -419,7 +419,18 @@ function onClick(e) {
     case "backup":     download(`${fileStem(g)}-backup.json`, g); break;
     case "summary":    summaryOpen = !summaryOpen; renderBuilder(); break;
     case "goto":       gotoModel(uid); break;
+    case "bar-warn":   jumpToWarning(g); break;
   }
+}
+
+/** The summary bar's warning count: open the warnings summary (away from the
+ *  Gathering view) and put focus on the first warning. */
+function jumpToWarning(g) {
+  if (hiddenWarnings(evaluate(g, catalog())) && !summaryOpen) { summaryOpen = true; renderBuilder(); }
+  const t = $body.querySelector(".bd-ledger-warn .bd-warn, .bd-sum, .bd-model .bd-warn");
+  if (!t) return;
+  t.tabIndex = -1;
+  t.focus();
 }
 
 /* ---- lair names (p.42) ----------------------------------------------------- */
@@ -602,14 +613,15 @@ function draw() {
     return;
   }
   const ev = evaluate(g, catalog());
+  const bar = summaryBarHtml(g, ev);
   const head = `${viewTabsHtml()}${gatheringHeadHtml(g, ev)}${summaryOpen && hiddenWarnings(ev) ? warningSummaryHtml(g, ev) : ""}`;
   if (view === "roster") {
-    $body.innerHTML = `<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>${draftHtml(g)}`;
+    $body.innerHTML = `${bar}<div class="bd-roster-head">${head}${rosterBarHtml(g)}</div>${draftHtml(g)}`;
   } else if (view === "campaign") {
     // The Campaign view has its own lists: no models sidebar.
-    $body.innerHTML = `${head}<div class="bd-main bd-campaign">${g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev)}</div>${draftHtml(g)}`;
+    $body.innerHTML = `${bar}${head}<div class="bd-main bd-campaign">${g.campaign?.afterBattle ? afterBattleHtml(g, ev) : campaignHtml(g, ev)}</div>${draftHtml(g)}`;
   } else {
-    $body.innerHTML = `${head}
+    $body.innerHTML = `${bar}${head}
       <div class="bd-layout">
         <div class="bd-main">
           ${campaignStarted(g) ? `<p class="bd-hint">${esc(L("campaignShop"))}</p>` : ""}
@@ -623,6 +635,32 @@ function draw() {
 
   restoreFocus(focused);
   refreshPicker();
+}
+
+/**
+ * The bar that sticks to the top of the viewport in every view: the same
+ * figures the header opens with (spend against the first build's budget, or
+ * the treasury once the campaign has started), the model count and the
+ * warning count. Only the warning count is a button. It has no live region:
+ * the whole body is redrawn on every edit, so one would announce on each
+ * keystroke.
+ */
+function summaryBarHtml(g, ev) {
+  const first = ev.budget != null;
+  const over = first ? ev.total > ev.budget : Number(g.treasury) < 0;
+  const pct = first ? Math.min(100, Math.round(ev.total / ev.budget * 100)) : 0;
+  const cost = first
+    ? `<b>${ev.total}</b> ${esc(L("of"))} ${ev.budget} ${esc(L("obols"))}<span class="bd-meter" aria-hidden="true"><span style="width:${pct}%"></span></span>`
+    : `<span class="bd-bar-lbl">${esc(L("treasury"))}</span> <b>${Number(g.treasury) || 0}</b> ${esc(L("obols"))}`;
+  const n = ev.warnings.length;
+  return `
+    <section class="bd-bar" aria-label="${esc(L("summary"))}">
+      <span class="bd-bar-cost${over ? " over" : ""}">${cost}${over ? ` <strong class="bd-bar-over">${esc(L("overShort"))}</strong>` : ""}</span>
+      <span class="bd-bar-models"><b>${g.models.length}</b> <span class="bd-bar-lbl">${esc(L("modelsLabel"))}</span></span>
+      ${n
+        ? `<button type="button" class="bd-bar-warn" data-act="bar-warn" aria-label="${esc(`${n} ${L(n === 1 ? "warning" : "warnings")}: ${L("goFirstWarning")}`)}">${icon("triangle-alert")}<b>${n}</b></button>`
+        : `<span class="bd-bar-ok">${icon("check")}<span class="visually-hidden">${esc(L("noWarnings"))}</span></span>`}
+    </section>`;
 }
 
 function viewTabsHtml() {

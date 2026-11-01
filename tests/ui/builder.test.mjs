@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
-const PORT = 8765;
+const PORT = Number(process.env.NC_TEST_PORT) || 8765;   // NC_TEST_PORT: when another session holds 8765
 const URL_ = `http://localhost:${PORT}/`;
 const LINK = "c1;pl0,a1,tc2,tb6,sn0,sn3,sn1,sb3,sb1;pm4,a1,ewm8;pm3,a1,ewm1;pm1,a1,ewm4,ea0;pm1,a1,ewm4,ea0;pm5,a1,twu8,ewm8";
 
@@ -1315,6 +1315,42 @@ test("draft bar: sticky at 390px after scrolling, nav marker on and off, focus n
   assert.equal(await page.locator("nav.tabs .nav-dot").count(), 0);
   assert.equal(await page.isVisible(".bd-draft"), false);
 });
+
+test("summary bar: sticks at 390px after scrolling, follows edits, warning count jumps, hidden in print", async () => {
+  const { page, errors } = await open();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await importLink(page);
+  await page.evaluate(() => window.scrollTo(0, 1500));
+  await page.waitForTimeout(150);
+  const bar = page.locator(".bd-bar");
+  const box = await bar.boundingBox();
+  assert.ok(box.y >= -0.5 && box.y <= 1, "bar is at the top of the viewport");
+  assert.ok(box.height <= 48.5, "one compact row");
+  const text = await text_(bar);
+  assert.match(text, /345 of 300 obols/);
+  assert.match(await text_(bar.locator(".bd-bar-over")), /^Over$/);       // not colour alone
+  // The total follows an edit (Skeletal Husk is 50).
+  await choose(page, '[data-act="add-model"]', "minions/skeletal-husk");
+  assert.match(await text_(bar), /395 of 300 obols.*7 Models/);
+  // The warning count is a 44px button that lands on the first warning, clear of the bar.
+  const btn = bar.locator('[data-act="bar-warn"]');
+  const bb = await btn.boundingBox();
+  assert.ok(bb.height >= 43.5 && bb.width >= 43.5);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await btn.click();
+  await page.waitForTimeout(200);
+  const at = await page.evaluate(() => {
+    const a = document.activeElement, r = a.getBoundingClientRect();
+    return { warn: a.matches(".bd-warn, .bd-sum"), top: r.top, bar: document.querySelector(".bd-bar").getBoundingClientRect().bottom };
+  });
+  assert.ok(at.warn, "focus is on the warnings");
+  assert.ok(at.top >= at.bar - 1, "the warning is not under the bar");
+  // Print: no bar.
+  await page.emulateMedia({ media: "print" });
+  assert.equal(await bar.isVisible(), false);
+  assert.deepEqual(errors, []);
+});
+const text_ = async (loc) => ((await loc.textContent()) || "").replace(/\s+/g, " ").trim();
 
 test("types the covenant rules out are disabled with a reason, and the current type stays selectable", async () => {
   const { page, errors } = await open();
