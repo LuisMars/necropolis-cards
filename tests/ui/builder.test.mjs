@@ -1315,3 +1315,24 @@ test("draft bar: sticky at 390px after scrolling, nav marker on and off, focus n
   assert.equal(await page.locator("nav.tabs .nav-dot").count(), 0);
   assert.equal(await page.isVisible(".bd-draft"), false);
 });
+
+test("types the covenant rules out are disabled with a reason, and the current type stays selectable", async () => {
+  const { page, errors } = await open();
+  await importLink(page);                                  // Cairn-born: Bone models only
+  const opt = (sel, v) => page.locator(`${sel} option[value="${v}"]`);
+  const add = '[data-act="add-model"]';
+  assert.equal(await opt(add, "minions/corpse-husk").isDisabled(), true);
+  assert.equal(await opt(add, "minions/corpse-husk").getAttribute("data-reason"), "Cairn-born only allows Bone models");
+  assert.equal(await opt(add, "minions/skeletal-husk").isDisabled(), false);
+  // The themed popup shows the reason and marks the option unavailable.
+  await page.click(`${add} + .nc-select-trigger`);
+  const row = page.locator('.nc-select-option[aria-disabled="true"]', { hasText: "Corpse Husk" });
+  assert.match(await row.textContent(), /only allows Bone models/);
+  await page.keyboard.press("Escape");
+  // A model's own type select: same rule, but its current type is never disabled.
+  const uid = (await working(page)).models.find(m => m.profile === "minions/skeletal-husk").uid;
+  const sel = `[data-act="m-profile"][data-uid="${uid}"]`;
+  assert.equal(await opt(sel, "minions/corpse-husk").isDisabled(), true);
+  assert.equal(await opt(sel, "minions/skeletal-husk").isDisabled(), false);
+  assert.deepEqual(errors, []);
+});

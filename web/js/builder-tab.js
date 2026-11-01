@@ -27,12 +27,12 @@ import { $, escapeHtml, whenPointerFree } from "./util.js";
 import { pickField } from "./i18n.js";
 import { store, drafts } from "./gatherings.js";
 import { applyPayload, payloadCards } from "./import.js";
-import { evaluate, campaignStarted, AFFINITIES, allowedAffinities as allowedFor, forcedAffinity, applyForcedAffinities, lockMana } from "./builder/rules.js";
+import { evaluate, campaignStarted, AFFINITIES, allowedAffinities as allowedFor, forcedAffinity, covenantAllows, applyForcedAffinities, lockMana } from "./builder/rules.js";
 import { newGathering, newModel } from "./builder/gathering.js";
 import { toAppJson } from "./builder/appjson.js";
 import { linkUrl, defaultWeapon } from "./builder/codec.js";
 import { categoryOf, slug } from "./builder/catalog.js";
-import { describe, label, itemName, plural, fill } from "./builder/messages.js";
+import { describe, covenantReason, label, itemName, plural, fill } from "./builder/messages.js";
 import {
   buyGear, sellGear, discardGear, recruitPrice, recruit, record, stashGear, takeGear, channelBonuses, startingWeapon,
   weaponLocked, buyPrice, deployCosts, payDeployment,
@@ -195,6 +195,12 @@ const isLeaderKey = (key) => categoryOf(key) === "leaders";
 
 const allowedAffinities = (key) => allowedFor(catalog(), key);
 const forced = (g, key) => forcedAffinity(g, key, catalog());
+
+/** ` disabled data-reason="…"` for a type the covenant rules out, else "". `keep` stays selectable. */
+function covenantAttrs(g, key, keep) {
+  const code = key === keep ? null : covenantAllows(g, key, catalog());
+  return code ? ` disabled data-reason="${esc(covenantReason(code, catalog().covenant(g.covenant), catalog(), lang()))}"` : "";
+}
 
 /** A new model of type `key`, set up the way the rulebook starts it. */
 function addModel(g, key) {
@@ -867,7 +873,7 @@ function modelHtml(g, m, e, idx) {
   const typeName = itemName(catalog(), m.profile, lang());
   const profiles = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r => {
     const key = `${cat}/${slug(r.name)}`;
-    return `<option value="${esc(key)}"${key === m.profile ? " selected" : ""}>${esc(pickField(r, "name", lang()))}</option>`;
+    return `<option value="${esc(key)}"${key === m.profile ? " selected" : ""}${covenantAttrs(g, key, m.profile)}>${esc(pickField(r, "name", lang()))}</option>`;
   }).join("");
   // Short choices are visible radios, not a dropdown (PR #6). The options
   // still come from the model's rules, and the inputs keep the existing
@@ -1035,7 +1041,7 @@ function addModelHtml(g) {
   // The price includes the weapon a new model starts with (a beast's Claws and Fangs).
   const opts = (cat) => (catalog().bundle.categories[cat]?.rows || []).map(r => {
     const key = `${cat}/${slug(r.name)}`;
-    return `<option value="${esc(key)}">${esc(pickField(r, "name", lang()))} (${recruitPrice(campaignStarted(g) ? g : {}, catalog(), key)})</option>`;
+    return `<option value="${esc(key)}"${covenantAttrs(g, key)}>${esc(pickField(r, "name", lang()))} (${recruitPrice(campaignStarted(g) ? g : {}, catalog(), key)})</option>`;
   }).join("");
   return `
     <div class="bd-add-model">

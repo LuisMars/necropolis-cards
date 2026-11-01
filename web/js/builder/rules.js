@@ -32,6 +32,25 @@ export function forcedAffinity(gathering, key, catalog) {
   return locks.length === 1 && allowed.includes(locks[0]) ? locks[0] : null;
 }
 
+/**
+ * Whether a model of type `key` can belong to `gathering`'s covenant: null
+ * when it can, else a reason code ("covenant-keyword" or
+ * "covenant-leader-type", the same codes `evaluate` warns with). A type
+ * passes `keywords_any` when its fixed keywords, or an affinity it may take
+ * (Blood/Bone/Plasm are keywords), include one of them (p.17-23).
+ */
+export function covenantAllows(gathering, key, catalog) {
+  const cov = catalog.covenant(gathering?.covenant);
+  if (!cov) return null;
+  if (categoryOf(key) === "leaders" && cov.leader_types && !cov.leader_types.includes(key)) return "covenant-leader-type";
+  if (cov.keywords_any) {
+    const has = new Set([...(catalog.profileRules(key).keywords || (categoryOf(key) === "leaders" ? ["Leader"] : [])),
+      ...allowedAffinities(catalog, key).map(a => a.charAt(0).toUpperCase() + a.slice(1))]);
+    if (!cov.keywords_any.some(k => has.has(k))) return "covenant-keyword";
+  }
+  return null;
+}
+
 /** Set every forced affinity on `gathering` (in place). True if any changed. */
 export function applyForcedAffinities(gathering, catalog) {
   let changed = false;

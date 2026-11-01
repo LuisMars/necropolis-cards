@@ -651,6 +651,18 @@ function keyword(k, lang) {
 
 const list = (xs, lang) => xs.join(lang === "es" ? " o " : " or ");
 
+/** Why `covenantAllows` refused a type, as a short line for a disabled option. */
+export function covenantReason(code, cov, catalog, lang = "en") {
+  const es = lang === "es";
+  const name = itemName(catalog, cov.key, lang);
+  if (code === "covenant-leader-type") {
+    const t = list((cov.leader_types || []).map(k => itemName(catalog, k, lang)), lang);
+    return es ? `${name}: el líder debe ser ${t}` : `${name} needs a ${t} leader`;
+  }
+  const k = list((cov.keywords_any || []).map(x => keyword(x, lang)), lang);
+  return es ? `${name} solo admite miniaturas con ${k}` : `${name} only allows ${k} models`;
+}
+
 /**
  * A warning from rules.js as one sentence.
  * @param {{code, item?, params?}} w
