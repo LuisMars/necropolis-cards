@@ -338,6 +338,15 @@ function onClick(e) {
   if (campaignAct(act, el, g)) return;
   switch (act) {
     case "m-pick":     openPicker(uid, list, el.dataset.fid); break;
+    case "m-mana": {   // the − / + steppers: 0 to 9, a click at the end changes nothing
+      const { aff, by } = el.dataset;
+      edit(g => {
+        const m = findModel(g, uid);
+        const n = Math.min(9, Math.max(0, (Number(m.mana?.[aff]) || 0) + Number(by)));
+        m.mana = { ...m.mana, [aff]: n };
+      }, act);
+      break;
+    }
     case "m-del-item": {
       const m = findModel(g, uid);
       // A beast's last weapon stays (its ✕ isn't drawn).
@@ -841,7 +850,7 @@ function modelHtml(g, m, e, idx) {
     lists = [list(L("armaments"), `<span class="bd-prose">${esc(String(pickField(swRow, "armaments", lang()) || "—"))}</span>`)];
   } else {
     lists = ADD_LISTS.filter(l => leader || !l.leader).map(l => l.list === "mana"
-      ? list(L("mana"), manaHtml(m), inline("mana"))
+      ? list(L("mana"), manaHtml(m, e.mana), inline("mana"))
       : list(L(l.list), chipsHtml(m, l.list, g), inline(l.list) + addButtonHtml(m, l)));
   }
 
@@ -947,12 +956,22 @@ function pickerAdd(g, uid, value) {
   else if (list && key) addItem(g, findModel(g, uid), list, key);
 }
 
-function manaHtml(m) {
+function manaHtml(m, allowed) {
   const uid = esc(m.uid);
-  return `<span class="bd-mana">` + AFFINITIES.map(a => `
-    <label class="aff-${a}">${esc(L(a))}
-      <input type="number" min="0" max="9" data-act="m-mana" data-uid="${uid}" data-aff="${a}" data-fid="${uid}-mana-${a}" value="${Number(m.mana?.[a]) || 0}">
-    </label>`).join("") + `</span>`;
+  const split = AFFINITIES.reduce((n, a) => n + (Number(m.mana?.[a]) || 0), 0);
+  const left = allowed - split;
+  const step = (a, by, v) => {
+    const off = by < 0 ? v <= 0 : v >= 9;
+    return `<button type="button" class="bd-step" data-act="m-mana" data-uid="${uid}" data-aff="${a}" data-by="${by}" ` +
+      `data-fid="${uid}-mana-${a}${by < 0 ? "-dec" : "-inc"}" aria-label="${esc(L(by < 0 ? "manaLess" : "manaMore").replace("{k}", L(a)))}"` +
+      `${off ? ' aria-disabled="true"' : ""}>${icon(by < 0 ? "minus" : "plus")}</button>`;
+  };
+  return `<span class="bd-mana">` + AFFINITIES.map(a => {
+    const v = Number(m.mana?.[a]) || 0;
+    return `<span class="bd-mana-row aff-${a}"><span class="bd-mana-name">${esc(L(a))}</span>` +
+      `${step(a, -1, v)}<output class="bd-mana-n" data-aff="${a}">${v}</output>${step(a, 1, v)}</span>`;
+  }).join("") +
+    `<span class="bd-mana-left${left ? " off" : ""}" role="status">${esc(L(left >= 0 ? "manaLeft" : "manaOver").replace("{n}", Math.abs(left)).replace("{total}", allowed))}</span></span>`;
 }
 
 function addModelHtml(g) {

@@ -448,7 +448,18 @@
   }
   #bd-body .bd-add-btn:hover{background:var(--nc-hover);border-style:solid;color:var(--nc-bone)}
   .bd-model-foot{margin-top:10px}
-  .bd-list .bd-mana{gap:6px 12px}
+  .bd-list .bd-mana{display:flex;flex-direction:column;align-items:stretch;gap:2px}
+  .bd-mana-row{display:flex;align-items:center;gap:6px}
+  .bd-mana-name{flex:1 1 auto;font:700 15px 'Alegreya SC',Georgia,serif;color:var(--nc-secondary)}
+  .bd-mana-n{min-width:1.6em;text-align:center;font:700 20px 'Alegreya',Georgia,serif;color:var(--nc-bone);font-variant-numeric:tabular-nums lining-nums}
+  #bd-body .bd-step{
+    min-width:var(--nc-target);min-height:var(--nc-target);padding:0;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--nc-raised);color:var(--nc-bone);border:1px solid var(--nc-line);border-radius:3px;
+  }
+  #bd-body .bd-step[aria-disabled="true"]{opacity:.4;cursor:default}
+  .bd-mana-left{margin-top:4px;font-size:15px;color:var(--nc-secondary);font-variant-numeric:tabular-nums}
+  .bd-mana-left.off{color:var(--nc-warning)}
   .bd-gear-stash{margin-top:14px}
   .bd-gear-stash .bd-hint{margin:0 0 6px}
   @media (max-width:540px){

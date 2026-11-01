@@ -1204,11 +1204,19 @@ test("a keyword the covenant forces is plain text, and changing type keeps it", 
   assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Bone/);
   assert.equal(await page.locator("#bd-model-m2 .bd-affinity-forced .aff-bone").count(), 1);
   // The leader's mana starts in the locked keyword, and stays editable.
-  assert.equal(await page.inputValue('#bd-model-m1 [data-act="m-mana"][data-aff="bone"]'), "4");
-  await choose(page, '#bd-model-m1 [data-act="m-mana"][data-aff="bone"]', "2");
-  await choose(page, '#bd-model-m1 [data-act="m-mana"][data-aff="plasm"]', "2");
-  assert.equal(await page.inputValue('#bd-model-m1 [data-act="m-mana"][data-aff="bone"]'), "2");
-  assert.equal(await page.inputValue('#bd-model-m1 [data-act="m-mana"][data-aff="plasm"]'), "2");
+  const mana = (a) => page.textContent(`#bd-model-m1 .bd-mana-n[data-aff="${a}"]`);
+  const step = (a, by) => page.click(`#bd-model-m1 [data-act="m-mana"][data-aff="${a}"][data-by="${by}"]`);
+  assert.equal(await mana("bone"), "4");
+  assert.match(await text(page, "#bd-model-m1 .bd-mana-left"), /0 of 4 left/);
+  await step("bone", -1); await step("bone", -1);
+  assert.equal(await mana("bone"), "2");
+  assert.match(await text(page, "#bd-model-m1 .bd-mana-left"), /2 of 4 left/);
+  await step("plasm", 1); await step("plasm", 1);
+  assert.equal(await mana("bone"), "2");
+  assert.equal(await mana("plasm"), "2");
+  // Focus survives the redraw, and the label names the keyword.
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.fid), "m1-mana-plasm-inc");
+  assert.equal(await page.getAttribute('#bd-model-m1 [data-fid="m1-mana-plasm-inc"]', "aria-label"), "More Plasm mana");
   // Changing a minion's type keeps the forced keyword; a Ghast Husk is Plasm.
   await choose(page, '#bd-model-m2 [data-act="m-profile"]', "minions/skeletal-husk");
   assert.match(await text(page, "#bd-model-m2 .bd-affinity-forced"), /Bone/);
