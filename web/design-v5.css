@@ -454,7 +454,7 @@
   .bd-gear-stash{margin-top:14px}
   .bd-gear-stash .bd-hint{margin:0 0 6px}
   @media (max-width:540px){
-    .bd-lists{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px}
+    .bd-lists{grid-template-columns:1fr;gap:8px}
     #bd-body .bd-model .bd-list{padding:7px 8px 8px}
   }
 
