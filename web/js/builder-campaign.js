@@ -26,6 +26,7 @@ import {
   setDeploymentBase, today, deployCosts,
 } from "./builder/campaign.js";
 import { maladiesOf } from "./builder/ledger.js";
+import { summary } from "./builder-picker.js";
 
 const esc = escapeHtml;
 const lang = () => state.lang || "en";
@@ -391,15 +392,45 @@ function ambitionsPanel(g) {
       ${completedAmbitionsHtml(g)}` };
 }
 
+/** Treasure and stash rows whose rules are showing: interface state only,
+ *  never in the gathering or a draft. */
+const openTreasures = new Set();
+export function toggleTreasure(id) { if (!openTreasures.delete(id)) openTreasures.add(id); }
+
 function treasuresPanel(g) {
   const dests = (from) => [`<option value="">${esc(L("moveTo"))}</option>`,
     ...(from ? [`<option value="stash">${esc(L("stash"))}</option>`] : []),
     ...g.models.filter(m => m.uid !== from).map(m => `<option value="${esc(m.uid)}">${esc(modelTitle(m))}</option>`)].join("");
+  // Each item can open its rules. The open set is interface state, kept by
+  // holder, key and which copy of that key it is (two Scrolls stay apart).
+  const seen = new Map();
+  const openId = (holder, key) => {
+    const base = `${holder}|${key}`;
+    const n = seen.get(base) || 0;
+    seen.set(base, n + 1);
+    return `${base}|${n}`.replace(/[^\w|-]/g, "_");
+  };
+  const rulesHtml = (key, id) => {
+    const r = catalog().row(key) || {};
+    const f = (k) => { const v = String(pickField(r, k, lang()) ?? "").trim(); return v === "—" || v === "-" ? "" : v; };
+    const [line, rules] = summary(key, r);
+    const parts = [f("cost"), line].filter(Boolean).map(t => `<p class="bd-tr-line">${esc(t)}</p>`);
+    if (rules) parts.push(`<p class="bd-tr-text">${esc(rules)}</p>`);
+    if (!rules && f("flavor")) parts.push(`<p class="bd-tr-text"><i>${esc(f("flavor"))}</i></p>`);
+    return `<div class="bd-tr-rules" id="tr-${id}-r"${openTreasures.has(id) ? "" : " hidden"}>${parts.join("")}</div>`;
+  };
+  const head = (key, id, tag) => {
+    const open = openTreasures.has(id);
+    return `<div class="bd-tr-head"><button type="button" class="bd-tr-toggle" data-act="t-open" data-tid="${id}" data-fid="tr-${id}" ` +
+      `aria-expanded="${open}" aria-controls="tr-${id}-r">${icon(open ? "chevron-down" : "chevron-right")}<span>${esc(name(key))}</span></button> <small>${esc(tag)}</small></div>`;
+  };
   const chip = (key, idx, from) => {
     const kind = treasureKind(catalog(), key);
-    return `<span class="bd-item">${esc(name(key))} <small>${esc(L(kind === "greater" ? "greaterT" : "minorT"))}</small>
-      <select data-act="t-move" data-from="${esc(from || "")}" data-i="${idx}" aria-label="${esc(L("moveTo"))}">${dests(from)}</select>
-      <button type="button" data-act="t-del" data-from="${esc(from || "")}" data-i="${idx}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button></span>`;
+    const id = openId(from || "stash", key);
+    return `<div class="bd-item bd-tr">${head(key, id, L(kind === "greater" ? "greaterT" : "minorT"))}
+      <div class="bd-tr-act"><select data-act="t-move" data-from="${esc(from || "")}" data-i="${idx}" aria-label="${esc(L("moveTo"))}">${dests(from)}</select>
+      <button type="button" data-act="t-del" data-from="${esc(from || "")}" data-i="${idx}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button></div>
+      ${rulesHtml(key, id)}</div>`;
   };
   // Who holds treasures, the stash first: only those holding any.
   const shownHolders = [
@@ -415,10 +446,12 @@ function treasuresPanel(g) {
     g.models.filter(m => !m.profile.startsWith("sellswords/")).map(m => `<option value="${esc(m.uid)}">${esc(modelTitle(m))}</option>`).join("") + `</select>`;
   const gear = (g.gearStash || []).map((e, n) => {
     const sells = sellValue(catalog(), e.key) > 0;
-    return `<span class="bd-item">${esc(name(e.key))} <small>${esc(L(e.list))}</small>
-      ${givers(n, e.list)}
-      ${sells ? `<button type="button" class="bd-sell" data-act="g-sell" data-i="${n}">${esc(L("sell"))} +${sellValue(catalog(), e.key)}</button>` : ""}
-      <button type="button" data-act="g-discard" data-i="${n}" title="${esc(L("discard"))}" aria-label="${esc(L("discard"))} ${esc(name(e.key))}">${icon("x")}</button></span>`;
+    const id = openId("gear", e.key);
+    return `<div class="bd-item bd-tr">${head(e.key, id, L(e.list))}
+      <div class="bd-tr-act bd-tr-gear">${givers(n, e.list)}
+      ${sells ? `<button type="button" class="bd-sell" data-act="g-sell" data-i="${n}">${esc(L("sell"))} +${sellValue(catalog(), e.key)}</button>` : "<span></span>"}
+      <button type="button" data-act="g-discard" data-i="${n}" title="${esc(L("discard"))}" aria-label="${esc(L("discard"))} ${esc(name(e.key))}">${icon("x")}</button></div>
+      ${rulesHtml(e.key, id)}</div>`;
   }).join("");
   const gearHtml = `
       <div class="bd-list bd-gear-stash"><h4>${esc(L("gearStash"))}</h4>
@@ -429,7 +462,7 @@ function treasuresPanel(g) {
         <div class="bd-list"><h4>${esc(title)}</h4>
           <div class="bd-items">${list.map((k, n) => chip(k, n, uid)).join("")}</div></div>`).join("")
         : `<p class="bd-hint">${esc(L("noTreasures"))}</p>`}
-      <div class="bd-inline">
+      <div class="bd-inline bd-tr-add">
         <select data-act="t-add" data-fid="c-tadd" aria-label="${esc(L("addTreasure"))}"><option value="">${esc(L("addTreasure"))}</option>${all}</select>
         <button type="button" class="secondary" data-act="t-roll" data-kind="minor" data-manual="1">${icon("dices")} ${esc(L("rollMinorTreasure"))}</button>
         <button type="button" class="secondary" data-act="t-roll" data-kind="greater" data-manual="1">${icon("dices")} ${esc(L("rollGreaterTreasure"))}</button>

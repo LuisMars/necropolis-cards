@@ -39,7 +39,7 @@ import {
 } from "./builder/campaign.js";
 import { isFolded, setFolded, forgetFolds } from "./builder-fold.js";
 import { initPicker, openPicker, openRemove, openChoice, refreshPicker, stashable } from "./builder-picker.js";
-import { campaignHtml, campaignChange, campaignClick, setFold, setNotice, failText } from "./builder-campaign.js";
+import { campaignHtml, campaignChange, campaignClick, setFold, toggleTreasure, setNotice, failText } from "./builder-campaign.js";
 import { afterBattleHtml, afterBattleChange, afterBattleClick, syncRequired } from "./builder-afterbattle.js";
 
 const $pick   = $("bd-pick");
@@ -348,6 +348,7 @@ function onClick(e) {
     case "new":     $newBtn.click(); return;
     case "view":    goView(el.dataset.view); return;
     case "fold":    setFolded(uid, el.dataset.sec, el.getAttribute("aria-expanded") === "true"); renderBuilder(); return;
+    case "t-open":  toggleTreasure(el.dataset.tid); renderBuilder(); return;
     case "import":  $importBtn.click(); return;
     case "open-queue": hooks.navigate?.("cards/queue"); return;
     case "save":    store.save(drafts.get(g.id)); drafts.remove(g.id); status = esc(L("saved")); renderBuilder(); return;

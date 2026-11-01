@@ -72,11 +72,11 @@ export function addGroups(list, leader) {
 }
 
 /** The few facts a player picks by, from the card row: kept to one line. */
-function summary(key, r) {
+export function summary(key, r) {
   const f = (k) => { const v = String(pickField(r, k, lang()) ?? "").trim(); return v === "—" || v === "-" ? "" : v; };
   const cat = key.split("/")[0];
   const bits = [];
-  if (cat.endsWith("-weapons")) {
+  if (cat.endsWith("-weapons") || cat === "throwing-pots") {
     if (f("attacks")) bits.push(`${L("attacksShort")} ${f("attacks")}`);
     if (f("damage")) bits.push(`${L("damageShort")} ${f("damage").replace(/\s+/g, "")}`);
     if (f("range")) bits.push(`${L("rangeShort")} ${f("range")}"`);
