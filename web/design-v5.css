@@ -449,12 +449,12 @@
   .bd-mana-row{display:flex;align-items:center;gap:6px}
   .bd-mana-name{flex:1 1 auto;font:700 15px 'Alegreya SC',Georgia,serif;color:var(--nc-secondary)}
   .bd-mana-n{min-width:1.6em;text-align:center;font:700 20px 'Alegreya',Georgia,serif;color:var(--nc-bone);font-variant-numeric:tabular-nums lining-nums}
-  #bd-body .bd-step{
+  #bd-body button.bd-step{
     min-width:var(--nc-target);min-height:var(--nc-target);padding:0;
     display:inline-flex;align-items:center;justify-content:center;
     background:var(--nc-raised);color:var(--nc-bone);border:1px solid var(--nc-line);border-radius:3px;
   }
-  #bd-body .bd-step[aria-disabled="true"]{opacity:.4;cursor:default}
+  #bd-body button.bd-step[aria-disabled="true"]{opacity:.4;cursor:default}
   .bd-mana-left{margin-top:4px;font-size:15px;color:var(--nc-secondary);font-variant-numeric:tabular-nums}
   .bd-mana-left.off{color:var(--nc-warning)}
   .bd-gear-stash{margin-top:14px}
@@ -598,8 +598,8 @@
   }
   .bd-nav-model:hover{background:var(--nc-hover)}
   .bd-nav-model[aria-current="true"]{background:var(--nc-raised);border-color:var(--nc-line)}
-  .bd-nav-name{font:400 20px/1.2 var(--gothic);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;grid-column:1}
-  .bd-nav-type{grid-column:1;grid-row:2;font-size:14px;color:var(--nc-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bd-nav-name{font:400 20px/1.2 var(--gothic);overflow-wrap:anywhere;grid-column:1}
+  .bd-nav-type{grid-column:1;grid-row:2;font-size:14px;color:var(--nc-secondary);overflow-wrap:anywhere}
   .bd-nav-cost{grid-column:2;grid-row:1;font-size:15px;color:var(--nc-secondary);font-variant-numeric:lining-nums tabular-nums}
   .bd-nav-warn{grid-column:3;grid-row:1;display:inline-flex;align-items:center;gap:2px;font-size:14px;color:var(--nc-warning)}
   .bd-nav-warn .bd-nav-n{color:var(--nc-bone)}
@@ -923,6 +923,9 @@
   .bd-draft button.link{padding:4px 8px}
   .bd-ghead .bd-lair-tools > button.link{padding:0 8px}
   .lib-tile .add,.lib-tile .printed-toggle{min-height:44px;min-width:44px}
+  /* Model cards: Add buttons, the chips' remove x and the share menu are touch targets too. */
+  #bd-body .bd-add-btn,.bd-share-menu button.link{min-height:44px}
+  .bd-item button,.bd-src button{min-width:44px;min-height:44px}
 }
 
 @media screen {
@@ -1086,19 +1089,24 @@
   #bd-body .bd-tr .bd-tr-toggle{font-size:16px;color:var(--nc-bone)}
   #bd-body .bd-tr .bd-tr-toggle .nc-icon{width:18px;height:18px;margin:0;vertical-align:baseline;color:var(--nc-secondary)}
   .bd-tr-toggle span{min-width:0;overflow-wrap:anywhere}
-  .bd-tr-act{display:grid;grid-template-columns:240px 44px;gap:6px;align-items:center;justify-content:end}
-  .bd-tr-act.bd-tr-gear{grid-template-columns:240px 88px 44px}
+  /* One column grid for both lists, so Move to and Give to line up and Sell has its own column. */
+  .bd-tr-act{display:grid;grid-template-columns:240px 96px 44px;gap:6px;align-items:center;justify-content:end}
+  .bd-tr-act:not(.bd-tr-gear) > button{grid-column:3}
+  .bd-tr-add > :is(select:not(.nc-select-src),.nc-select){width:240px}
   .bd-tr-act > :is(select:not(.nc-select-src),.nc-select){width:100%;min-width:0;margin:0}
   .bd-tr-act > button{min-width:44px;min-height:44px;margin:0;padding:0 6px}
-  .bd-tr-act .bd-sell{text-align:center;white-space:nowrap}
+  .bd-tr-act .bd-sell{text-align:center;white-space:nowrap;min-height:44px;padding:0 8px;border:1px solid var(--nc-line-soft);border-radius:3px;text-decoration:none;color:var(--nc-secondary);background:transparent}
+  .bd-tr-act .bd-sell:hover{background:var(--nc-hover)}
   .bd-tr-rules{grid-column:1 / -1;margin:0 0 4px 24px;padding-left:10px;border-left:2px solid var(--nc-line-soft)}
   .bd-tr-rules p{margin:2px 0;font-size:15px;line-height:1.4;white-space:pre-line;color:var(--nc-bone)}
   .bd-tr-rules .bd-tr-line{color:var(--nc-secondary)}
   .bd-tr-rules[hidden]{display:none}
   @media (max-width:540px){
     #bd-body .bd-items .bd-item.bd-tr{grid-template-columns:minmax(0,1fr)}
-    .bd-tr-act,.bd-tr-act.bd-tr-gear{grid-template-columns:minmax(0,1fr) 44px;width:100%}
-    .bd-tr-act.bd-tr-gear{grid-template-columns:minmax(0,1fr) 84px 44px}
+    .bd-tr-act{grid-template-columns:minmax(0,1fr) 44px;width:100%}
+    .bd-tr-act:not(.bd-tr-gear) > button{grid-column:2}
+    .bd-tr-act.bd-tr-gear{grid-template-columns:minmax(0,1fr) minmax(88px,auto) 44px;width:100%}
+    .bd-tr-add > :is(select:not(.nc-select-src),.nc-select){width:100%}
     .bd-tr-toggle{min-height:var(--nc-target)}
     .bd-tr-rules{margin-left:12px}
     .bd-tr-add{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}

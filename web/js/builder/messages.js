@@ -275,7 +275,7 @@ const UI = {
   footerNotice:   ["Not affiliated with or endorsed by Owl Shield Games. No commercial use. Card layouts and rules may change as the rulebook is finalised.",
                    "Sin relación ni respaldo de Owl Shield Games. Sin uso comercial. El diseño de las cartas y las reglas pueden cambiar hasta la versión final del reglamento."],
   // Library
-  libFilter:      ["Filter by name…", "Filtrar por nombre…"],
+  libFilter:      ["Filter by name…", "Filtrar…"],
   libAllCats:     ["All categories", "Todas las categorías"],
   libCount:       ["{n} card|{n} cards", "{n} carta|{n} cartas"],
   libInQueue:     ["{n} in the queue", "{n} en la cola"],

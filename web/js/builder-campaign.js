@@ -365,10 +365,10 @@ function ambitionsPanel(g) {
     return `
       <div class="bd-amb${done ? " done" : ""}">
         <div class="bd-amb-head">
-          <b>${esc(name(key))}</b> <small>${esc(pickField(r, "restrictions", lang()) || "")}</small>
+          <b>${esc(name(key))}</b>${doneMark(g, key)} <small>${esc(pickField(r, "restrictions", lang()) || "")}</small>
           <span class="spacer"></span>
           <button type="button" class="secondary" data-act="amb-tick" data-key="${esc(key)}" data-step="-1">−</button>
-          <span class="bd-prog">${prog} / ${goal}</span>${doneMark(g, key)}
+          <span class="bd-prog">${prog} / ${goal}</span>
           <button type="button" class="secondary" data-act="amb-tick" data-key="${esc(key)}" data-step="1">+</button>
           <button type="button" class="secondary" data-act="amb-drop" data-key="${esc(key)}" title="${esc(L("remove"))}" aria-label="${esc(L("remove"))}">${icon("x")}</button>
         </div>

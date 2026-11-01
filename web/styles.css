@@ -326,7 +326,7 @@ textarea.json-in { resize: vertical; }
 .wb-summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .wb-summary .wb-cov {
   font-family: var(--gothic); font-weight: 400; font-size: 24px; color: var(--text);
-  max-width: 42ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 42ch; overflow-wrap: anywhere;
 }
 .wb-summary .wb-empty { color: var(--muted); font-size: 14px; }
 .wb-summary .wb-empty strong { color: var(--text); }

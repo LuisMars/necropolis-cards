@@ -34,7 +34,7 @@
     font-variant-numeric:lining-nums tabular-nums;
     text-align:left; cursor:pointer; user-select:none; -webkit-user-select:none;
   }
-  .nc-select-value { flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .nc-select-value { flex:1 1 auto; min-width:0; overflow-wrap:anywhere }
   .nc-select-trigger[data-placeholder] .nc-select-value { color:var(--nc-secondary) }
   .nc-select-chevron {
     position:absolute; top:0; right:0; bottom:0; width:44px;
