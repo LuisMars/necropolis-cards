@@ -202,7 +202,7 @@
           <button class="link" type="button">Discard changes</button>
         </div>
         <p class="ds-note">Card text in Library tiles (<code>.lib-tile .preview</code>) and the Add picker (<code>.bd-pk-sum</code>) is shown in full: never line-clamped or ellipsised.</p>
-        <p class="ds-note">One primary action per task area: while a gathering has unsaved changes, Print drops to the secondary skin (<code>.print-btn.quiet</code>) so Save changes is the only primary. Rare or destructive actions (Import, Duplicate, Delete) live in a native <code>&lt;details class="lib-more"&gt;</code> menu opened by a <code>⋯</code> summary; Delete is tinted with <code>--nc-error</code>. Icon + text buttons centre on one line. A stepper (<code>− N +</code>) uses one skin for both buttons.</p>
+        <p class="ds-note">One primary action per task area: while a gathering has unsaved changes, Print drops to the secondary skin (<code>.print-btn.quiet</code>) so Save changes is the only primary. Rare or destructive actions (Import, Duplicate, Delete) live in a native <code>&lt;details class="lib-more"&gt;</code> menu opened by a <code>⋯</code> summary; Delete is tinted with <code>--nc-error</code>. The Library and the Print queue each use one: Library holds the backup actions (Export, Import, Copy backup; Import offers a file or pasted text), Print queue holds Mark this run as printed, Clear queue and the three layout options as real checkboxes; options that are on are also written beside the sheet summary. Icon + text buttons centre on one line. A stepper (<code>− N +</code>) uses one skin for both buttons.</p>
         <output id="ds-apply-output" class="ds-live" aria-live="polite"></output>
       </div>
       <div class="ds-specimen">
@@ -337,7 +337,7 @@
 
   <section class="ds-section" id="picker">
     <h2>06 · The "Add" picker</h2>
-    <p class="ds-description">Each list on a model card has its own <b>Add</b> button, opening one shared modal <code>&lt;dialog&gt;</code> (<code>web/js/builder-picker.js</code>): a search over name, kind and rules text, filter chips by kind, and the rows grouped as on the cards with cost and a short summary. A row that would break a rule says why (<code>data-reason</code>, the first new warning from the real rules engine) and still adds: the Builder warns, it never blocks. In a campaign, "From the stash (free)" comes before "Buy at the Markets". Adding keeps it open ("Added Blade."); Done closes it. Full screen on phones.</p>
+    <p class="ds-description">Each list on a model card has its own <b>Add</b> button, opening one shared modal <code>&lt;dialog&gt;</code> (<code>web/js/builder-picker.js</code>): a search over name, kind and rules text, filter chips by kind, and the rows grouped as on the cards with cost and a short summary. A row that would break a rule says why (<code>data-reason</code>, the first new warning from the real rules engine) and still adds: the Builder warns, it never blocks. In a campaign, "From the stash (free)" comes before "Buy at the Markets". Adding keeps it open ("Added Blade."); Done closes it. Full screen on phones. When every row would repeat the same reason (a list at its limit: "6 spells; it should have 5"), it is said once above the list (<code>.bd-picker-limit</code>) and the rows carry only reasons of their own.</p>
     <div class="ds-specimen">
       <div class="bd-picker ds-picker-static" role="presentation">
         <div class="bd-picker-box">
@@ -376,6 +376,7 @@
             <button type="button" class="bd-sell">Sell +5</button>
             <button type="button" aria-label="Discard Blade"><span data-icon="x"></span></button></span></div>
         </div>
+        <p class="ds-note">Stash and treasure rows share one column grid (select, Sell, remove) so Move to and Give to line up; Sell is a bordered 44px button, not a text link. Names and text wrap, never ellipsis, except in fields that cannot wrap (text inputs). The Completed mark of an ambition sits on its name line.</p>
         <p class="ds-note">Production: <code>web/js/builder-campaign.js</code>; the rules in <code>web/js/builder/campaign.js</code>. Taking gear off a model in a campaign asks: sell (weapons and armour, half price), keep in the stash, or (equipment) discard.</p>
       </div>
       <div class="ds-specimen">
