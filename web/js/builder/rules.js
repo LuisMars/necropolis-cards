@@ -14,6 +14,33 @@ import { categoryOf, matches, TRAIT_CATEGORIES, WEAPON_CATEGORIES } from "./cata
 import { ledgerOf } from "./ledger.js";
 
 export const AFFINITIES = ["blood", "bone", "plasm"];
+
+/** The affinities a model of type `key` may take. */
+export const allowedAffinities = (catalog, key) =>
+  categoryOf(key) === "leaders" ? AFFINITIES : (catalog.profileRules(key).affinity || AFFINITIES);
+
+/**
+ * The one affinity a model of type `key` must have in `gathering`, or null
+ * when it is a free choice: the type's sole allowed affinity first, else the
+ * covenant's single keyword lock if the type allows it.
+ */
+export function forcedAffinity(gathering, key, catalog) {
+  const allowed = allowedAffinities(catalog, key);
+  if (allowed.length === 1) return allowed[0];
+  const locks = (catalog.covenant(gathering?.covenant)?.keywords_any || [])
+    .map(k => k.toLowerCase()).filter(k => AFFINITIES.includes(k));
+  return locks.length === 1 && allowed.includes(locks[0]) ? locks[0] : null;
+}
+
+/** Set every forced affinity on `gathering` (in place). True if any changed. */
+export function applyForcedAffinities(gathering, catalog) {
+  let changed = false;
+  for (const m of gathering.models || []) {
+    const f = forcedAffinity(gathering, m.profile, catalog);
+    if (f && m.affinity !== f) { m.affinity = f; changed = true; }
+  }
+  return changed;
+}
 const STATS = ["ap", "move", "violence", "ranged", "hp"];
 const APPRENTICE = "covenant-wretched-traits/apprentice";
 
@@ -388,4 +415,31 @@ export function evaluate(gathering, catalog) {
     models, total, budget, deploymentLimit, fielded,
     warnings: [...warnings, ...models.flatMap(m => m.warnings)],
   };
+}
+
+/**
+ * Under a covenant that locks one affinity, give each leader's mana to that
+ * keyword (an editable default; the rulebook forces no split). Leaders with
+ * no mana set get the full allowance. With `topUp`, a leader whose mana is
+ * all in the lock keyword is raised or lowered to the allowance too. A split
+ * that uses another keyword, or a stored non-zero one without `topUp`, is
+ * left alone. In place; true if anything changed.
+ */
+export function lockMana(gathering, catalog, { topUp = false } = {}) {
+  const models = gathering.models || [];
+  if (!models.some(m => categoryOf(m.profile) === "leaders")) return false;
+  const ev = evaluate(gathering, catalog).models;
+  let changed = false;
+  models.forEach((m, i) => {
+    if (categoryOf(m.profile) !== "leaders") return;
+    const lock = forcedAffinity(gathering, m.profile, catalog);
+    if (!lock) return;
+    const total = AFFINITIES.reduce((n, a) => n + (Number(m.mana?.[a]) || 0), 0);
+    const inLock = AFFINITIES.every(a => a === lock || !(Number(m.mana?.[a]) || 0));
+    const allowed = ev[i]?.mana || 0;
+    if (!(total === 0 || (topUp && inLock)) || total === allowed) return;
+    m.mana = allowed ? { [lock]: allowed } : {};
+    changed = true;
+  });
+  return changed;
 }

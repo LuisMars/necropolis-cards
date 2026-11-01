@@ -36,8 +36,8 @@ test("example gathering: costs and stats match the Companion App", () => {
 
 test("example gathering: only the real problems are flagged", () => {
   const { gathering } = decodeLink(EXAMPLE_LINK, catalog);
-  // 345 obols is over the 300 to build, and a link carries no mana split.
-  assert.deepEqual(codes(evaluate(gathering, catalog)), ["mana-split", "over-budget"]);
+  // 345 obols is over the 300 to build (the link carries no mana split, so the covenant lock prefills it).
+  assert.deepEqual(codes(evaluate(gathering, catalog)), ["over-budget"]);
 });
 
 test("a valid gathering has no warnings", () => {

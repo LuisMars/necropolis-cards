@@ -12,7 +12,7 @@
 import { normName } from "../matching.js";
 import { categoryOf, TRAIT_CATEGORIES } from "./catalog.js";
 import { newGathering, newModel } from "./gathering.js";
-import { evaluate, AFFINITIES } from "./rules.js";
+import { evaluate, AFFINITIES, applyForcedAffinities, lockMana } from "./rules.js";
 import { defaultWeapon } from "./codec.js";
 import { maladiesOf } from "./ledger.js";
 
@@ -90,6 +90,9 @@ export function fromAppJson(json, catalog) {
     g.models.push(m);
   }
 
+  applyForcedAffinities(g, catalog);
+
+
   // Our own export's gathering-level block: the gear stash (by key).
   for (const e of json.builder?.gearStash || []) {
     if (e && GEAR_LISTS.includes(e.list) && catalog.row(e.key)) g.gearStash.push({ key: e.key, list: e.list });
@@ -104,6 +107,7 @@ export function fromAppJson(json, catalog) {
       if (v) leader.mana[a] = v;
     }
   }
+  lockMana(g, catalog);
   return { gathering: g, unmatched };
 }
 

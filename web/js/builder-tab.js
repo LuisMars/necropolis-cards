@@ -27,7 +27,7 @@ import { $, escapeHtml, whenPointerFree } from "./util.js";
 import { pickField } from "./i18n.js";
 import { store, drafts } from "./gatherings.js";
 import { applyPayload } from "./import.js";
-import { evaluate, campaignStarted, AFFINITIES } from "./builder/rules.js";
+import { evaluate, campaignStarted, AFFINITIES, allowedAffinities as allowedFor, forcedAffinity, applyForcedAffinities, lockMana } from "./builder/rules.js";
 import { newGathering, newModel } from "./builder/gathering.js";
 import { toAppJson } from "./builder/appjson.js";
 import { linkUrl, defaultWeapon } from "./builder/codec.js";
@@ -64,7 +64,16 @@ const catalog = () => state.catalog;
 /** The gathering as the player sees it: its draft if there is one. */
 function working() {
   const cur = store.current();
-  return cur ? drafts.get(cur.id) || cur : null;
+  const g = cur ? drafts.get(cur.id) || cur : null;
+  // A stored model whose keyword is forced but unset or wrong is shown
+  // corrected (on a copy: nothing stored changes until the player edits).
+  if (g && catalog()) {
+    const fixed = structuredClone(g);
+    const a = applyForcedAffinities(fixed, catalog());
+    const b = lockMana(fixed, catalog());
+    if (a || b) return fixed;
+  }
+  return g;
 }
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 /** Does this gathering have changes that aren't saved? */
@@ -148,7 +157,10 @@ function edit(fn, act = "") {
   if (!cur) return;
   const g = structuredClone(cur);
   try {
+    const before = manaAllowances(g);
     fn(g);
+    // Covenant-locked mana follows the allowance, except while the player sets it.
+    if (act !== "m-mana") lockMana(g, catalog(), { topUp: manaAllowances(g) !== before });
   } catch (err) {
     setNotice(cur, failText(act, err));
     redraw();
@@ -158,29 +170,21 @@ function edit(fn, act = "") {
   keep(g);
   redraw();
 }
+/** Each leader's mana allowance, as a string to compare before and after an edit. */
+const manaAllowances = (g) => evaluate(g, catalog()).models.map(e => e.isLeader ? e.mana : "").join();
 const redraw = () => whenPointerFree(renderBuilder);
 
 const findModel = (g, uid) => g.models.find(m => m.uid === uid);
 const isLeaderKey = (key) => categoryOf(key) === "leaders";
 
-/** The one affinity a covenant locks its gathering to, or null. */
-function covenantLock(g) {
-  const cov = catalog().covenant(g.covenant);
-  const locks = (cov?.keywords_any || []).map(k => k.toLowerCase()).filter(k => AFFINITIES.includes(k));
-  return locks.length === 1 ? locks[0] : null;
-}
-
-function allowedAffinities(key) {
-  return isLeaderKey(key) ? AFFINITIES : (catalog().profileRules(key).affinity || AFFINITIES);
-}
+const allowedAffinities = (key) => allowedFor(catalog(), key);
+const forced = (g, key) => forcedAffinity(g, key, catalog());
 
 /** A new model of type `key`, set up the way the rulebook starts it. */
 function addModel(g, key) {
-  const allowed = allowedAffinities(key);
-  const lock = covenantLock(g);
   const m = newModel(g, {
     profile: key,
-    affinity: allowed.length === 1 ? allowed[0] : (lock && allowed.includes(lock) ? lock : null),
+    affinity: forced(g, key),
     weapons: [startingWeapon(catalog(), key)],
   });
   if (isLeaderKey(key)) {
@@ -204,8 +208,7 @@ function setCovenant(g, key) {
     if (cov?.leader_trait && !leader.traits.includes(cov.leader_trait)) leader.traits.unshift(cov.leader_trait);
   }
   // A covenant that locks the affinity sets it wherever the model allows it.
-  const lock = covenantLock(g);
-  if (lock) for (const m of g.models) if (allowedAffinities(m.profile).includes(lock)) m.affinity = lock;
+  applyForcedAffinities(g, catalog());
 }
 
 function changeProfile(g, m, key) {
@@ -213,7 +216,9 @@ function changeProfile(g, m, key) {
   const started = m.weapons.length === 1 ? startingWeapon(catalog(), m.profile) : null;
   m.profile = key;
   const allowed = allowedAffinities(key);
-  if (!allowed.includes(m.affinity)) m.affinity = allowed.length === 1 ? allowed[0] : null;
+  const force = forced(g, key);
+  if (force) m.affinity = force;
+  else if (!allowed.includes(m.affinity)) m.affinity = null;
   if (isLeaderKey(key) && !wasLeader) {
     if (!m.spells.includes("spells/summon")) m.spells.unshift("spells/summon");
     const cov = catalog().covenant(g.covenant);
@@ -308,7 +313,7 @@ function askDeployment(g, act, el) {
     choices: [{ how: "pay", text: fill(L("deployPay"), { n: total }) }, { how: "skip", text: L("deployNoPay") }],
     fid: el.dataset.fid,
     onPick: (how) => campaignAct(act, el, working(), how === "pay" ? (c) => payDeployment(c, catalog()) : null),
-  });
+  }, act);
 }
 
 function onClick(e) {
@@ -784,8 +789,12 @@ function modelHtml(g, m, e, idx) {
   // Short choices are visible radios, not a dropdown (PR #6). The options
   // still come from the model's rules, and the inputs keep the existing
   // data-act=m-aff change handler; arrow keys move between them natively.
+  const force = forced(g, m.profile);
   const affChoices = [null, ...allowedAffinities(m.profile)];
-  const affinityHtml = `<fieldset class="bd-affinity-control"><legend>${esc(L("affinity"))}</legend>` +
+  const affinityHtml = force
+    ? `<div class="bd-affinity-control bd-affinity-forced"><span class="bd-affinity-label">${esc(L("affinity"))}</span> ` +
+      `<span class="bd-affinity-option aff-${force}"><span>${esc(L(force))}</span></span></div>`
+    : `<fieldset class="bd-affinity-control"><legend>${esc(L("affinity"))}</legend>` +
     affChoices.map(a => {
       const val = a || "";
       const title = a ? L(a) : L("noAffinity");

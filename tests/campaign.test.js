@@ -170,3 +170,13 @@ test("purchases and sales are recorded, then handed to the next battle's log ent
   assert.equal(g.history.at(-1).transactions.length, 5);
   assert.deepEqual(g.campaign.transactions, []);
 });
+
+test("recruiting and hiring under a lock take the covenant keyword; a Ghast keeps Plasm", async () => {
+  const { recruit } = await import("../web/js/builder/campaign.js");
+  const { newGathering } = await import("../web/js/builder/gathering.js");
+  const g = newGathering({ covenant: "covenants/cairn-born" });
+  assert.equal(recruit(g, catalog, "minions/familiar").affinity, "bone");
+  assert.equal(recruit(g, catalog, "minions/ghast-husk").affinity, "plasm");
+  const free = newGathering({ covenant: "covenants/recusant-maleficar" });
+  assert.equal(recruit(free, catalog, "minions/familiar").affinity, null);
+});
