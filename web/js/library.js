@@ -355,3 +355,22 @@ function applyImportText(text) {
   onChangeCb?.();
   status(plural("invImported", count, lang()));
 }
+
+/* The filter bar sticks under the (sticky) header: its offset and height are
+ * published as CSS variables, so tiles keep focus clear of it (scroll-margin). */
+if (typeof ResizeObserver !== "undefined") {
+  const header = document.querySelector("header.app");
+  // Wide: the toolbar sticks; phone: only the filter row (see design-v5.css).
+  const bars = [document.querySelector(".lib-toolbar"), document.querySelector(".lib-filter")].filter(Boolean);
+  const root = document.documentElement.style;
+  const measure = () => {
+    const stuck = header && getComputedStyle(header).position === "sticky";
+    root.setProperty("--nc-header-h", stuck ? `${header.offsetHeight}px` : "0px");
+    const bar = bars.find(b => getComputedStyle(b).position === "sticky" && b.offsetHeight);
+    if (bar) root.setProperty("--lib-filter-h", `${bar.offsetHeight}px`);
+  };
+  const ro = new ResizeObserver(measure);
+  if (header) ro.observe(header);
+  bars.forEach(b => ro.observe(b));
+  measure();
+}

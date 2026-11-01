@@ -110,3 +110,37 @@ test("a queued card gets a - / N / + control that unqueues down to + Add", async
   assert.equal(await page.locator(".lib-tile").filter({ hasText: name.trim() }).first().locator(".queue-ctl").count(), 0);
   assert.equal(await page.locator(".lib-tile").filter({ hasText: name.trim() }).first().locator("button.add").isVisible(), true);
 });
+
+test("search and category stick to the top while scrolling; tiles still take clicks", async () => {
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const sameRow = await page.evaluate(() => {
+    const s = document.getElementById("lib-search").getBoundingClientRect();
+    const c = document.querySelector("#lib-category + .nc-select, #lib-category").getBoundingClientRect();
+    return Math.abs(s.top - c.top) < 2;
+  });
+  assert.equal(sameRow, true, "search and category share one row at phone width");
+  await page.evaluate(() => window.scrollTo(0, 3000));
+  await page.waitForTimeout(200);
+  const bar = await page.evaluate(() => {
+    const el = document.querySelector(".lib-filter"), b = el.getBoundingClientRect();
+    return { top: b.top, bottom: b.bottom, pos: getComputedStyle(el).position };
+  });
+  assert.equal(bar.pos, "sticky");
+  assert.ok(bar.top >= -1 && bar.top < 4, `bar top ${bar.top}`);
+  // A tile below the bar is hit-testable and queues on click.
+  const n0 = await page.locator(".lib-tile .queue-ctl").count();
+  const idx = await page.evaluate((bottom) => [...document.querySelectorAll(".lib-tile")].findIndex(t => {
+    const r = t.getBoundingClientRect();
+    return !t.querySelector(".queue-ctl") && r.top > bottom + 4 && r.bottom < innerHeight;
+  }), bar.bottom);
+  assert.ok(idx >= 0, "a tile is on screen under the bar");
+  const tile = page.locator(".lib-tile").nth(idx);
+  const box = await tile.boundingBox();
+  assert.ok(box.y > bar.bottom - 1, "the tile sits under the bar");
+  assert.equal(await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest(".lib-tile"), [box.x + 20, box.y + 40]), true);
+  await tile.locator("button.add").click();
+  assert.equal(await page.locator(".lib-tile .queue-ctl").count(), n0 + 1);
+  // Tiles skip off-screen rendering.
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".lib-tile")).contentVisibility), "auto");
+  await page.evaluate(() => window.scrollTo(0, 0));
+});

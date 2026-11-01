@@ -115,7 +115,7 @@ function renderQueue() {
     item.innerHTML = `
       <span class="cat">${escapeHtml(cat ? categoryTitle("cat", q.key, cat.title, lang()) : q.key)}</span>
       <span class="name" contenteditable="true" spellcheck="false" title="${escapeHtml(L("clickRename"))}">${escapeHtml(label)}</span>
-      <button title="${escapeHtml(L("editFields"))}" aria-label="${escapeHtml(L("editFields"))}" aria-expanded="${expanded}" class="edit-btn">${icon(expanded ? "chevron-up" : "chevron-down")}</button>
+      <button title="${escapeHtml(L("editFields"))}" aria-label="${escapeHtml(L("editFields"))}" aria-expanded="${expanded}" class="edit-btn">${icon("pencil")}</button>
       <button title="${escapeHtml(L("moveUp"))}" aria-label="${escapeHtml(L("moveUp"))}">${icon("arrow-up")}</button>
       <button title="${escapeHtml(L("moveDown"))}" aria-label="${escapeHtml(L("moveDown"))}">${icon("arrow-down")}</button>
       <button title="${escapeHtml(L("remove"))}" aria-label="${escapeHtml(L("remove"))}">${icon("x")}</button>`;
@@ -343,7 +343,8 @@ export function renderSheetsInto(wrap, list) {
 }
 
 /* On a phone the A4 preview is scaled to the column (screen only: the print
- * CSS never reads --sheet-zoom, so paper output is unchanged). */
+ * CSS never reads --sheet-zoom, so paper output is unchanged). The roster
+ * sheet (#wb-pages) uses it too. */
 const A4_PX = 210 * 96 / 25.4;
 function fitSheets(wrap) {
   const w = wrap.clientWidth;
@@ -351,7 +352,7 @@ function fitSheets(wrap) {
 }
 if (typeof ResizeObserver !== "undefined") {
   const ro = new ResizeObserver(entries => entries.forEach(e => fitSheets(e.target)));
-  for (const id of ["sheets-wrap", "roster-sheets"]) {
+  for (const id of ["sheets-wrap", "roster-sheets", "wb-pages"]) {
     const el = document.getElementById(id);
     if (el) ro.observe(el);
   }

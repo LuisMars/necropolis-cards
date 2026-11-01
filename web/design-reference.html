@@ -9,14 +9,11 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="design-v5.css">
 <link rel="stylesheet" href="design-palettes.css">
-<<<<<<< HEAD
 <link rel="stylesheet" href="select.css" media="screen">
-=======
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="theme-color" content="#101011">
->>>>>>> worktree-agent-ac6412338b1531b95
 <script src="js/design-palettes.js"></script>
   <style>
     /* Reference-page layout only. Production component rules live in design-v5.css. */
@@ -194,7 +191,7 @@
 
   <section class="ds-section" id="controls">
     <h2>04 · Controls</h2>
-    <p class="ds-description">Selects are themed dropdowns on fine pointers (<code>web/js/select.js</code>, a WAI-ARIA select-only combobox over the native <code>&lt;select&gt;</code>, which stays the source of truth) and the native picker, restyled, on touch. Long lists get a filter field. An option may carry <code>data-reason</code>: shown muted under it and announced as its description; it stays selectable. Affinities are visible radios. Icons are Lucide, from <code>web/js/lucide.js</code>.</p>
+    <p class="ds-description">Selects are themed dropdowns on every pointer (<code>web/js/select.js</code>, a WAI-ARIA select-only combobox over the native <code>&lt;select&gt;</code>, which stays the source of truth); at 540px and below the popup is a bottom sheet over a backdrop, with 44px options. Long lists get a filter field. An option may carry <code>data-reason</code>: shown muted under it and announced as its description; it stays selectable. Affinities are visible radios. Icons are Lucide, from <code>web/js/lucide.js</code>.</p>
     <div class="ds-grid">
       <div class="ds-specimen">
         <h3>Button hierarchy</h3>

@@ -162,8 +162,10 @@
       <div class="bd-views nav-local" role="group" data-local="cards"></div>
     </div>
     <div class="lib-toolbar">
-      <input type="text" id="lib-search" data-i18n-placeholder="libFilter" placeholder="Filter by name…">
-      <select id="lib-category"><option value="" data-i18n="libAllCats">All categories</option></select>
+      <div class="lib-filter">
+        <input type="text" id="lib-search" data-i18n-placeholder="libFilter" placeholder="Filter by name…">
+        <select id="lib-category"><option value="" data-i18n="libAllCats">All categories</option></select>
+      </div>
       <span style="color:var(--muted); font-size:11px;" id="lib-count"></span>
       <span class="spacer" style="flex:1;"></span>
       <details class="lib-more" id="lib-more">
@@ -174,7 +176,7 @@
           <button class="secondary" id="inv-export-file" data-i18n="invExportFile"><span data-icon="download"></span> Export file</button>
           <button class="secondary" id="inv-import-file" data-i18n="invImportFile"><span data-icon="upload"></span> Import file</button>
           <button class="secondary" id="inv-copy" data-i18n="invCopy"><span data-icon="copy"></span> Copy JSON</button>
-          <button class="secondary" id="inv-paste-toggle" data-i18n="invPaste">Paste JSON…</button>
+          <button class="secondary" id="inv-paste-toggle" data-i18n="invPaste"><span data-icon="clipboard"></span> Paste JSON…</button>
         </div>
       </details>
     </div>
