@@ -1777,6 +1777,12 @@ test("themed confirm: Delete cancels on Cancel, Esc and backdrop, deletes on the
   assert.ok(await askOpen(page));
   assert.equal(await page.textContent('dialog.nc-dialog[open] [data-nd="ok"]'), "Delete");
   assert.equal(await page.evaluate(() => document.activeElement.dataset.nd), "cancel", "destructive: Cancel has focus");
+  const ratio = await page.$eval('dialog.nc-dialog[open] [data-nd="ok"]', (el) => {
+    const lum = (c) => { const [r, g, b] = c.match(/[\d.]+/g).map(n => { n /= 255; return n <= .03928 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4; }); return .2126 * r + .7152 * g + .0722 * b; };
+    const st = getComputedStyle(el), [hi, lo] = [lum(st.color), lum(st.backgroundColor)].sort((x, y) => y - x);
+    return (hi + .05) / (lo + .05);
+  });
+  assert.ok(ratio >= 4.5, `danger button contrast ${ratio}`);
   await page.click('[data-nd="cancel"]');
   assert.equal(await count(), before);
   await page.click("#bd-more > summary").catch(() => {});

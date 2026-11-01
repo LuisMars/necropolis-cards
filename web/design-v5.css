@@ -1042,7 +1042,7 @@
   .nc-dialog-actions button{min-height:44px;min-width:44px}
   .nc-dialog-actions button[hidden]{display:none}
   @media (max-width:540px){.nc-dialog-actions button{flex:1}}
-  .nc-dialog-actions button.danger{color:var(--nc-error);border-color:var(--nc-error)}
+  .nc-dialog-actions button.danger,.nc-dialog-actions button.danger:hover{background:var(--nc-error);color:var(--nc-on-primary);border-color:var(--nc-error)}
 }
 @media print{dialog.settings-sheet,dialog.nc-dialog{display:none !important}}
 /* ==== Summary bar (own block) ====================================================
