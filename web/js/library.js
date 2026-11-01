@@ -50,6 +50,21 @@ export function initLibrary({ onChange }) {
   $cat.addEventListener("change", renderGrid);
   $addAll.addEventListener("click", addAllInView);
 
+  // "More" menu: a <details> that closes on acting on an item, on Escape and
+  // on a tap outside it.
+  const $more = $("lib-more");
+  $more.querySelector(".lib-more-panel").addEventListener("click", (e) => {
+    if (e.target.closest("button")) $more.open = false;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !$more.open) return;
+    $more.open = false;
+    $more.querySelector("summary").focus();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if ($more.open && !$more.contains(e.target)) $more.open = false;
+  });
+
   $invExportFile.addEventListener("click", exportToFile);
   $invCopy.addEventListener("click", copyToClipboard);
   $invImportFile.addEventListener("click", () => $invFileInput.click());

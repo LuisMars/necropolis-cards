@@ -719,3 +719,33 @@
   .nc-update[hidden]{display:none}
   .nc-update{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);padding:10px 14px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:14px}
 }
+
+/* === Library: More menu (a <details>, like Settings) === */
+@media screen {
+  .lib-more{position:relative;margin-left:auto}
+  .lib-more > summary{
+    list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    min-height:44px;box-sizing:border-box;padding:0 12px;border:1px solid var(--nc-line-soft);border-radius:3px;
+    color:var(--nc-secondary);font-family:'Alegreya SC',Georgia,serif;font-size:16px;font-weight:700;
+  }
+  .lib-more > summary::-webkit-details-marker{display:none}
+  .lib-more[open] > summary{background:var(--nc-hover);color:var(--nc-bone)}
+  @media (hover:hover){.lib-more > summary:hover{background:var(--nc-hover);color:var(--nc-bone)}}
+  .lib-more > summary:focus-visible{outline:2px solid var(--nc-bone);outline-offset:2px}
+  .lib-more .nav-chev{font-size:13px;line-height:1;transition:transform .12s ease}
+  .lib-more .nav-chev .nc-icon{width:15px;height:15px}
+  .lib-more[open] .nav-chev{transform:rotate(180deg)}
+  .lib-more-panel{
+    position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:220px;max-width:calc(100vw - 32px);
+    display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:8px;
+    background:var(--nc-surface);border:1px solid var(--nc-line);border-radius:3px;box-shadow:var(--nc-shadow);
+  }
+  .lib-more-panel button{min-height:44px;justify-content:flex-start;text-align:left}
+  .lib-more-panel .inv-label{
+    margin-top:6px;padding:6px 8px 2px;border-top:1px solid var(--nc-line-soft);
+    font-family:'Alegreya SC',Georgia,serif;font-size:15px;color:var(--nc-secondary);
+  }
+  p.inv-status{margin:0 0 10px;font-size:15px}
+  p.inv-status:empty{display:none}
+  p.inv-status.err{color:var(--nc-error)}
+}

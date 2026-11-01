@@ -149,17 +149,20 @@
       <select id="lib-category"><option value="" data-i18n="libAllCats">All categories</option></select>
       <span style="color:var(--muted); font-size:11px;" id="lib-count"></span>
       <span class="spacer" style="flex:1;"></span>
-      <button class="secondary" id="lib-add-all"><span data-icon="plus"></span> Add all in view</button>
+      <details class="lib-more" id="lib-more">
+        <summary><span id="lib-more-label" data-i18n="libMore">More</span><span class="nav-chev" data-icon="chevron-down"></span></summary>
+        <div class="lib-more-panel">
+          <button class="secondary" id="lib-add-all"><span data-icon="plus"></span> Add all in view</button>
+          <span class="inv-label" data-i18n="invLabel">Printed inventory:</span>
+          <button class="secondary" id="inv-export-file" data-i18n="invExportFile"><span data-icon="download"></span> Export file</button>
+          <button class="secondary" id="inv-import-file" data-i18n="invImportFile"><span data-icon="upload"></span> Import file</button>
+          <button class="secondary" id="inv-copy" data-i18n="invCopy"><span data-icon="copy"></span> Copy JSON</button>
+          <button class="secondary" id="inv-paste-toggle" data-i18n="invPaste">Paste JSON…</button>
+        </div>
+      </details>
     </div>
-    <div class="lib-inv-bar">
-      <span class="inv-label" data-i18n="invLabel">Printed inventory:</span>
-      <button class="secondary" id="inv-export-file" data-i18n="invExportFile"><span data-icon="download"></span> Export file</button>
-      <button class="secondary" id="inv-copy" data-i18n="invCopy"><span data-icon="copy"></span> Copy JSON</button>
-      <button class="secondary" id="inv-import-file" data-i18n="invImportFile"><span data-icon="upload"></span> Import file</button>
-      <button class="secondary" id="inv-paste-toggle" data-i18n="invPaste">Paste JSON…</button>
-      <input type="file" id="inv-file-input" accept="application/json,.json" hidden>
-      <span class="inv-status muted" id="inv-status"></span>
-    </div>
+    <input type="file" id="inv-file-input" accept="application/json,.json" hidden>
+    <p class="inv-status muted" id="inv-status" role="status" aria-live="polite"></p>
     <div class="lib-inv-paste" id="inv-paste-panel" hidden>
       <textarea id="inv-paste-area" data-i18n-placeholder="invPastePh" placeholder="Paste an exported inventory here, then choose Apply…"></textarea>
       <div class="inv-paste-actions">

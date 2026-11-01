@@ -261,6 +261,7 @@ const UI = {
   libAllCats:     ["All categories", "Todas las categorías"],
   libCount:       ["{n} card|{n} cards", "{n} carta|{n} cartas"],
   libInQueue:     ["{n} in the queue", "{n} en la cola"],
+  libMore:        ["More", "Más"],
   libAddAll:      ["Add all in view ({n})", "Añadir todas las visibles ({n})"],
   libQueued:      ["{n} queued", "{n} en la cola"],
   libAdd:         ["+ Add", "+ Añadir"],
